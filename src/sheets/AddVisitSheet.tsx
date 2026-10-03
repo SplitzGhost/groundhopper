@@ -97,7 +97,7 @@ export function AddVisitSheet() {
 
         {linked ? (
           <div className="card" style={{ padding: '12px 14px', color: 'var(--accent)', fontWeight: 600, fontSize: 14 }}>
-            ✓ Im Spielplan gefunden – Ergebnis und Stadion werden übernommen.
+            Im Spielplan gefunden – Ergebnis und Stadion werden übernommen.
           </div>
         ) : <>
           <div className="field">

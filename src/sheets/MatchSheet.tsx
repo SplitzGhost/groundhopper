@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Check, ChevronRight, Star, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, Flame, Star, Trash2 } from 'lucide-react'
 import type { Visit } from '../shared/types.ts'
 import { leagueByCode } from '../shared/leagues.ts'
 import { stadiumById } from '../lib/stadiums.ts'
@@ -18,7 +18,8 @@ import { useSheet } from '../components/sheetContext.ts'
 import { hasStarted } from '../lib/matchState.ts'
 import { Crest, PillButton } from '../components/ui.tsx'
 import { softSpring, spring } from '../lib/motion.ts'
-import { StadiumIcon } from '../components/icons.tsx'
+import { StadiumThumb } from '../components/StadiumThumb.tsx'
+import { Flag } from '../components/Flag.tsx'
 
 export function MatchSheet({ id }: { id: string }) {
   const matches = useMatches()
@@ -36,10 +37,10 @@ export function MatchSheet({ id }: { id: string }) {
   const derby = derbyOf(canonicalTeam(m.home.name, m.league), canonicalTeam(m.away.name, m.league))
 
   return (
-    <Sheet title={<>{league.flag} {league.name}{m.matchday ? <span className="muted" style={{ fontWeight: 600 }}> · {m.matchday}. Spieltag</span> : null}</>}>
+    <Sheet title={<span className="title-flag"><Flag code={league.countryCode} size={15} />{league.name}{m.matchday ? <span className="muted" style={{ fontWeight: 600 }}> · {m.matchday}. Spieltag</span> : null}</span>}>
       {derby && (
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
-          <span className="league-tag" style={{ background: 'rgba(255,149,0,.14)', color: '#e07800' }}>🔥 {derby.name}</span>
+          <span className="league-tag derby-tag"><Flame size={12} strokeWidth={2.6} /> {derby.name}</span>
         </div>
       )}
       <Versus
@@ -58,7 +59,7 @@ export function MatchSheet({ id }: { id: string }) {
       {stadium && (
         <button type="button" className="card inset list-row row-press pressable" style={{ width: 'calc(100% - 32px)' }}
           onClick={() => openSheet({ kind: 'stadium', id: stadium.id })}>
-          <span className="empty-icon" style={{ width: 40, height: 40, borderRadius: 12, margin: 0 }}><StadiumIcon size={22} /></span>
+          <StadiumThumb stadiumId={stadium.id} collected={data.visits.some((x) => x.stadiumId === stadium.id)} />
           <div className="row-main">
             <div className="row-title truncate">{stadium.name}</div>
             <div className="row-sub">{stadium.city}</div>
@@ -124,7 +125,7 @@ export function VisitSheet({ id }: { id: string }) {
       {stadium && (
         <button type="button" className="card inset list-row row-press pressable" style={{ width: 'calc(100% - 32px)' }}
           onClick={() => openSheet({ kind: 'stadium', id: stadium.id })}>
-          <span className="empty-icon" style={{ width: 40, height: 40, borderRadius: 12, margin: 0 }}><StadiumIcon size={22} /></span>
+          <StadiumThumb stadiumId={stadium.id} collected={data.visits.some((x) => x.stadiumId === stadium.id)} />
           <div className="row-main">
             <div className="row-title truncate">{stadium.name}</div>
             <div className="row-sub">{stadium.city}</div>

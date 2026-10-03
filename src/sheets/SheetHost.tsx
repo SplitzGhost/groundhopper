@@ -7,7 +7,6 @@ import { FilterSheet } from './FilterSheet.tsx'
 import { SearchSheet } from './SearchSheet.tsx'
 import { ProfileSheet } from './ProfileSheet.tsx'
 import { AddVisitSheet } from './AddVisitSheet.tsx'
-import { AlbumSheet } from './AlbumSheet.tsx'
 
 function Content({ spec }: { spec: SheetSpec }) {
   switch (spec.kind) {
@@ -18,7 +17,6 @@ function Content({ spec }: { spec: SheetSpec }) {
     case 'search': return <SearchSheet />
     case 'profile': return <ProfileSheet />
     case 'add': return <AddVisitSheet />
-    case 'album': return <AlbumSheet section={spec.section} />
   }
 }
 

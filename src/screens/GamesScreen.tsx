@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { ChevronUp, CircleUserRound, Plus, Search, X } from 'lucide-react'
+import { ChevronUp, Plus, Search, Star, X } from 'lucide-react'
 import type { LeagueCode, Match } from '../shared/types.ts'
 import { LEAGUES } from '../shared/leagues.ts'
 import { normalizeTeamName } from '../shared/teamMatch.ts'
@@ -15,6 +15,8 @@ import { ScreenScaffold } from '../components/ScreenScaffold.tsx'
 import { MatchRow, VisitRow } from '../components/MatchRow.tsx'
 import { hasStarted } from '../lib/matchState.ts'
 import { Chip, Empty, GlassButton, PillButton, Segmented } from '../components/ui.tsx'
+import { ProfileButton } from '../components/ProfileButton.tsx'
+import { Flag } from '../components/Flag.tsx'
 import { softSpring } from '../lib/motion.ts'
 import { BallIcon } from '../components/icons.tsx'
 
@@ -142,7 +144,7 @@ export function GamesScreen() {
       title="Spiele"
       actions={<>
         <GlassButton label="Spiel manuell eintragen" icon={<Plus size={22} strokeWidth={2.4} />} onClick={() => openSheet({ kind: 'add' })} />
-        <GlassButton label="Profil" icon={<CircleUserRound size={23} strokeWidth={2} />} onClick={() => openSheet({ kind: 'profile' })} />
+        <ProfileButton />
       </>}
     >
       <div style={{ padding: '0 16px 12px', display: 'grid', gap: 12 }}>
@@ -167,7 +169,7 @@ export function GamesScreen() {
         <Chip layoutId="games-league" on={league === 'all'} onClick={() => setLeague('all')}>Alle Ligen</Chip>
         {LEAGUES.map((l) => (
           <Chip key={l.code} layoutId="games-league" on={league === l.code} onClick={() => setLeague(l.code)}>
-            {l.flag} {l.name}
+            <Flag code={l.countryCode} size={11} /> {l.name}
           </Chip>
         ))}
       </div>
@@ -203,7 +205,7 @@ export function GamesScreen() {
 
         {mode === 'watch' && (
           watchMatches.length === 0 ? (
-            <Empty icon={<span style={{ fontSize: 30 }}>★</span>} title="Deine Merkliste ist leer"
+            <Empty icon={<Star size={30} strokeWidth={2} />} title="Deine Merkliste ist leer"
               text="Tippe im Spielplan bei kommenden Spielen auf den Stern. Gemerkte Spiele siehst du auch auf der Karte." />
           ) : <>
             {upcoming.length > 0 && <>

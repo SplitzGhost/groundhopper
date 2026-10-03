@@ -1,11 +1,12 @@
-// Oberflächenzustand: aktiver Tab, offene Sheets, Kartenfilter und Karten-Fokus.
+// Oberflächenzustand: aktiver Tab, offene Sheets, Sammelalbum, Kartenfilter und Karten-Fokus.
 
 import { useSyncExternalStore } from 'react'
 import type { LeagueCode } from '../shared/types.ts'
+import type { AlbumId } from '../lib/cards.ts'
 import { LEAGUE_CODES } from '../shared/leagues.ts'
 import { loadPref, savePref } from '../lib/storage.ts'
 
-function createStore<T>(initial: T) {
+export function createStore<T>(initial: T) {
   let value = initial
   const listeners = new Set<() => void>()
   const subscribe = (l: () => void) => {
@@ -37,7 +38,6 @@ export type SheetSpec =
   | { kind: 'search' }
   | { kind: 'profile' }
   | { kind: 'add' }
-  | { kind: 'album'; section: string }
 
 export interface OpenSheet {
   key: number
@@ -57,6 +57,29 @@ export function closeSheet(key?: number) {
 export function closeAllSheets() {
   sheetStore.set([])
 }
+
+// ---------- Sammelalbum ----------
+
+/** Aufgeschlagenes Album (Binder) und zuletzt angezeigte Seite */
+export const binderStore = createStore<{ album: AlbumId; page: number } | null>(null)
+export function openBinder(album: AlbumId, page = 0) {
+  binderStore.set({ album, page })
+}
+export function closeBinder() {
+  binderStore.set(null)
+}
+
+/** Vergrößert angezeigte Sammelkarte; `from` = layoutId der Ausgangskarte für den Flug */
+export const cardViewStore = createStore<{ cardId: string; from: string | null } | null>(null)
+export function openCard(cardId: string, from: string | null = null) {
+  cardViewStore.set({ cardId, from })
+}
+export function closeCard() {
+  cardViewStore.set(null)
+}
+
+/** Karte, deren Platz im Album während des Flugs leer bleibt */
+export const flyingCardStore = createStore<string | null>(null)
 
 // ---------- Kartenfilter ----------
 

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Check, Flag, Info, Shield, Star, Swords, Trophy } from 'lucide-react'
 import { dismissToast, useToast, type ToastIcon } from '../state/toast.ts'
 import { StadiumIcon } from './icons.tsx'
+import { tabStore } from '../state/ui.ts'
 
 const ICONS: Record<ToastIcon, ReactNode> = {
   stadium: <StadiumIcon size={20} />,
@@ -29,7 +30,11 @@ export function DynamicIsland({ appWidth }: { appWidth: number }) {
         <motion.div
           key="island"
           className="island"
-          onClick={dismissToast}
+          onClick={() => {
+            // Neue Karten: direkt ins Album
+            if (shown.kind === 'unlock') tabStore.set('album')
+            dismissToast()
+          }}
           initial={{ width: 124, height: 36, borderRadius: 20, opacity: 0.6, padding: '0px 0px' }}
           animate={{ width, height: 68, borderRadius: 36, opacity: 1, padding: '0px 18px 0px 15px' }}
           exit={{ width: 124, height: 36, borderRadius: 20, opacity: 0, padding: '0px 0px', transition: { type: 'spring', stiffness: 500, damping: 40 } }}

@@ -118,7 +118,6 @@ export interface Achievement {
   id: string
   title: string
   description: string
-  emoji: string
   target: number
   progress: (c: Partial_) => number
 }
@@ -150,25 +149,25 @@ const localHour = (iso: string) => {
 }
 
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first', title: 'Anpfiff', description: 'Dein erstes Spiel im Stadion', emoji: '⚽️', target: 1, progress: (c) => c.visits.length },
-  { id: 'ten', title: 'Zehnerkarte', description: '10 Spiele besucht', emoji: '🎟️', target: 10, progress: (c) => c.visits.length },
-  { id: 'fifty', title: 'Halbes Hundert', description: '50 Spiele besucht', emoji: '🏅', target: 50, progress: (c) => c.visits.length },
-  { id: 'grounds10', title: 'Groundhopper', description: '10 verschiedene Stadien', emoji: '🏟️', target: 10, progress: (c) => c.stadiums.size },
+  { id: 'first', title: 'Anpfiff', description: 'Dein erstes Spiel im Stadion', target: 1, progress: (c) => c.visits.length },
+  { id: 'ten', title: 'Zehnerkarte', description: '10 Spiele besucht', target: 10, progress: (c) => c.visits.length },
+  { id: 'fifty', title: 'Halbes Hundert', description: '50 Spiele besucht', target: 50, progress: (c) => c.visits.length },
+  { id: 'grounds10', title: 'Groundhopper', description: '10 verschiedene Stadien', target: 10, progress: (c) => c.stadiums.size },
   {
-    id: 'regular', title: 'Stammgast', description: '5-mal im selben Stadion', emoji: '🏠', target: 5,
+    id: 'regular', title: 'Stammgast', description: '5-mal im selben Stadion', target: 5,
     progress: (c) => Math.max(0, ...[...c.stadiums.values()].map((v) => v.length)),
   },
-  { id: 'goals', title: 'Torfestival', description: 'Ein Spiel mit 6 oder mehr Toren', emoji: '🎆', target: 1, progress: (c) => (c.visits.some((v) => totalGoals(v) >= 6) ? 1 : 0) },
-  { id: 'nil', title: 'Nullnummer', description: 'Ein 0:0 live erlebt', emoji: '🥶', target: 1, progress: (c) => (c.visits.some((v) => totalGoals(v) === 0) ? 1 : 0) },
-  { id: 'double', title: 'Doppelschicht', description: 'Zwei Spiele an einem Tag', emoji: '⚡️', target: 2, progress: (c) => maxGamesInWindow(c.visits, 1) },
-  { id: 'tour', title: 'Wochenend-Tour', description: '3 Spiele innerhalb von 3 Tagen', emoji: '🚆', target: 3, progress: (c) => maxGamesInWindow(c.visits, 3) },
+  { id: 'goals', title: 'Torfestival', description: 'Ein Spiel mit 6 oder mehr Toren', target: 1, progress: (c) => (c.visits.some((v) => totalGoals(v) >= 6) ? 1 : 0) },
+  { id: 'nil', title: 'Nullnummer', description: 'Ein 0:0 live erlebt', target: 1, progress: (c) => (c.visits.some((v) => totalGoals(v) === 0) ? 1 : 0) },
+  { id: 'double', title: 'Doppelschicht', description: 'Zwei Spiele an einem Tag', target: 2, progress: (c) => maxGamesInWindow(c.visits, 1) },
+  { id: 'tour', title: 'Wochenend-Tour', description: '3 Spiele innerhalb von 3 Tagen', target: 3, progress: (c) => maxGamesInWindow(c.visits, 3) },
   {
-    id: 'floodlight', title: 'Flutlicht', description: 'Anstoß um 20:30 Uhr oder später', emoji: '💡', target: 1,
+    id: 'floodlight', title: 'Flutlicht', description: 'Anstoß um 20:30 Uhr oder später', target: 1,
     progress: (c) => (c.visits.some((v) => v.kickoff && localHour(v.kickoff) >= 20.5) ? 1 : 0),
   },
-  { id: 'derby', title: 'Derbyfieber', description: 'Dein erstes Derby', emoji: '🔥', target: 1, progress: (c) => c.derbies.size },
-  { id: 'europe', title: 'Europareise', description: 'Stadien in 3 Ländern', emoji: '✈️', target: 3, progress: (c) => c.countries.size },
-  { id: 'complete', title: 'Komplettist', description: 'Alle Stadien einer Liga', emoji: '👑', target: 1, progress: (c) => c.completeLeagues.size },
+  { id: 'derby', title: 'Derbyfieber', description: 'Dein erstes Derby', target: 1, progress: (c) => c.derbies.size },
+  { id: 'europe', title: 'Europareise', description: 'Stadien in 3 Ländern', target: 3, progress: (c) => c.countries.size },
+  { id: 'complete', title: 'Komplettist', description: 'Alle Stadien einer Liga', target: 1, progress: (c) => c.completeLeagues.size },
 ]
 
 // ---------- Neu Freigeschaltetes erkennen ----------
@@ -186,23 +185,23 @@ export function diffUnlocks(before: Visit[], after: Visit[]): Unlock[] {
   const out: Unlock[] = []
   for (const s of b.achievements) {
     if (s.done && !a.achievements.find((x) => x.def.id === s.def.id)?.done) {
-      out.push({ title: `${s.def.emoji} ${s.def.title}`, subtitle: 'Erfolg freigeschaltet', icon: 'trophy' })
+      out.push({ title: s.def.title, subtitle: 'Erfolg freigeschaltet', icon: 'trophy' })
     }
   }
   for (const l of b.completeLeagues) {
     if (!a.completeLeagues.has(l)) out.push({ title: LEAGUES.find((x) => x.code === l)!.name, subtitle: 'Liga komplett!', icon: 'trophy' })
   }
   for (const id of b.derbies.keys()) {
-    if (!a.derbies.has(id)) out.push({ title: DERBIES.find((d) => d.id === id)!.name, subtitle: 'Derby gesammelt', icon: 'derby' })
+    if (!a.derbies.has(id)) out.push({ title: DERBIES.find((d) => d.id === id)!.name, subtitle: 'Neue Derbykarte', icon: 'derby' })
   }
   for (const c of b.countries.keys()) {
     if (!a.countries.has(c)) out.push({ title: COUNTRIES[c]?.name ?? c, subtitle: 'Neues Land', icon: 'country' })
   }
   for (const id of b.stadiums.keys()) {
-    if (!a.stadiums.has(id)) out.push({ title: stadiumById(id)!.name, subtitle: 'Neues Stadion gesammelt', icon: 'stadium' })
+    if (!a.stadiums.has(id)) out.push({ title: stadiumById(id)!.name, subtitle: 'Neue Stadionkarte – im Album aufdecken', icon: 'stadium' })
   }
   for (const club of b.clubs.keys()) {
-    if (!a.clubs.has(club) && TEAM_NAMES.has(club)) out.push({ title: club, subtitle: 'Neuer Verein gesehen', icon: 'club' })
+    if (!a.clubs.has(club) && TEAM_NAMES.has(club)) out.push({ title: club, subtitle: 'Neue Vereinskarte', icon: 'club' })
   }
   if (!out.length) out.push({ title: 'Spiel eingetragen', subtitle: `${after.length}. Spiel in deinem Album`, icon: 'check' })
   return out

@@ -14,7 +14,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "icons": "node tools/icons.ts",
-    "data": "node --env-file-if-exists=.env tools/build-data.ts"
+    "data": "node --env-file-if-exists=.env tools/build-data.ts",
+    "dev:static": "vite --mode static --port 5174 --strictPort"
   },
   "dependencies": {
     "lucide-react": "^1.51.0",

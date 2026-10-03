@@ -4,6 +4,7 @@ import { stadiumsOfLeague } from '../lib/stadiums.ts'
 import { mapFilterStore, setMapFilter } from '../state/ui.ts'
 import { Sheet } from '../components/Sheet.tsx'
 import { Switch } from '../components/ui.tsx'
+import { Flag } from '../components/Flag.tsx'
 
 export function FilterSheet() {
   const filter = mapFilterStore.use()
@@ -24,7 +25,7 @@ export function FilterSheet() {
             <motion.div key={l.code} className="list-row indent"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30, delay: i * 0.035 }}>
-              <span style={{ fontSize: 28, width: 32, textAlign: 'center' }}>{l.flag}</span>
+              <Flag code={l.countryCode} size={18} />
               <div className="row-main">
                 <div className="row-title">{l.name}</div>
                 <div className="row-sub">{l.country} · {stadiumsOfLeague(l.code).length} Stadien</div>
@@ -48,7 +49,7 @@ export function FilterSheet() {
         </div>
       </div>
       <p className="muted sheet-pad" style={{ fontSize: 13, marginTop: 14 }}>
-        Den Spieltag wählst du unten auf der Karte. Mit ★ oben siehst du nur deine gemerkten Spiele.
+        Den Spieltag wählst du unten auf der Karte. Mit dem Stern oben siehst du nur deine gemerkten Spiele.
       </p>
     </Sheet>
   )

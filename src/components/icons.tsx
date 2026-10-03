@@ -1,4 +1,4 @@
-// Eigene Symbole, die es in lucide nicht gibt (Stadion, Fußball).
+// Eigene Symbole, die es in lucide nicht gibt (Stadion, Fußball, Sammelkarten).
 
 interface IconProps {
   size?: number
@@ -24,6 +24,26 @@ export function BallIcon({ size = 20, className }: IconProps) {
       <circle cx="12" cy="12" r="9.5" />
       <path d="M12 7.5l4.2 3-1.6 5h-5.2l-1.6-5z" />
       <path d="M12 7.5V2.6M16.2 10.5l4.6-1.5M14.6 15.5l2.8 4M9.4 15.5l-2.8 4M7.8 10.5L3.2 9" />
+    </svg>
+  )
+}
+
+/** Zwei aufgefächerte Sammelkarten */
+export function CardsIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <defs>
+        <mask id="cards-icon-mask">
+          <rect width="24" height="24" fill="#fff" />
+          <rect x="8.6" y="2.6" width="13.3" height="17.8" rx="3" fill="#000" />
+        </mask>
+      </defs>
+      <g mask="url(#cards-icon-mask)">
+        <rect x="2.6" y="5.4" width="10" height="14" rx="2" transform="rotate(-12 7.6 12.4)" />
+      </g>
+      <rect x="10" y="4" width="10.5" height="15" rx="2.2" />
+      <path d="M13.4 11.6l1.6-1.6 1.6 1.6-1.6 1.6z" />
     </svg>
   )
 }

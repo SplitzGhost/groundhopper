@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { CalendarDays, CircleUserRound, LocateFixed, Search, SlidersHorizontal, Star } from 'lucide-react'
+import { CalendarDays, LocateFixed, Search, SlidersHorizontal, Star } from 'lucide-react'
 import type { Match, Stadium } from '../shared/types.ts'
 import { LEAGUE_CODES, leagueByCode } from '../shared/leagues.ts'
 import { STADIUMS, stadiumById } from '../lib/stadiums.ts'
@@ -14,6 +14,7 @@ import { locate, useLocation } from '../state/location.ts'
 import { mapFilterStore, mapFocusStore, openSheet, setMapFilter, sheetStore } from '../state/ui.ts'
 import { MapAttribution, StadiumMap, type Pin, type StadiumMapHandle } from '../components/StadiumMap.tsx'
 import { Crest, GlassButton, PillButton } from '../components/ui.tsx'
+import { ProfileButton } from '../components/ProfileButton.tsx'
 import { softSpring, spring } from '../lib/motion.ts'
 import { hasStarted } from '../lib/matchState.ts'
 
@@ -170,7 +171,7 @@ export function MapScreen() {
         </div>
         <div className="btn-group">
           <GlassButton label="Suchen" icon={<Search size={21} strokeWidth={2.3} />} onClick={() => openSheet({ kind: 'search' })} />
-          <GlassButton label="Profil" icon={<CircleUserRound size={23} strokeWidth={2} />} onClick={() => openSheet({ kind: 'profile' })} />
+          <ProfileButton />
         </div>
       </div>
       <MapAttribution />
@@ -205,7 +206,7 @@ export function MapScreen() {
                     </div>
                     <div className="muted" style={{ fontSize: 14, marginTop: 2 }}>
                       {filter.watchlist
-                        ? 'Tippe bei einem Spiel auf ★, um es dir zu merken.'
+                        ? 'Tippe bei einem Spiel auf den Stern, um es dir zu merken.'
                         : filter.leagues.length < LEAGUE_CODES.length ? 'in den gewählten Ligen.' : 'Vielleicht Länderspielpause?'}
                     </div>
                     {!filter.watchlist && nextMatchDay && (

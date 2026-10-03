@@ -11,6 +11,8 @@ import { AlbumScreen } from './screens/AlbumScreen.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { DynamicIsland } from './components/DynamicIsland.tsx'
 import { SheetHost } from './sheets/SheetHost.tsx'
+import { BinderView } from './screens/BinderView.tsx'
+import { CardViewer } from './components/cards/CardViewer.tsx'
 import { GlassButton } from './components/ui.tsx'
 import { loadPref, savePref } from './lib/storage.ts'
 
@@ -34,6 +36,8 @@ export default function App() {
           <Overlay tab="games"><GamesScreen /></Overlay>
           <Overlay tab="album"><AlbumScreen /></Overlay>
           <TabBar />
+          <BinderView />
+          <CardViewer />
           <SheetHost />
           <InstallHint />
           <FakeStatusBar />

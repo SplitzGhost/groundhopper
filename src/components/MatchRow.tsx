@@ -4,6 +4,7 @@ import { leagueByCode } from '../shared/leagues.ts'
 import { formatTime } from '../lib/dates.ts'
 import { stadiumById } from '../lib/stadiums.ts'
 import { hasStarted } from '../lib/matchState.ts'
+import { Star } from 'lucide-react'
 import { CheckToggle, Crest, StarToggle } from './ui.tsx'
 
 
@@ -86,7 +87,11 @@ export function VisitRow({ visit: v, onOpen }: { visit: Visit; onOpen: (v: Visit
           </div>
         </div>
       </div>
-      {v.rating ? <span style={{ color: 'var(--gold)', fontSize: 13, fontWeight: 700 }}>{'★'.repeat(v.rating)}</span> : null}
+      {v.rating ? (
+        <span className="mini-stars" aria-label={`${v.rating} Sterne`}>
+          {Array.from({ length: v.rating }, (_, i) => <Star key={i} size={12} strokeWidth={0} fill="currentColor" />)}
+        </span>
+      ) : null}
     </div>
   )
 }

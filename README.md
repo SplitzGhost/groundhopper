@@ -10,9 +10,14 @@ mit Liquid-Glass-Bedienelementen, folgt dem Hell-/Dunkelmodus des Systems.
   ★ zeigt nur gemerkte Spiele. Suche nach Stadion, Verein oder Ort.
 - **Spiele:** kompletter Spielplan zum Durchsuchen; vergangene Spiele abhaken („Ich war da“),
   kommende merken (★). Reiter Merkliste und Besucht, Spiele auch von Hand eintragbar (+).
-- **Sammelalbum:** Level und Punkte, Sticker für Stadien, Vereine, Derbys und Länder,
-  Fortschrittsringe je Liga, Erfolge (z. B. Torfestival, Doppelschicht, Flutlicht).
-  Neu Freigeschaltetes meldet die App als Mitteilung aus der Dynamic Island.
+- **Sammelalbum:** wie ein Sammelkartenspiel – vier Alben (Stadien, Vereine, Derbys, Erfolge) mit
+  nummerierten Karten in Seltenheitsstufen (Standard, Selten, Episch, Legendär, mit Holo-Glanz).
+  Jedes Stadion hat eine eigene vereinfachte 3D-Grafik mit Akzenten in Vereinsfarben, Vereine
+  ein Trikot im Vereinsmuster. Seiten mit 9 Plätzen zum Wischen; fehlende Karten zeigen das Stadion
+  als weißes Modell. Neu gesammelte Karten liegen verdeckt und werden mit einem Tipp aufgedeckt.
+  Angetippte Karten fliegen groß in die Mitte, neigen sich unter dem Finger und zeigen auf der
+  Rückseite den Steckbrief (Kapazität, Eröffnung, Besonderheit, eigene Besuche, nächste Chance).
+  Dazu Sammler-Pass mit Level und Punkten, Fortschritt je Liga und Erfolge.
 - **Profil:** Statistiken, Backup als Datei exportieren/importieren. Alle Nutzerdaten bleiben auf dem Gerät.
 
 ## Starten
@@ -24,7 +29,22 @@ npm run dev
 
 App: http://localhost:5173 · API: http://localhost:8787
 
-Am Computer wird die App in einem iPhone-Rahmen angezeigt.
+Am Computer wird die App in einem iPhone-Rahmen angezeigt. Alle Stadiongrafiken auf einen Blick:
+http://localhost:5173/#stadien (nur im Entwicklungsmodus).
+
+### Website (GitHub Pages)
+
+Bei jedem Push auf `main` und zusätzlich alle 6 Stunden baut eine GitHub Action die App und
+veröffentlicht sie unter **https://splitzghost.github.io/groundhopper/** – zum Testen auf iPhone und PC.
+Dort läuft kein API-Server: die Action lädt den Spielplan vorher als Datei (`npm run data`).
+Mit dem Repo-Secret `FOOTBALL_DATA_API_KEY` nutzt sie football-data.org, sonst die freien Demo-Quellen.
+
+Lokal genauso testen (ohne API-Server):
+
+```bash
+npm run data
+npm run dev:static
+```
 
 ### Auf dem iPhone testen
 
@@ -57,16 +77,21 @@ server/            Node-Server (läuft direkt als TypeScript, Node ≥ 22.18)
 src/
   App.tsx          Hülle: Tabs, Sheets, Dynamic-Island-Mitteilungen, iPhone-Rahmen am PC
   screens/         Karte, Spiele, Sammelalbum
-  sheets/          Bottom-Sheets: Stadion, Spiel, Filter, Suche, Profil, Eintragen, Album-Übersicht
-  components/      Bausteine: Glas-Buttons, Haken, Sheet, Karte (MapLibre), Sticker …
+  sheets/          Bottom-Sheets: Stadion, Spiel, Filter, Suche, Profil, Eintragen
+  components/      Bausteine: Glas-Buttons, Haken, Sheet, Karte (MapLibre), Flaggen, Trikots …
+    cards/         Sammelkarten: Vorderseite, Steckbrief, vergrößerte Ansicht
+    StadiumArt     3D-Stadiongrafik (Szene aus lib/stadiumScene.ts)
   state/           Globaler Zustand: Spielplan, Nutzerdaten, Standort, Oberfläche, Mitteilungen
   shared/          Typen, Ligen, Vereinsnamen-Abgleich (von App und Server genutzt)
-  data/            stadiums.json – erzeugt aus tools/stadiums.source.ts
-  lib/             App-Logik ohne Oberfläche: API, Speicher, Geo, Album/Erfolge, Derbys
+  data/            stadiums.json (erzeugt aus tools/stadiums.source.ts), Stadion-Steckbriefe
+                   mit Bauform für die Grafiken, Vereinsfarben und -daten
+  lib/             App-Logik ohne Oberfläche: API, Speicher, Geo, Album/Erfolge, Karten, Derbys,
+                   stadiumScene (Stadion-Geometrie → Polygone)
 tools/
   stadiums.source.ts  Stadion-Quelldaten (Verein → Stadion)
   geocode.ts          `npm run stadiums` – Koordinaten über OpenStreetMap
   icons.ts            `npm run icons` – App-Icons als PNG
+  build-data.ts       `npm run data` – Spielplan als statische Datei für GitHub Pages
 ```
 
 ## Skripte
@@ -75,6 +100,8 @@ tools/
 |---|---|
 | `npm run dev` | App + API zusammen starten |
 | `npm run dev:phone` | wie `dev`, aber mit HTTPS fürs iPhone |
+| `npm run dev:static` | App ohne API-Server, Spielplan aus `public/data/` (wie auf GitHub Pages) |
+| `npm run data` | Spielplan nach `public/data/matches.json` schreiben |
 | `npm run stadiums` | Stadion-Koordinaten neu erzeugen (nach Änderungen an der Quellliste) |
 | `npm run icons` | App-Icons neu erzeugen |
 | `npm run typecheck` | TypeScript prüfen |
