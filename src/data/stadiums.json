@@ -1,0 +1,1765 @@
+[
+  {
+    "id": "allianz-arena-munchen",
+    "name": "Allianz Arena",
+    "city": "München",
+    "country": "de",
+    "lat": 48.21879,
+    "lon": 11.62362,
+    "approx": false,
+    "teams": [
+      {
+        "name": "FC Bayern München",
+        "league": "BL1",
+        "aliases": [
+          "Bayern Munich",
+          "Bayern München"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "signal-iduna-park-dortmund",
+    "name": "Signal Iduna Park",
+    "city": "Dortmund",
+    "country": "de",
+    "lat": 51.49249,
+    "lon": 7.45185,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Borussia Dortmund",
+        "league": "BL1",
+        "aliases": [
+          "Dortmund"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bayarena-leverkusen",
+    "name": "BayArena",
+    "city": "Leverkusen",
+    "country": "de",
+    "lat": 51.03814,
+    "lon": 7.0031,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Bayer 04 Leverkusen",
+        "league": "BL1",
+        "aliases": [
+          "Leverkusen"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "red-bull-arena-leipzig",
+    "name": "Red Bull Arena",
+    "city": "Leipzig",
+    "country": "de",
+    "lat": 51.34571,
+    "lon": 12.34824,
+    "approx": false,
+    "teams": [
+      {
+        "name": "RB Leipzig",
+        "league": "BL1",
+        "aliases": [
+          "RasenBallsport Leipzig"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mhparena-stuttgart",
+    "name": "MHPArena",
+    "city": "Stuttgart",
+    "country": "de",
+    "lat": 48.79225,
+    "lon": 9.23209,
+    "approx": false,
+    "teams": [
+      {
+        "name": "VfB Stuttgart",
+        "league": "BL1",
+        "aliases": []
+      }
+    ]
+  },
+  {
+    "id": "deutsche-bank-park-frankfurt-am-main",
+    "name": "Deutsche Bank Park",
+    "city": "Frankfurt am Main",
+    "country": "de",
+    "lat": 50.06861,
+    "lon": 8.64542,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Eintracht Frankfurt",
+        "league": "BL1",
+        "aliases": []
+      }
+    ]
+  },
+  {
+    "id": "europa-park-stadion-freiburg-im-breisgau",
+    "name": "Europa-Park Stadion",
+    "city": "Freiburg im Breisgau",
+    "country": "de",
+    "lat": 48.02138,
+    "lon": 7.82982,
+    "approx": false,
+    "teams": [
+      {
+        "name": "SC Freiburg",
+        "league": "BL1",
+        "aliases": [
+          "Sport-Club Freiburg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "borussia-park-monchengladbach",
+    "name": "Borussia-Park",
+    "city": "Mönchengladbach",
+    "country": "de",
+    "lat": 51.17462,
+    "lon": 6.38541,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Borussia Mönchengladbach",
+        "league": "BL1",
+        "aliases": [
+          "M'gladbach",
+          "Gladbach"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mewa-arena-mainz",
+    "name": "MEWA ARENA",
+    "city": "Mainz",
+    "country": "de",
+    "lat": 49.98395,
+    "lon": 8.22447,
+    "approx": false,
+    "teams": [
+      {
+        "name": "1. FSV Mainz 05",
+        "league": "BL1",
+        "aliases": [
+          "Mainz 05",
+          "Mainz"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wwk-arena-augsburg",
+    "name": "WWK ARENA",
+    "city": "Augsburg",
+    "country": "de",
+    "lat": 48.32312,
+    "lon": 10.88588,
+    "approx": false,
+    "teams": [
+      {
+        "name": "FC Augsburg",
+        "league": "BL1",
+        "aliases": [
+          "Augsburg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "weserstadion-bremen",
+    "name": "Weserstadion",
+    "city": "Bremen",
+    "country": "de",
+    "lat": 53.06645,
+    "lon": 8.83767,
+    "approx": false,
+    "teams": [
+      {
+        "name": "SV Werder Bremen",
+        "league": "BL1",
+        "aliases": [
+          "Werder Bremen"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadion-an-der-alten-forsterei-berlin",
+    "name": "Stadion An der Alten Försterei",
+    "city": "Berlin",
+    "country": "de",
+    "lat": 52.45697,
+    "lon": 13.56808,
+    "approx": false,
+    "teams": [
+      {
+        "name": "1. FC Union Berlin",
+        "league": "BL1",
+        "aliases": [
+          "Union Berlin"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "prezero-arena-sinsheim",
+    "name": "PreZero Arena",
+    "city": "Sinsheim",
+    "country": "de",
+    "lat": 49.23806,
+    "lon": 8.88764,
+    "approx": false,
+    "teams": [
+      {
+        "name": "TSG Hoffenheim",
+        "league": "BL1",
+        "aliases": [
+          "TSG 1899 Hoffenheim",
+          "Hoffenheim"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rheinenergiestadion-koln",
+    "name": "RheinEnergieSTADION",
+    "city": "Köln",
+    "country": "de",
+    "lat": 50.93351,
+    "lon": 6.87512,
+    "approx": false,
+    "teams": [
+      {
+        "name": "1. FC Köln",
+        "league": "BL1",
+        "aliases": [
+          "FC Köln",
+          "Köln"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "volksparkstadion-hamburg",
+    "name": "Volksparkstadion",
+    "city": "Hamburg",
+    "country": "de",
+    "lat": 53.58715,
+    "lon": 9.89871,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Hamburger SV",
+        "league": "BL1",
+        "aliases": [
+          "Hamburg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "veltins-arena-gelsenkirchen",
+    "name": "Veltins-Arena",
+    "city": "Gelsenkirchen",
+    "country": "de",
+    "lat": 51.55459,
+    "lon": 7.0676,
+    "approx": false,
+    "teams": [
+      {
+        "name": "FC Schalke 04",
+        "league": "BL1",
+        "aliases": [
+          "Schalke 04",
+          "Schalke"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "home-deluxe-arena-paderborn",
+    "name": "Home Deluxe Arena",
+    "city": "Paderborn",
+    "country": "de",
+    "lat": 51.7309,
+    "lon": 8.71096,
+    "approx": false,
+    "teams": [
+      {
+        "name": "SC Paderborn 07",
+        "league": "BL1",
+        "aliases": [
+          "Paderborn"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ursapharm-arena-an-der-kaiserlinde-spiesen-elversberg",
+    "name": "Ursapharm-Arena an der Kaiserlinde",
+    "city": "Spiesen-Elversberg",
+    "country": "de",
+    "lat": 49.3188,
+    "lon": 7.12157,
+    "approx": false,
+    "teams": [
+      {
+        "name": "SV 07 Elversberg",
+        "league": "BL1",
+        "aliases": [
+          "SV Elversberg",
+          "Elversberg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "emirates-stadium-london",
+    "name": "Emirates Stadium",
+    "city": "London",
+    "country": "gb",
+    "lat": 51.55504,
+    "lon": -0.1084,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Arsenal FC",
+        "league": "PL",
+        "aliases": [
+          "FC Arsenal",
+          "Arsenal"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "villa-park-birmingham",
+    "name": "Villa Park",
+    "city": "Birmingham",
+    "country": "gb",
+    "lat": 52.50913,
+    "lon": -1.88504,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Aston Villa FC",
+        "league": "PL",
+        "aliases": [
+          "Aston Villa"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vitality-stadium-bournemouth",
+    "name": "Vitality Stadium",
+    "city": "Bournemouth",
+    "country": "gb",
+    "lat": 50.73518,
+    "lon": -1.83833,
+    "approx": false,
+    "teams": [
+      {
+        "name": "AFC Bournemouth",
+        "league": "PL",
+        "aliases": [
+          "Bournemouth"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gtech-community-stadium-london",
+    "name": "Gtech Community Stadium",
+    "city": "London",
+    "country": "gb",
+    "lat": 51.49071,
+    "lon": -0.28898,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Brentford FC",
+        "league": "PL",
+        "aliases": [
+          "Brentford F.C.",
+          "Brentford"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "american-express-stadium-brighton",
+    "name": "American Express Stadium",
+    "city": "Brighton",
+    "country": "gb",
+    "lat": 50.86155,
+    "lon": -0.08369,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Brighton & Hove Albion FC",
+        "league": "PL",
+        "aliases": [
+          "Brighton & Hove Albion",
+          "Brighton"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stamford-bridge-london",
+    "name": "Stamford Bridge",
+    "city": "London",
+    "country": "gb",
+    "lat": 51.48169,
+    "lon": -0.19103,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Chelsea FC",
+        "league": "PL",
+        "aliases": [
+          "Chelsea"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "coventry-building-society-arena-coventry",
+    "name": "Coventry Building Society Arena",
+    "city": "Coventry",
+    "country": "gb",
+    "lat": 52.44816,
+    "lon": -1.49702,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Coventry City FC",
+        "league": "PL",
+        "aliases": [
+          "Coventry City",
+          "Coventry"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "selhurst-park-london",
+    "name": "Selhurst Park",
+    "city": "London",
+    "country": "gb",
+    "lat": 51.39824,
+    "lon": -0.08526,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Crystal Palace FC",
+        "league": "PL",
+        "aliases": [
+          "Crystal Palace"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hill-dickinson-stadium-liverpool",
+    "name": "Hill Dickinson Stadium",
+    "city": "Liverpool",
+    "country": "gb",
+    "lat": 53.425,
+    "lon": -3.00271,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Everton FC",
+        "league": "PL",
+        "aliases": [
+          "Everton"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "craven-cottage-london",
+    "name": "Craven Cottage",
+    "city": "London",
+    "country": "gb",
+    "lat": 51.47492,
+    "lon": -0.22174,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Fulham FC",
+        "league": "PL",
+        "aliases": [
+          "Fulham"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mkm-stadium-kingston-upon-hull",
+    "name": "MKM Stadium",
+    "city": "Kingston upon Hull",
+    "country": "gb",
+    "lat": 53.74623,
+    "lon": -0.36782,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Hull City AFC",
+        "league": "PL",
+        "aliases": [
+          "Hull City",
+          "Hull"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "portman-road-ipswich",
+    "name": "Portman Road",
+    "city": "Ipswich",
+    "country": "gb",
+    "lat": 52.05495,
+    "lon": 1.14528,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Ipswich Town FC",
+        "league": "PL",
+        "aliases": [
+          "Ipswich Town",
+          "Ipswich"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "elland-road-leeds",
+    "name": "Elland Road",
+    "city": "Leeds",
+    "country": "gb",
+    "lat": 53.77786,
+    "lon": -1.57218,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Leeds United FC",
+        "league": "PL",
+        "aliases": [
+          "Leeds United",
+          "Leeds"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "anfield-liverpool",
+    "name": "Anfield",
+    "city": "Liverpool",
+    "country": "gb",
+    "lat": 53.43021,
+    "lon": -2.96193,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Liverpool FC",
+        "league": "PL",
+        "aliases": [
+          "FC Liverpool",
+          "Liverpool"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "etihad-stadium-manchester",
+    "name": "Etihad Stadium",
+    "city": "Manchester",
+    "country": "gb",
+    "lat": 53.48314,
+    "lon": -2.20053,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Manchester City FC",
+        "league": "PL",
+        "aliases": [
+          "Manchester City",
+          "Man City"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "old-trafford-manchester",
+    "name": "Old Trafford",
+    "city": "Manchester",
+    "country": "gb",
+    "lat": 53.46311,
+    "lon": -2.29139,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Manchester United FC",
+        "league": "PL",
+        "aliases": [
+          "Manchester United",
+          "Man United"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "st-james-park-newcastle-upon-tyne",
+    "name": "St James' Park",
+    "city": "Newcastle upon Tyne",
+    "country": "gb",
+    "lat": 54.97547,
+    "lon": -1.62187,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Newcastle United FC",
+        "league": "PL",
+        "aliases": [
+          "Newcastle United",
+          "Newcastle"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "city-ground-nottingham",
+    "name": "City Ground",
+    "city": "Nottingham",
+    "country": "gb",
+    "lat": 52.93994,
+    "lon": -1.1329,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Nottingham Forest FC",
+        "league": "PL",
+        "aliases": [
+          "Nottingham Forest",
+          "Nott'm Forest"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadium-of-light-sunderland",
+    "name": "Stadium of Light",
+    "city": "Sunderland",
+    "country": "gb",
+    "lat": 54.9144,
+    "lon": -1.38826,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Sunderland AFC",
+        "league": "PL",
+        "aliases": [
+          "Sunderland"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tottenham-hotspur-stadium-london",
+    "name": "Tottenham Hotspur Stadium",
+    "city": "London",
+    "country": "gb",
+    "lat": 51.60416,
+    "lon": -0.06626,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Tottenham Hotspur FC",
+        "league": "PL",
+        "aliases": [
+          "Tottenham Hotspur",
+          "Tottenham"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "santiago-bernabeu-madrid",
+    "name": "Santiago Bernabéu",
+    "city": "Madrid",
+    "country": "es",
+    "lat": 40.45304,
+    "lon": -3.6882,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Real Madrid CF",
+        "league": "PD",
+        "aliases": [
+          "Real Madrid"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "spotify-camp-nou-barcelona",
+    "name": "Spotify Camp Nou",
+    "city": "Barcelona",
+    "country": "es",
+    "lat": 41.38078,
+    "lon": 2.11565,
+    "approx": false,
+    "teams": [
+      {
+        "name": "FC Barcelona",
+        "league": "PD",
+        "aliases": [
+          "Barcelona"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "riyadh-air-metropolitano-madrid",
+    "name": "Riyadh Air Metropolitano",
+    "city": "Madrid",
+    "country": "es",
+    "lat": 40.43601,
+    "lon": -3.5997,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Club Atlético de Madrid",
+        "league": "PD",
+        "aliases": [
+          "Atlético Madrid",
+          "Atletico Madrid",
+          "Ath Madrid"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "san-mames-bilbao",
+    "name": "San Mamés",
+    "city": "Bilbao",
+    "country": "es",
+    "lat": 43.2642,
+    "lon": -2.94939,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Athletic Club",
+        "league": "PD",
+        "aliases": [
+          "Athletic Bilbao",
+          "Ath Bilbao"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reale-arena-donostia-san-sebastian",
+    "name": "Reale Arena",
+    "city": "Donostia / San Sebastián",
+    "country": "es",
+    "lat": 43.30226,
+    "lon": -1.97481,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Real Sociedad de Fútbol",
+        "league": "PD",
+        "aliases": [
+          "Real Sociedad",
+          "Sociedad"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "estadio-de-la-cartuja-sevilla",
+    "name": "Estadio de La Cartuja",
+    "city": "Sevilla",
+    "country": "es",
+    "lat": 37.41724,
+    "lon": -6.00461,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Real Betis Balompié",
+        "league": "PD",
+        "aliases": [
+          "Real Betis",
+          "Betis"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ramon-sanchez-pizjuan-sevilla",
+    "name": "Ramón Sánchez-Pizjuán",
+    "city": "Sevilla",
+    "country": "es",
+    "lat": 37.38409,
+    "lon": -5.97063,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Sevilla FC",
+        "league": "PD",
+        "aliases": [
+          "FC Sevilla",
+          "Sevilla"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mestalla-valencia",
+    "name": "Mestalla",
+    "city": "Valencia",
+    "country": "es",
+    "lat": 39.47453,
+    "lon": -0.35816,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Valencia CF",
+        "league": "PD",
+        "aliases": [
+          "FC Valencia",
+          "Valencia"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "estadio-de-la-ceramica-vila-real",
+    "name": "Estadio de la Cerámica",
+    "city": "Vila-real",
+    "country": "es",
+    "lat": 39.94421,
+    "lon": -0.1034,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Villarreal CF",
+        "league": "PD",
+        "aliases": [
+          "FC Villareal",
+          "Villarreal"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "el-sadar-pamplona",
+    "name": "El Sadar",
+    "city": "Pamplona",
+    "country": "es",
+    "lat": 42.79666,
+    "lon": -1.63713,
+    "approx": false,
+    "teams": [
+      {
+        "name": "CA Osasuna",
+        "league": "PD",
+        "aliases": [
+          "Osasuna"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "abanca-balaidos-vigo",
+    "name": "Abanca-Balaídos",
+    "city": "Vigo",
+    "country": "es",
+    "lat": 42.21281,
+    "lon": -8.73929,
+    "approx": false,
+    "teams": [
+      {
+        "name": "RC Celta de Vigo",
+        "league": "PD",
+        "aliases": [
+          "Celta Vigo",
+          "Celta"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "abanca-riazor-a-coruna",
+    "name": "Abanca-Riazor",
+    "city": "A Coruña",
+    "country": "es",
+    "lat": 43.36872,
+    "lon": -8.41751,
+    "approx": false,
+    "teams": [
+      {
+        "name": "RC Deportivo La Coruña",
+        "league": "PD",
+        "aliases": [
+          "Deportivo A Coruña",
+          "Deportivo La Coruna",
+          "La Coruna"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mendizorrotza-vitoria-gasteiz",
+    "name": "Mendizorrotza",
+    "city": "Vitoria-Gasteiz",
+    "country": "es",
+    "lat": 42.83742,
+    "lon": -2.6909,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Deportivo Alavés",
+        "league": "PD",
+        "aliases": [
+          "Deportivo Alaves",
+          "Alaves"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "martinez-valero-elche",
+    "name": "Martínez Valero",
+    "city": "Elche",
+    "country": "es",
+    "lat": 38.26704,
+    "lon": -0.66331,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Elche CF",
+        "league": "PD",
+        "aliases": [
+          "Elche"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rcde-stadium-cornella-de-llobregat",
+    "name": "RCDE Stadium",
+    "city": "Cornellà de Llobregat",
+    "country": "es",
+    "lat": 41.34786,
+    "lon": 2.07646,
+    "approx": false,
+    "teams": [
+      {
+        "name": "RCD Espanyol de Barcelona",
+        "league": "PD",
+        "aliases": [
+          "Espanyol Barcelona",
+          "Espanyol",
+          "Espanol"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "coliseum-getafe",
+    "name": "Coliseum",
+    "city": "Getafe",
+    "country": "es",
+    "lat": 40.32572,
+    "lon": -3.71493,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Getafe CF",
+        "league": "PD",
+        "aliases": [
+          "FC Getafe",
+          "Getafe"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "la-rosaleda-malaga",
+    "name": "La Rosaleda",
+    "city": "Málaga",
+    "country": "es",
+    "lat": 36.73494,
+    "lon": -4.42653,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Málaga CF",
+        "league": "PD",
+        "aliases": [
+          "FC Malaga",
+          "Malaga"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ciutat-de-valencia-valencia",
+    "name": "Ciutat de València",
+    "city": "Valencia",
+    "country": "es",
+    "lat": 39.49464,
+    "lon": -0.36386,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Levante UD",
+        "league": "PD",
+        "aliases": [
+          "Levante"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "el-sardinero-santander",
+    "name": "El Sardinero",
+    "city": "Santander",
+    "country": "es",
+    "lat": 43.47669,
+    "lon": -3.79157,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Real Racing Club de Santander",
+        "league": "PD",
+        "aliases": [
+          "Racing Santander",
+          "Santander"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "estadio-de-vallecas-madrid",
+    "name": "Estadio de Vallecas",
+    "city": "Madrid",
+    "country": "es",
+    "lat": 40.39176,
+    "lon": -3.65874,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Rayo Vallecano de Madrid",
+        "league": "PD",
+        "aliases": [
+          "Rayo Vallecano",
+          "Vallecano"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "san-siro-milano",
+    "name": "San Siro",
+    "city": "Milano",
+    "country": "it",
+    "lat": 45.4782,
+    "lon": 9.12396,
+    "approx": false,
+    "teams": [
+      {
+        "name": "FC Internazionale Milano",
+        "league": "SA",
+        "aliases": [
+          "Inter Mailand",
+          "Inter Milan",
+          "Inter"
+        ]
+      },
+      {
+        "name": "AC Milan",
+        "league": "SA",
+        "aliases": [
+          "AC Mailand",
+          "Milan"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "allianz-stadium-torino",
+    "name": "Allianz Stadium",
+    "city": "Torino",
+    "country": "it",
+    "lat": 45.10958,
+    "lon": 7.64213,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Juventus FC",
+        "league": "SA",
+        "aliases": [
+          "Juventus Turin",
+          "Juventus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-diego-armando-maradona-napoli",
+    "name": "Stadio Diego Armando Maradona",
+    "city": "Napoli",
+    "country": "it",
+    "lat": 40.82798,
+    "lon": 14.19289,
+    "approx": false,
+    "teams": [
+      {
+        "name": "SSC Napoli",
+        "league": "SA",
+        "aliases": [
+          "SSC Neapel",
+          "Napoli"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-olimpico-roma",
+    "name": "Stadio Olimpico",
+    "city": "Roma",
+    "country": "it",
+    "lat": 41.93877,
+    "lon": 12.45813,
+    "approx": false,
+    "teams": [
+      {
+        "name": "AS Roma",
+        "league": "SA",
+        "aliases": [
+          "AS Rom",
+          "Roma"
+        ]
+      },
+      {
+        "name": "SS Lazio",
+        "league": "SA",
+        "aliases": [
+          "Lazio Rom",
+          "Lazio"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gewiss-stadium-bergamo",
+    "name": "Gewiss Stadium",
+    "city": "Bergamo",
+    "country": "it",
+    "lat": 45.70921,
+    "lon": 9.68083,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Atalanta BC",
+        "league": "SA",
+        "aliases": [
+          "Atalanta Bergamo",
+          "Atalanta"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-artemio-franchi-firenze",
+    "name": "Stadio Artemio Franchi",
+    "city": "Firenze",
+    "country": "it",
+    "lat": 43.78088,
+    "lon": 11.28282,
+    "approx": false,
+    "teams": [
+      {
+        "name": "ACF Fiorentina",
+        "league": "SA",
+        "aliases": [
+          "AC Florenz",
+          "Fiorentina"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-renato-dall-ara-bologna",
+    "name": "Stadio Renato Dall'Ara",
+    "city": "Bologna",
+    "country": "it",
+    "lat": 44.49232,
+    "lon": 11.31,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Bologna FC 1909",
+        "league": "SA",
+        "aliases": [
+          "FC Bologna",
+          "Bologna"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-olimpico-grande-torino-torino",
+    "name": "Stadio Olimpico Grande Torino",
+    "city": "Torino",
+    "country": "it",
+    "lat": 45.04174,
+    "lon": 7.65002,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Torino FC",
+        "league": "SA",
+        "aliases": [
+          "FC Turin",
+          "Torino"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bluenergy-stadium-udine",
+    "name": "Bluenergy Stadium",
+    "city": "Udine",
+    "country": "it",
+    "lat": 46.0814,
+    "lon": 13.19974,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Udinese Calcio",
+        "league": "SA",
+        "aliases": [
+          "Udinese"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-luigi-ferraris-genova",
+    "name": "Stadio Luigi Ferraris",
+    "city": "Genova",
+    "country": "it",
+    "lat": 44.41648,
+    "lon": 8.95253,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Genoa CFC",
+        "league": "SA",
+        "aliases": [
+          "CFC Genua",
+          "Genoa"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unipol-domus-cagliari",
+    "name": "Unipol Domus",
+    "city": "Cagliari",
+    "country": "it",
+    "lat": 39.19919,
+    "lon": 9.13743,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Cagliari Calcio",
+        "league": "SA",
+        "aliases": [
+          "Cagliari"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-via-del-mare-lecce",
+    "name": "Stadio Via del Mare",
+    "city": "Lecce",
+    "country": "it",
+    "lat": 40.36511,
+    "lon": 18.20892,
+    "approx": false,
+    "teams": [
+      {
+        "name": "US Lecce",
+        "league": "SA",
+        "aliases": [
+          "Lecce"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-giuseppe-sinigaglia-como",
+    "name": "Stadio Giuseppe Sinigaglia",
+    "city": "Como",
+    "country": "it",
+    "lat": 45.81383,
+    "lon": 9.07232,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Como 1907",
+        "league": "SA",
+        "aliases": [
+          "Como"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-ennio-tardini-parma",
+    "name": "Stadio Ennio Tardini",
+    "city": "Parma",
+    "country": "it",
+    "lat": 44.79476,
+    "lon": 10.33837,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Parma Calcio 1913",
+        "league": "SA",
+        "aliases": [
+          "Parma"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mapei-stadium-citta-del-tricolore-reggio-emilia",
+    "name": "Mapei Stadium – Città del Tricolore",
+    "city": "Reggio Emilia",
+    "country": "it",
+    "lat": 44.71455,
+    "lon": 10.64973,
+    "approx": false,
+    "teams": [
+      {
+        "name": "US Sassuolo Calcio",
+        "league": "SA",
+        "aliases": [
+          "Sassuolo"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "u-power-stadium-monza",
+    "name": "U-Power Stadium",
+    "city": "Monza",
+    "country": "it",
+    "lat": 45.58311,
+    "lon": 9.30793,
+    "approx": false,
+    "teams": [
+      {
+        "name": "AC Monza",
+        "league": "SA",
+        "aliases": [
+          "Monza"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-pier-luigi-penzo-venezia",
+    "name": "Stadio Pier Luigi Penzo",
+    "city": "Venezia",
+    "country": "it",
+    "lat": 45.42771,
+    "lon": 12.36402,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Venezia FC",
+        "league": "SA",
+        "aliases": [
+          "Venedig",
+          "Venezia"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadio-benito-stirpe-frosinone",
+    "name": "Stadio Benito Stirpe",
+    "city": "Frosinone",
+    "country": "it",
+    "lat": 41.63401,
+    "lon": 13.3218,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Frosinone Calcio",
+        "league": "SA",
+        "aliases": [
+          "Frosinone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "parc-des-princes-paris",
+    "name": "Parc des Princes",
+    "city": "Paris",
+    "country": "fr",
+    "lat": 48.84136,
+    "lon": 2.25307,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Paris Saint-Germain FC",
+        "league": "FL1",
+        "aliases": [
+          "Paris SG",
+          "PSG",
+          "Paris Saint-Germain"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-jean-bouin-paris",
+    "name": "Stade Jean-Bouin",
+    "city": "Paris",
+    "country": "fr",
+    "lat": 48.84332,
+    "lon": 2.25296,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Paris FC",
+        "league": "FL1",
+        "aliases": [
+          "Paris FC"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "orange-velodrome-marseille",
+    "name": "Orange Vélodrome",
+    "city": "Marseille",
+    "country": "fr",
+    "lat": 43.26985,
+    "lon": 5.39591,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Olympique de Marseille",
+        "league": "FL1",
+        "aliases": [
+          "Marseille",
+          "Olympique Marseille"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "groupama-stadium-decines-charpieu",
+    "name": "Groupama Stadium",
+    "city": "Décines-Charpieu",
+    "country": "fr",
+    "lat": 45.76536,
+    "lon": 4.98205,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Olympique Lyonnais",
+        "league": "FL1",
+        "aliases": [
+          "Lyon",
+          "Olympique Lyon"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-louis-ii-monaco",
+    "name": "Stade Louis II",
+    "city": "Monaco",
+    "country": "mc",
+    "lat": 43.72757,
+    "lon": 7.41546,
+    "approx": false,
+    "teams": [
+      {
+        "name": "AS Monaco FC",
+        "league": "FL1",
+        "aliases": [
+          "Monaco",
+          "AS Monaco"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "decathlon-arena-stade-pierre-mauroy-villeneuve-d-ascq",
+    "name": "Decathlon Arena – Stade Pierre-Mauroy",
+    "city": "Villeneuve-d'Ascq",
+    "country": "fr",
+    "lat": 50.61271,
+    "lon": 3.12783,
+    "approx": false,
+    "teams": [
+      {
+        "name": "LOSC Lille",
+        "league": "FL1",
+        "aliases": [
+          "Lille",
+          "OSC Lille"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-bollaert-delelis-lens",
+    "name": "Stade Bollaert-Delelis",
+    "city": "Lens",
+    "country": "fr",
+    "lat": 50.43282,
+    "lon": 2.81499,
+    "approx": false,
+    "teams": [
+      {
+        "name": "RC Lens",
+        "league": "FL1",
+        "aliases": [
+          "Lens"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "allianz-riviera-nice",
+    "name": "Allianz Riviera",
+    "city": "Nice",
+    "country": "fr",
+    "lat": 43.70515,
+    "lon": 7.1926,
+    "approx": false,
+    "teams": [
+      {
+        "name": "OGC Nice",
+        "league": "FL1",
+        "aliases": [
+          "Nice",
+          "OGC Nizza"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "roazhon-park-rennes",
+    "name": "Roazhon Park",
+    "city": "Rennes",
+    "country": "fr",
+    "lat": 48.10757,
+    "lon": -1.71265,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Stade Rennais FC 1901",
+        "league": "FL1",
+        "aliases": [
+          "Rennes",
+          "Stade Rennes"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-de-la-meinau-strasbourg",
+    "name": "Stade de la Meinau",
+    "city": "Strasbourg",
+    "country": "fr",
+    "lat": 48.55995,
+    "lon": 7.75512,
+    "approx": false,
+    "teams": [
+      {
+        "name": "RC Strasbourg Alsace",
+        "league": "FL1",
+        "aliases": [
+          "Strasbourg",
+          "Racing Straßburg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stadium-de-toulouse-toulouse",
+    "name": "Stadium de Toulouse",
+    "city": "Toulouse",
+    "country": "fr",
+    "lat": 43.58323,
+    "lon": 1.43406,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Toulouse FC",
+        "league": "FL1",
+        "aliases": [
+          "Toulouse"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-francis-le-ble-brest",
+    "name": "Stade Francis-Le Blé",
+    "city": "Brest",
+    "country": "fr",
+    "lat": 48.40304,
+    "lon": -4.46136,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Stade Brestois 29",
+        "league": "FL1",
+        "aliases": [
+          "Brest",
+          "Stade Brest"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-de-l-abbe-deschamps-auxerre",
+    "name": "Stade de l'Abbé-Deschamps",
+    "city": "Auxerre",
+    "country": "fr",
+    "lat": 47.78678,
+    "lon": 3.58862,
+    "approx": false,
+    "teams": [
+      {
+        "name": "AJ Auxerre",
+        "league": "FL1",
+        "aliases": [
+          "Auxerre"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-raymond-kopa-angers",
+    "name": "Stade Raymond-Kopa",
+    "city": "Angers",
+    "country": "fr",
+    "lat": 47.46055,
+    "lon": -0.53069,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Angers SCO",
+        "league": "FL1",
+        "aliases": [
+          "Angers"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-oceane-le-havre",
+    "name": "Stade Océane",
+    "city": "Le Havre",
+    "country": "fr",
+    "lat": 49.49875,
+    "lon": 0.16946,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Le Havre AC",
+        "league": "FL1",
+        "aliases": [
+          "Le Havre"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mmarena-le-mans",
+    "name": "MMArena",
+    "city": "Le Mans",
+    "country": "fr",
+    "lat": 47.95917,
+    "lon": 0.22311,
+    "approx": false,
+    "teams": [
+      {
+        "name": "Le Mans FC",
+        "league": "FL1",
+        "aliases": [
+          "Le Mans"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-du-moustoir-lorient",
+    "name": "Stade du Moustoir",
+    "city": "Lorient",
+    "country": "fr",
+    "lat": 47.7488,
+    "lon": -3.36954,
+    "approx": false,
+    "teams": [
+      {
+        "name": "FC Lorient",
+        "league": "FL1",
+        "aliases": [
+          "Lorient"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stade-de-l-aube-troyes",
+    "name": "Stade de l'Aube",
+    "city": "Troyes",
+    "country": "fr",
+    "lat": 48.30752,
+    "lon": 4.09852,
+    "approx": false,
+    "teams": [
+      {
+        "name": "ES Troyes AC",
+        "league": "FL1",
+        "aliases": [
+          "Troyes"
+        ]
+      }
+    ]
+  }
+]

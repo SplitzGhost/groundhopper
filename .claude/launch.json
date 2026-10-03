@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "groundhopper",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "groundhopper-phone",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:phone"],
+      "port": 5173,
+      "url": "https://localhost:5173"
+    }
+  ]
+}
