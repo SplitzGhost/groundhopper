@@ -13,7 +13,8 @@ import { canonicalTeam } from '../lib/album.ts'
 import { crestFor } from '../lib/crests.ts'
 import { useMatches } from '../state/matches.ts'
 import { removeVisit, toggleMatchVisit, toggleWatch, updateVisit, useUserData, visitOfMatch } from '../state/userData.ts'
-import { openSheet } from '../state/ui.ts'
+import { openSheet, pendingCardStore } from '../state/ui.ts'
+import { CardsIcon } from '../components/icons.tsx'
 import { Sheet } from '../components/Sheet.tsx'
 import { useSheet } from '../components/sheetContext.ts'
 import { hasStarted } from '../lib/matchState.ts'
@@ -176,8 +177,20 @@ function VisitEditor({ visit }: { visit: Visit }) {
     if (l.notes !== l.saved) updateVisit(l.id, { notes: l.notes })
   }, [])
 
+  const pending = pendingCardStore.use() === visit.id
+
   return (
     <div style={{ paddingTop: 8 }}>
+      <AnimatePresence initial={false}>
+        {pending && (
+          <motion.div key="earned" className="earned-card" initial={{ opacity: 0, y: 10, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 30, delay: 0.15 }}>
+            <motion.span className="earned-card-icon" initial={{ rotate: -25, scale: 0.4 }} animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 12, delay: 0.3 }}><CardsIcon size={22} /></motion.span>
+            <div><b>Neue Spielkarte verdient</b><span>Bewerte das Spiel – beim Schließen deckst du die Karte auf.</span></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="section-head"><h3 className="section-title">Deine Bewertung</h3></div>
       <div className="card inset" style={{ padding: '14px 16px' }}>
         <div className="stars" style={{ justifyContent: 'center', gap: 14 }}>

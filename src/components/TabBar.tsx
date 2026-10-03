@@ -19,6 +19,7 @@ export function TabBar() {
         <motion.button
           key={t.id}
           type="button"
+          data-tab={t.id}
           className={`tab ${tab === t.id ? 'active' : ''}`}
           aria-current={tab === t.id ? 'page' : undefined}
           whileTap={{ scale: 0.9 }}

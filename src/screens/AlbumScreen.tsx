@@ -1,37 +1,32 @@
-// Sammelalbum: Sammler-Pass mit Level, vier Alben (Stadien, Vereine, Derbys, Erfolge),
-// zuletzt gesammelte Karten und Fortschritt je Liga.
+// Sammelalbum: Sammler-Pass mit Level, der Sammelkarten-Ordner mit allen besuchten Spielen
+// und Listen zum Vervollständigen – Vereine und Stadien je Land, Ligen, Derbys, Erfolge.
 
-import { useEffect, useMemo, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, type ReactNode } from 'react'
 import { motion, useSpring, useTransform } from 'motion/react'
-import { ChevronRight, Shield, Swords, Trophy } from 'lucide-react'
-import { LEAGUES } from '../shared/leagues.ts'
-import { TEAM_NAMES, collect, levelOf, type Collection } from '../lib/album.ts'
-import { ALBUMS, albumProgress, cardsOf, pagesOf, recentCards, type AlbumDef, type Card } from '../lib/cards.ts'
-import { stadiumsOfLeague } from '../lib/stadiums.ts'
+import { ChevronRight, Swords, Trophy } from 'lucide-react'
+import { collect, levelOf, TEAM_NAMES, type Collection } from '../lib/album.ts'
+import { CLUB_LISTS, STADIUM_LISTS, leagueOfList, listInfo, type ListId } from '../lib/lists.ts'
+import { leagueByCode } from '../shared/leagues.ts'
+import { leagueLogo } from '../lib/crests.ts'
 import { useUserData } from '../state/userData.ts'
+import { useCards } from '../state/cards.ts'
 import { useRevealed } from '../state/revealed.ts'
-import { flyingCardStore, openBinder, openCard, tabStore } from '../state/ui.ts'
+import { openBinder, openList, tabStore } from '../state/ui.ts'
 import { ScreenScaffold } from '../components/ScreenScaffold.tsx'
 import { ProfileButton } from '../components/ProfileButton.tsx'
 import { Flag } from '../components/Flag.tsx'
-import { StadiumIcon } from '../components/icons.tsx'
-import { CardFront, CardReverse } from '../components/cards/TradingCard.tsx'
+import { CardsIcon, StadiumIcon } from '../components/icons.tsx'
+import { CardReverse, MatchCardFront } from '../components/cards/MatchCard.tsx'
+import { CardStrip } from '../components/cards/CardStrip.tsx'
 import { PillButton } from '../components/ui.tsx'
-
-const ALBUM_ICONS: Record<string, ReactNode> = {
-  stadiums: <StadiumIcon size={20} />,
-  clubs: <Shield size={19} strokeWidth={2.2} />,
-  derbies: <Swords size={19} strokeWidth={2.2} />,
-  achievements: <Trophy size={19} strokeWidth={2.2} />,
-}
 
 export function AlbumScreen() {
   const data = useUserData()
   const c = useMemo(() => collect(data.visits), [data.visits])
   const level = levelOf(c.points)
   const clubsSeen = [...c.clubs.keys()].filter((n) => TEAM_NAMES.has(n)).length
-  const recent = useMemo(() => recentCards(c), [c])
-  const revealed = useRevealed()
+  const cards = useCards()
+  const recent = useMemo(() => [...cards].reverse().slice(0, 10), [cards])
 
   return (
     <ScreenScaffold title="Sammelalbum" actions={<ProfileButton />}>
@@ -61,17 +56,13 @@ export function AlbumScreen() {
         </div>
       </motion.div>
 
-      <SectionHead title="Alben" />
-      <div className="covers">
-        {ALBUMS.map((a, i) => <AlbumCover key={a.id} album={a} c={c} revealed={revealed} index={i} />)}
-      </div>
+      <SectionHead title="Sammelordner" />
+      <BinderCover />
 
       {recent.length > 0 ? (
         <>
           <SectionHead title="Zuletzt gesammelt" />
-          <div className="card-row">
-            {recent.map((card, i) => <RecentCard key={card.id} card={card} isNew={!revealed.has(card.id)} index={i} />)}
-          </div>
+          <CardStrip cards={recent} />
         </>
       ) : (
         <motion.div className="album-empty" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -80,48 +71,35 @@ export function AlbumScreen() {
           </div>
           <div>
             <b>Deine erste Karte wartet</b>
-            <p>Hake im Spielplan ein Spiel ab, bei dem du im Stadion warst – Stadion und Vereine landen als Karten im Album.</p>
+            <p>Hake im Spielplan ein Spiel ab, bei dem du im Stadion warst – dafür gibt es eine Karte mit Endstand und Spielbericht.</p>
             <PillButton small tint onClick={() => tabStore.set('games')}>Zum Spielplan</PillButton>
           </div>
         </motion.div>
       )}
 
-      <SectionHead title="Ligen" />
-      <div className="card inset list">
-        {LEAGUES.map((l, i) => {
-          const all = stadiumsOfLeague(l.code)
-          const got = all.filter((s) => c.stadiums.has(s.id)).length
-          const page = pagesOf('stadiums').findIndex((p) => p.league === l.code)
-          return (
-            <motion.button key={l.code} type="button" className="list-row league-row row-press"
-              initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ type: 'spring', stiffness: 400, damping: 32, delay: i * 0.04 }}
-              onClick={() => openBinder('stadiums', Math.max(0, page))}>
-              <Flag code={l.countryCode} size={16} />
-              <div className="row-main">
-                <div className="league-row-top">
-                  <span className="row-title">{l.name}</span>
-                  <span className={`league-row-count tnum ${got === all.length ? 'done' : ''}`}>{got}/{all.length}</span>
-                </div>
-                <div className="league-bar">
-                  <motion.i initial={{ width: 0 }} whileInView={{ width: `${(got / all.length) * 100}%` }} viewport={{ once: true }}
-                    transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1], delay: 0.1 + i * 0.05 }} />
-                </div>
-              </div>
-              <ChevronRight size={18} className="dim" />
-            </motion.button>
-          )
-        })}
+      <SectionHead title="Vereine" hint="Jedes Land eine Liste" />
+      <div className="list-tiles">
+        {CLUB_LISTS.map((id, i) => <ListTile key={id} id={id} c={c} index={i} />)}
+      </div>
+
+      <SectionHead title="Stadien" hint="Alle Grounds abhaken" />
+      <div className="list-tiles">
+        {STADIUM_LISTS.map((id, i) => <ListTile key={id} id={id} c={c} index={i} />)}
+      </div>
+
+      <SectionHead title="Weitere Listen" />
+      <div className="more-lists">
+        {(['leagues', 'derbies', 'achievements'] as ListId[]).map((id, i) => <MoreTile key={id} id={id} c={c} index={i} />)}
       </div>
     </ScreenScaffold>
   )
 }
 
-function SectionHead({ title, children }: { title: string; children?: ReactNode }) {
+function SectionHead({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="section-head">
       <h2 className="section-title">{title}</h2>
-      {children}
+      {hint && <span className="section-hint">{hint}</span>}
     </div>
   )
 }
@@ -135,63 +113,93 @@ function Stat({ value, label }: { value: number; label: string }) {
   )
 }
 
-function AlbumCover({ album, c, revealed, index }: { album: AlbumDef; c: Collection; revealed: Set<string>; index: number }) {
-  const p = albumProgress(album.id, c)
-  const newCount = p.gotCards.filter((card) => !revealed.has(card.id)).length
-  // Drei Karten fächern oben aus dem Einband: die wertvollsten gesammelten, sonst Rückseiten
-  const fan = useMemo(() => {
-    const order = { legendary: 0, epic: 1, rare: 2, common: 3 }
-    return [...p.gotCards].filter((card) => revealed.has(card.id)).sort((a, b) => order[a.rarity] - order[b.rarity]).slice(0, 3)
-  }, [p.gotCards, revealed])
-  const empty = cardsOf(album.id).length === 0
+/** Einband des Ordners – oben schauen die neuesten Karten heraus */
+function BinderCover() {
+  const cards = useCards()
+  const revealed = useRevealed()
+  const fan = useMemo(() => [...cards].reverse().filter((c) => revealed.has(c.id)).slice(0, 3), [cards, revealed])
+  const unseen = cards.filter((c) => !revealed.has(c.id)).length
 
   return (
-    <motion.button
-      type="button"
-      className="cover"
-      style={{ '--album': album.color, '--album-deep': album.colorDeep } as CSSProperties}
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 360, damping: 28, delay: 0.05 + index * 0.05 }}
-      whileTap={{ scale: 0.96 }}
-      onClick={() => openBinder(album.id)}
-      disabled={empty}
-    >
-      <div className="cover-fan" aria-hidden>
+    <motion.button type="button" className="bcover" onClick={openBinder}
+      initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 28, delay: 0.06 }}
+      whileTap={{ scale: 0.97 }}>
+      <div className="bcover-fan" aria-hidden>
         {[0, 1, 2].map((k) => (
-          <div key={k} className={`cover-fan-card k${k}`}>
-            {fan[k] ? <CardFront card={fan[k]} /> : <CardReverse />}
+          <div key={k} className={`bcover-card k${k}`}>
+            {fan[k] ? <MatchCardFront card={fan[k]} /> : <CardReverse />}
           </div>
         ))}
       </div>
-      <div className="cover-book">
-        <span className="cover-spine" />
-        <span className="cover-icon">{ALBUM_ICONS[album.id]}</span>
-        <span className="cover-title">{album.title}</span>
-        <span className="cover-count tnum">{p.got}<span>/{p.total}</span></span>
-        <span className="cover-bar"><motion.i initial={{ width: 0 }} animate={{ width: `${(p.got / p.total) * 100}%` }}
-          transition={{ duration: 1, ease: [0.32, 0.72, 0, 1], delay: 0.3 + index * 0.06 }} /></span>
+      <div className="bcover-book">
+        <span className="bcover-spine" />
+        <span className="bcover-stitch" />
+        <span className="bcover-icon"><CardsIcon size={24} /></span>
+        <div className="bcover-text">
+          <b>Mein Ordner</b>
+          <span className="tnum">{cards.length} {cards.length === 1 ? 'Spielkarte' : 'Spielkarten'}</span>
+        </div>
+        <span className="bcover-open">Aufschlagen <ChevronRight size={15} strokeWidth={2.8} /></span>
       </div>
-      {newCount > 0 && (
+      {unseen > 0 && (
         <motion.span className="cover-badge" initial={{ scale: 0 }} animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.4 + index * 0.05 }}>
-          {newCount} neu
+          transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.4 }}>
+          {unseen} neu
         </motion.span>
       )}
     </motion.button>
   )
 }
 
-function RecentCard({ card, isNew, index }: { card: Card; isNew: boolean; index: number }) {
-  const flying = flyingCardStore.use() === card.id
+function Progress({ got, total, delay = 0 }: { got: number; total: number; delay?: number }) {
   return (
-    <motion.button type="button" className="card-row-item" data-card={card.id}
-      style={{ visibility: flying ? 'hidden' : 'visible' }}
-      initial={{ opacity: 0, x: 24, rotate: 3 }} animate={{ opacity: 1, x: 0, rotate: 0 }}
-      transition={{ type: 'spring', stiffness: 360, damping: 28, delay: 0.1 + Math.min(index, 6) * 0.05 }}
-      whileTap={{ scale: 0.94 }}
-      onClick={() => openCard(card.id, card.id)}>
-      {isNew ? <CardReverse isNew /> : <CardFront card={card} />}
+    <span className={`tile-bar ${got === total && total > 0 ? 'done' : ''}`}>
+      <motion.i initial={{ width: 0 }} whileInView={{ width: `${total ? (got / total) * 100 : 0}%` }} viewport={{ once: true }}
+        transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1], delay }} />
+    </span>
+  )
+}
+
+function ListTile({ id, c, index }: { id: ListId; c: Collection; index: number }) {
+  const info = listInfo(id, c)
+  const code = leagueOfList(id)!
+  const league = leagueByCode(code)
+  const isClubs = id.startsWith('clubs')
+  return (
+    <motion.button type="button" className="ltile" onClick={() => openList(id)}
+      initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+      transition={{ type: 'spring', stiffness: 380, damping: 30, delay: index * 0.04 }}
+      whileTap={{ scale: 0.95 }}>
+      <div className="ltile-top">
+        <Flag code={league.countryCode} size={20} />
+        <span className="ltile-icon">{isClubs ? <img src={leagueLogo(code)} alt="" /> : <StadiumIcon size={18} />}</span>
+      </div>
+      <b className="ltile-title">{info.title}</b>
+      <span className="ltile-sub truncate">{league.name}</span>
+      <span className="ltile-count tnum"><b>{info.got}</b>/{info.total}</span>
+      <Progress got={info.got} total={info.total} delay={0.1 + index * 0.05} />
+    </motion.button>
+  )
+}
+
+const MORE_ICON: Record<string, ReactNode> = {
+  leagues: <Trophy size={20} strokeWidth={2.3} />,
+  derbies: <Swords size={20} strokeWidth={2.3} />,
+  achievements: <CardsIcon size={21} />,
+}
+
+function MoreTile({ id, c, index }: { id: ListId; c: Collection; index: number }) {
+  const info = listInfo(id, c)
+  return (
+    <motion.button type="button" className={`mtile mtile-${id}`} onClick={() => openList(id)}
+      initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      transition={{ type: 'spring', stiffness: 380, damping: 30, delay: index * 0.05 }}
+      whileTap={{ scale: 0.95 }}>
+      <span className="mtile-icon">{MORE_ICON[id]}</span>
+      <b>{info.title}</b>
+      <span className="tnum">{info.got}/{info.total}</span>
+      <Progress got={info.got} total={info.total} delay={0.15 + index * 0.05} />
     </motion.button>
   )
 }
@@ -205,4 +213,3 @@ function AnimatedNumber({ value }: { value: number }) {
   }, [spring, value])
   return <motion.span>{rounded}</motion.span>
 }
-

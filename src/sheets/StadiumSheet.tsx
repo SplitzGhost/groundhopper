@@ -11,9 +11,10 @@ import { useMatches } from '../state/matches.ts'
 import { useLocation } from '../state/location.ts'
 import { toggleMatchVisit, toggleWatch, useUserData } from '../state/userData.ts'
 import { closeAllSheets, focusMap, openCard, openSheet, tabStore } from '../state/ui.ts'
+import { useCards } from '../state/cards.ts'
+import { CardStrip } from '../components/cards/CardStrip.tsx'
 import { stadiumSpec } from '../data/stadiumInfo.ts'
 import { clubInfo } from '../data/clubs.ts'
-import { stadiumCardFor } from '../lib/cards.ts'
 import { Stadium3D } from '../components/Stadium3D.tsx'
 import { Flag } from '../components/Flag.tsx'
 import { Sheet } from '../components/Sheet.tsx'
@@ -28,6 +29,8 @@ export function StadiumSheet({ id }: { id: string }) {
   const data = useUserData()
   const loc = useLocation()
   const tab = tabStore.use()
+  const cards = useCards().filter((c) => c.visit.stadiumId === id)
+  const openStadiumCard = () => { if (cards.length) openCard(cards[cards.length - 1].id) }
 
   const open = useCallback((m: Match) => openSheet({ kind: 'match', id: m.id }), [])
   const onVisit = useCallback((m: Match) => toggleMatchVisit(m), [])
@@ -43,8 +46,7 @@ export function StadiumSheet({ id }: { id: string }) {
   const country = COUNTRIES[s.country]
   const spec = stadiumSpec(s.id)
   const club = clubInfo(s.teams[0].name)
-  const card = stadiumCardFor(s.id)
-  const openStadiumCard = () => { if (card) openCard(card.id) }
+
   const visitedIds = new Set(data.visits.map((v) => v.matchId))
   const watchIds = new Set(data.watchlist)
 
@@ -73,9 +75,11 @@ export function StadiumSheet({ id }: { id: string }) {
         <span className="stadium-hero-stats">
           <span><b className="tnum">{spec.capacity.toLocaleString('de-DE')}</b> Plätze</span>
           {spec.opened && <span><b className="tnum">{spec.opened}</b> eröffnet</span>}
-          <motion.button type="button" className="stadium-hero-card" whileTap={{ scale: 0.94 }} onClick={openStadiumCard}>
-            Karte <ChevronRight size={13} strokeWidth={2.8} />
-          </motion.button>
+          {cards.length > 0 && (
+            <motion.button type="button" className="stadium-hero-card" whileTap={{ scale: 0.94 }} onClick={openStadiumCard}>
+              {cards.length === 1 ? 'Karte' : `${cards.length} Karten`} <ChevronRight size={13} strokeWidth={2.8} />
+            </motion.button>
+          )}
         </span>
       </motion.div>
 
@@ -113,6 +117,11 @@ export function StadiumSheet({ id }: { id: string }) {
           </PillButton>
         )}
       </div>
+
+      {cards.length > 0 && <>
+        <div className="section-head"><h3 className="section-title">Deine Karten<b>{cards.length}</b></h3></div>
+        <CardStrip cards={[...cards].reverse()} className="in-sheet" />
+      </>}
 
       {upcoming.length > 0 && <>
         <div className="section-head"><h3 className="section-title">Nächste Spiele</h3></div>

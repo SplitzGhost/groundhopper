@@ -596,6 +596,7 @@ textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: non
   z-index: -1;
 }
 .chip > span:not(.chip-bg), .chip > svg { position: relative; }
+.chip > span:not(.chip-bg) { display: inline-flex; align-items: center; gap: 6px; }
 .chip { isolation: isolate; }
 
 /* Segmented Control */

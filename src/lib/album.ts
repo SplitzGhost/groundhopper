@@ -26,6 +26,7 @@ export const canonicalTeam = (name: string, league?: LeagueCode | null) =>
   findTeam(name, league ?? undefined)?.team ?? findTeam(name)?.team ?? name
 
 export interface Collection {
+  visits: Visit[]
   stadiums: Map<string, Visit[]>
   clubs: Map<string, Visit[]>
   derbies: Map<string, Visit[]>
@@ -192,17 +193,17 @@ export function diffUnlocks(before: Visit[], after: Visit[]): Unlock[] {
     if (!a.completeLeagues.has(l)) out.push({ title: LEAGUES.find((x) => x.code === l)!.name, subtitle: 'Liga komplett!', icon: 'trophy' })
   }
   for (const id of b.derbies.keys()) {
-    if (!a.derbies.has(id)) out.push({ title: DERBIES.find((d) => d.id === id)!.name, subtitle: 'Neue Derbykarte', icon: 'derby' })
+    if (!a.derbies.has(id)) out.push({ title: DERBIES.find((d) => d.id === id)!.name, subtitle: 'Neues Derby erlebt', icon: 'derby' })
   }
   for (const c of b.countries.keys()) {
     if (!a.countries.has(c)) out.push({ title: COUNTRIES[c]?.name ?? c, subtitle: 'Neues Land', icon: 'country' })
   }
   for (const id of b.stadiums.keys()) {
-    if (!a.stadiums.has(id)) out.push({ title: stadiumById(id)!.name, subtitle: 'Neue Stadionkarte – im Album aufdecken', icon: 'stadium' })
+    if (!a.stadiums.has(id)) out.push({ title: stadiumById(id)!.name, subtitle: 'Neues Stadion abgehakt', icon: 'stadium' })
   }
   for (const club of b.clubs.keys()) {
-    if (!a.clubs.has(club) && TEAM_NAMES.has(club)) out.push({ title: club, subtitle: 'Neue Vereinskarte', icon: 'club' })
+    if (!a.clubs.has(club) && TEAM_NAMES.has(club)) out.push({ title: club, subtitle: 'Neuer Verein live gesehen', icon: 'club' })
   }
-  if (!out.length) out.push({ title: 'Spiel eingetragen', subtitle: `${after.length}. Spiel in deinem Album`, icon: 'check' })
+  if (!out.length) out.push({ title: 'Spiel eingetragen', subtitle: `Neue Spielkarte · Nr. ${after.length}`, icon: 'check' })
   return out
 }

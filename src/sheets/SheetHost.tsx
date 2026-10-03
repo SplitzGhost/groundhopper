@@ -7,6 +7,8 @@ import { FilterSheet } from './FilterSheet.tsx'
 import { SearchSheet } from './SearchSheet.tsx'
 import { ProfileSheet } from './ProfileSheet.tsx'
 import { AddVisitSheet } from './AddVisitSheet.tsx'
+import { ClubSheet, DerbySheet, LeagueSheet } from './CollectionSheets.tsx'
+import { CalendarSheet } from './CalendarSheet.tsx'
 
 function Content({ spec }: { spec: SheetSpec }) {
   switch (spec.kind) {
@@ -17,6 +19,10 @@ function Content({ spec }: { spec: SheetSpec }) {
     case 'search': return <SearchSheet />
     case 'profile': return <ProfileSheet />
     case 'add': return <AddVisitSheet />
+    case 'club': return <ClubSheet name={spec.name} />
+    case 'league': return <LeagueSheet code={spec.code} />
+    case 'derby': return <DerbySheet id={spec.id} />
+    case 'calendar': return <CalendarSheet />
   }
 }
 

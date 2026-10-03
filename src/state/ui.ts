@@ -1,8 +1,9 @@
-// Oberflächenzustand: aktiver Tab, offene Sheets, Sammelalbum, Kartenfilter und Karten-Fokus.
+// Oberflächenzustand: aktiver Tab, offene Sheets, Sammelalbum, Spieltag, Kartenfilter und Karten-Fokus.
 
 import { useSyncExternalStore } from 'react'
 import type { LeagueCode } from '../shared/types.ts'
-import type { AlbumId } from '../lib/cards.ts'
+import type { ListId } from '../lib/lists.ts'
+import type { BinderSort } from '../lib/matchCards.ts'
 import { LEAGUE_CODES } from '../shared/leagues.ts'
 import { loadPref, savePref } from '../lib/storage.ts'
 
@@ -38,6 +39,10 @@ export type SheetSpec =
   | { kind: 'search' }
   | { kind: 'profile' }
   | { kind: 'add' }
+  | { kind: 'club'; name: string }
+  | { kind: 'league'; code: LeagueCode }
+  | { kind: 'derby'; id: string }
+  | { kind: 'calendar' }
 
 export interface OpenSheet {
   key: number
@@ -60,26 +65,41 @@ export function closeAllSheets() {
 
 // ---------- Sammelalbum ----------
 
-/** Aufgeschlagenes Album (Binder) und zuletzt angezeigte Seite */
-export const binderStore = createStore<{ album: AlbumId; page: number } | null>(null)
-export function openBinder(album: AlbumId, page = 0) {
-  binderStore.set({ album, page })
-}
-export function closeBinder() {
-  binderStore.set(null)
+/** Sammelkarten-Ordner aufgeschlagen? */
+export const binderStore = createStore(false)
+export const openBinder = () => binderStore.set(true)
+export const closeBinder = () => binderStore.set(false)
+
+export const binderSortStore = createStore<BinderSort>(loadPref<BinderSort>('binder-sort', 'newest'))
+export function setBinderSort(sort: BinderSort) {
+  binderSortStore.set(sort)
+  savePref('binder-sort', sort)
 }
 
-/** Vergrößert angezeigte Sammelkarte; `from` = layoutId der Ausgangskarte für den Flug */
-export const cardViewStore = createStore<{ cardId: string; from: string | null } | null>(null)
-export function openCard(cardId: string, from: string | null = null) {
-  cardViewStore.set({ cardId, from })
+/** Aufgeschlagene Liste (Vereine eines Landes, Stadien, Ligen …) */
+export const listStore = createStore<ListId | null>(null)
+export const openList = (id: ListId) => listStore.set(id)
+export const closeList = () => listStore.set(null)
+
+/** Vergrößert angezeigte Spielkarte (Besuchs-ID); `memory` öffnet gleich die Erinnerung */
+export const cardViewStore = createStore<{ visitId: string; memory?: boolean } | null>(null)
+export function openCard(visitId: string, memory = false) {
+  cardViewStore.set({ visitId, memory })
 }
 export function closeCard() {
   cardViewStore.set(null)
 }
 
-/** Karte, deren Platz im Album während des Flugs leer bleibt */
+/** Karte, deren Platz im Ordner während des Flugs leer bleibt */
 export const flyingCardStore = createStore<string | null>(null)
+
+/** Frisch verdiente Karte: kommt angeflogen, sobald alle Sheets geschlossen sind */
+export const pendingCardStore = createStore<string | null>(null)
+
+// ---------- Spielplan ----------
+
+/** Angezeigter Tag im Spiele-Tab (YYYY-MM-DD) */
+export const gamesDayStore = createStore<string | null>(null)
 
 // ---------- Kartenfilter ----------
 

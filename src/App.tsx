@@ -12,9 +12,11 @@ import { TabBar } from './components/TabBar.tsx'
 import { DynamicIsland } from './components/DynamicIsland.tsx'
 import { SheetHost } from './sheets/SheetHost.tsx'
 import { BinderView } from './screens/BinderView.tsx'
+import { ListView } from './screens/ListView.tsx'
 import { CardViewer } from './components/cards/CardViewer.tsx'
 import { GlassButton } from './components/ui.tsx'
 import { loadPref, savePref } from './lib/storage.ts'
+import { refreshReports } from './state/userData.ts'
 
 export default function App() {
   const appRef = useRef<HTMLDivElement>(null)
@@ -25,7 +27,12 @@ export default function App() {
     if (!el) return
     const ro = new ResizeObserver(() => setWidth(el.clientWidth))
     ro.observe(el)
-    return () => ro.disconnect()
+    // Fehlende Spielberichte der Sammelkarten im Hintergrund nachladen
+    const t = setTimeout(() => void refreshReports(), 2500)
+    return () => {
+      ro.disconnect()
+      clearTimeout(t)
+    }
   }, [])
 
   return (
@@ -36,9 +43,10 @@ export default function App() {
           <Overlay tab="games"><GamesScreen /></Overlay>
           <Overlay tab="album"><AlbumScreen /></Overlay>
           <TabBar />
+          <ListView />
           <BinderView />
-          <CardViewer />
           <SheetHost />
+          <CardViewer />
           <InstallHint />
           <FakeStatusBar />
           <div className="fake-island" />

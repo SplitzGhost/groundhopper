@@ -107,6 +107,35 @@ export interface Visit {
   kickoff?: string | null
   homeCrest?: string | null
   awayCrest?: string | null
+  /** Halbzeitstand [Heim, Gast], falls bekannt */
+  halfTime?: [number, number] | null
+  /** Spielbericht (Tore, Zuschauer) – wird nach dem Abhaken nachgeladen */
+  details?: MatchDetails | null
+}
+
+export type MatchEventKind = 'goal' | 'penalty' | 'own' | 'red'
+
+export interface MatchEvent {
+  /** Anzeige wie „45'+2'“ */
+  minute: string
+  /** Spielsekunde zum Sortieren */
+  t: number
+  /** Team, dem das Ereignis zählt (bei Eigentoren das begünstigte) */
+  side: 'home' | 'away'
+  kind: MatchEventKind
+  player: string
+}
+
+export interface MatchDetails {
+  /** false = Spiel in der Quelle nicht gefunden */
+  found: boolean
+  /** Endstand steht fest */
+  final: boolean
+  attendance: number | null
+  referee: string | null
+  venue: string | null
+  events: MatchEvent[]
+  fetchedAt: string
 }
 
 export interface UserData {

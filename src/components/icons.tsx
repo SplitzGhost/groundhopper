@@ -28,6 +28,18 @@ export function BallIcon({ size = 20, className }: IconProps) {
   )
 }
 
+/** Schiedsrichterpfeife */
+export function WhistleIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M9.5 9.5H21v3.2l-6.2 1.6a6 6 0 1 1-5.3-4.8z" />
+      <circle cx="9" cy="15.5" r="1.6" />
+      <path d="M9.5 9.5V6.5h3" />
+    </svg>
+  )
+}
+
 /** Zwei aufgefächerte Sammelkarten */
 export function CardsIcon({ size = 20, className }: IconProps) {
   return (

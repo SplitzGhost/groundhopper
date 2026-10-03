@@ -21,6 +21,15 @@ export function crestFor(name: string | null | undefined, size: CrestSize = 'sm'
   return id ? url(id, size) : null
 }
 
+/** ESPN-Vereins-ID (dieselbe Quelle wie die Wappen) – für den Spielbericht */
+export function espnTeamId(name: string, league?: LeagueCode | null): string | null {
+  return IDS[name] ?? IDS[findTeam(name, league ?? undefined)?.team ?? ''] ?? null
+}
+
+/** Liga-Logo in Farbe */
+const LEAGUE_LOGO: Record<LeagueCode, number> = { BL1: 10, PL: 23, PD: 15, SA: 12, FL1: 9 }
+export const leagueLogo = (code: LeagueCode) => `https://a.espncdn.com/i/leaguelogos/soccer/500/${LEAGUE_LOGO[code]}.png`
+
 /** Alle bekannten Wappen (Vereinsname → URL) */
 export function allCrests(size: CrestSize = 'sm'): Map<string, string> {
   return new Map(Object.entries(IDS).map(([name, id]) => [name, url(id, size)]))

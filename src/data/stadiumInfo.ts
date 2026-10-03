@@ -1,4 +1,4 @@
-// Stadion-Steckbriefe für die Sammelkarten: Kapazität, Eröffnung, eine kurze Besonderheit –
+// Stadion-Steckbriefe für Stadionliste und Spielkarten: Kapazität, Eröffnung, eine kurze Besonderheit –
 // und die Bauform, aus der StadiumArt die vereinfachte 3D-Grafik erzeugt.
 // Kapazitäten gerundet, Stand Saison 2026/27.
 
@@ -174,22 +174,3 @@ export const STADIUM_INFO: Record<string, StadiumSpec> = Object.fromEntries(
 )
 
 export const stadiumSpec = (id: string): StadiumSpec => STADIUM_INFO[id] ?? FALLBACK
-
-// ---------- Seltenheit ----------
-
-export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
-
-export const RARITY_LABEL: Record<Rarity, string> = {
-  common: 'Standard',
-  rare: 'Selten',
-  epic: 'Episch',
-  legendary: 'Legendär',
-}
-
-/** Seltenheit nach Größe: Große Arenen sind die Trophäen im Album. */
-export function rarityOf(capacity: number): Rarity {
-  if (capacity >= 65000) return 'legendary'
-  if (capacity >= 45000) return 'epic'
-  if (capacity >= 28000) return 'rare'
-  return 'common'
-}
