@@ -12,8 +12,8 @@ import { openSheet, pendingCardStore, sheetStore } from './ui.ts'
 let state: UserData = loadUserData()
 const listeners = new Set<() => void>()
 
-function set(next: UserData) {
-  const unlocks = diffUnlocks(state.visits, next.visits)
+function set(next: UserData, silent = false) {
+  const unlocks = silent ? [] : diffUnlocks(state.visits, next.visits)
   state = next
   saveUserData(state)
   listeners.forEach((l) => l())
@@ -42,10 +42,13 @@ export function useUserData(): UserData {
 }
 
 export const getUserData = () => state
+export const subscribeUserData = subscribe
 
-export function replaceUserData(data: UserData) {
-  set(data)
-  refreshReports()
+/** `silent`: ohne „Neu gesammelt“-Mitteilungen (z. B. beim Laden der Sammlung vom Konto) */
+export function replaceUserData(data: UserData, { silent = false } = {}) {
+  if (pendingCardStore.get() && !data.visits.some((v) => v.id === pendingCardStore.get())) pendingCardStore.set(null)
+  set(data, silent)
+  void refreshReports()
 }
 
 // ---------- Besuche ----------

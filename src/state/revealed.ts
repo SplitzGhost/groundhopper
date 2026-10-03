@@ -7,6 +7,14 @@ import { createStore } from './ui.ts'
 const store = createStore<Set<string>>(new Set(loadPref<string[]>('cards-revealed', [])))
 
 export const useRevealed = () => store.use()
+export const getRevealed = () => store.get()
+export const subscribeRevealed = store.subscribe
+
+/** Ganzen Stand ersetzen (Synchronisierung, Zurücksetzen) */
+export function replaceRevealed(ids: string[]) {
+  store.set(new Set(ids))
+  savePref('cards-revealed', ids)
+}
 
 export function reveal(cardId: string) {
   if (store.get().has(cardId)) return

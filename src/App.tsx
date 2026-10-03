@@ -17,6 +17,8 @@ import { CardViewer } from './components/cards/CardViewer.tsx'
 import { GlassButton } from './components/ui.tsx'
 import { loadPref, savePref } from './lib/storage.ts'
 import { refreshReports } from './state/userData.ts'
+import { AuthScreen } from './screens/AuthScreen.tsx'
+import { AlertHost } from './components/Alert.tsx'
 
 export default function App() {
   const appRef = useRef<HTMLDivElement>(null)
@@ -48,6 +50,8 @@ export default function App() {
           <SheetHost />
           <CardViewer />
           <InstallHint />
+          <AuthScreen />
+          <AlertHost />
           <FakeStatusBar />
           <div className="fake-island" />
           <DynamicIsland appWidth={width} />

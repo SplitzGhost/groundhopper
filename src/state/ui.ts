@@ -16,6 +16,7 @@ export function createStore<T>(initial: T) {
   }
   return {
     get: () => value,
+    subscribe,
     set(next: T | ((prev: T) => T)) {
       value = typeof next === 'function' ? (next as (p: T) => T)(value) : next
       listeners.forEach((l) => l())
@@ -160,3 +161,20 @@ export function focusMap(lat: number, lon: number, zoom = 13, stadiumId?: string
   tabStore.set('map')
   mapFocusStore.set({ seq: ++focusSeq, lat, lon, zoom, stadiumId })
 }
+
+// ---------- Rückfrage-Dialog (iOS-Alert) ----------
+
+export interface AlertSpec {
+  title: string
+  message: string
+  confirm: string
+  destructive?: boolean
+  /** Passwortfeld zur Bestätigung anzeigen */
+  password?: boolean
+  /** Gibt eine Fehlermeldung zurück, um den Dialog offen zu lassen */
+  onConfirm: (password: string) => Promise<string | null | void> | string | null | void
+}
+
+export const alertStore = createStore<AlertSpec | null>(null)
+export const showAlert = (spec: AlertSpec) => alertStore.set(spec)
+export const closeAlert = () => alertStore.set(null)
