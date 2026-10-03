@@ -5,7 +5,7 @@
 import { memo, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { Award, Flame, Info, Lightbulb, PartyPopper, Snowflake, Timer, TrendingUp, Users } from 'lucide-react'
-import type { MatchEvent } from '../../shared/types.ts'
+import type { LeagueCode, MatchEvent } from '../../shared/types.ts'
 import { cardNo, shortClub, type Extra, type ExtraId, type MatchCard } from '../../lib/matchCards.ts'
 import { crestFor, leagueLogo, type CrestSize } from '../../lib/crests.ts'
 import { clubInfo } from '../../data/clubs.ts'
@@ -41,9 +41,16 @@ export function ExtraBadge({ extra, label = true }: { extra: Extra; label?: bool
 /** Schon einmal geladene Wappen erscheinen sofort – sonst blinken sie bei jedem Umblättern neu ein */
 const loadedCrests = new Set<string>()
 
+/** ESPN-Vorschaubild (168 px) gegen die volle Auflösung tauschen */
+const fullSize = (src: string | null | undefined) =>
+  src?.replace(/^https:\/\/a\.espncdn\.com\/combiner\/i\?img=(\/i\/teamlogos\/[^&]+)&.*$/, 'https://a.espncdn.com$1')
+
 /** Wappen auf heller Scheibe; ohne Bild das Vereinskürzel */
-const CardCrest = memo(function CardCrest({ club, size, className }: { club: string; size: CrestSize; className: string }) {
-  const src = crestFor(club, size)
+const CardCrest = memo(function CardCrest({ club, size, className, league, saved }: {
+  club: string; size: CrestSize; className: string; league: LeagueCode | null; saved?: string | null
+}) {
+  // Vereine außerhalb der Datenbank: das beim Abhaken gespeicherte Wappen aus dem Spielplan
+  const src = crestFor(club, size, league ?? undefined) ?? (size === 'lg' ? fullSize(saved) : saved) ?? null
   const [loaded, setLoaded] = useState(() => !!src && loadedCrests.has(src))
   const [failed, setFailed] = useState(false)
   return (
@@ -92,8 +99,8 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
           <span className="mc-half home" />
           <span className="mc-half away" />
           {card.derby && <span className="mc-heat" />}
-          <CardCrest club={card.home} size={size} className="home" />
-          <CardCrest club={card.away} size={size} className="away" />
+          <CardCrest club={card.home} size={size} className="home" league={card.league} saved={v.homeCrest} />
+          <CardCrest club={card.away} size={size} className="away" league={card.league} saved={v.awayCrest} />
           <span className="mc-shine" />
           {card.derby && <span className="mc-embers">{EMBERS}</span>}
           <div className="mc-board">

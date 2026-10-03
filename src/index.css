@@ -639,8 +639,6 @@ textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: non
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  overflow: hidden;
 }
 .crest img {
   width: 100%;
