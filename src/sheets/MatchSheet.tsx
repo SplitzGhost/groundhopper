@@ -10,6 +10,7 @@ import { stadiumById } from '../lib/stadiums.ts'
 import { formatDayLong, formatTime, localDateKey, relativeDay } from '../lib/dates.ts'
 import { derbyOf } from '../lib/derbies.ts'
 import { canonicalTeam } from '../lib/album.ts'
+import { crestFor } from '../lib/crests.ts'
 import { useMatches } from '../state/matches.ts'
 import { removeVisit, toggleMatchVisit, toggleWatch, updateVisit, useUserData, visitOfMatch } from '../state/userData.ts'
 import { openSheet } from '../state/ui.ts'
@@ -115,8 +116,8 @@ export function VisitSheet({ id }: { id: string }) {
   return (
     <Sheet title={competition ?? 'Spiel'}>
       <Versus
-        home={{ name: v.homeTeam, crest: v.homeCrest ?? null }}
-        away={{ name: v.awayTeam, crest: v.awayCrest ?? null }}
+        home={{ name: v.homeTeam, crest: crestFor(v.homeTeam) ?? v.homeCrest ?? null }}
+        away={{ name: v.awayTeam, crest: crestFor(v.awayTeam) ?? v.awayCrest ?? null }}
         mid={v.homeScore !== null && v.awayScore !== null
           ? <span className="versus-score">{v.homeScore}:{v.awayScore}</span>
           : <span className="versus-time">–:–</span>}

@@ -32,7 +32,7 @@ export const STADIUM_SOURCE: StadiumSource[] = [
   ['BL1', 'SV Werder Bremen', 'Weserstadion', 'Bremen', 'de', '', ['Werder Bremen']],
   ['BL1', '1. FC Union Berlin', 'Stadion An der Alten Försterei', 'Berlin', 'de', '', ['Union Berlin']],
   ['BL1', 'TSG Hoffenheim', 'PreZero Arena', 'Sinsheim', 'de', '', ['TSG 1899 Hoffenheim', 'Hoffenheim']],
-  ['BL1', '1. FC Köln', 'RheinEnergieSTADION', 'Köln', 'de', 'RheinEnergieStadion', ['FC Köln', 'Köln']],
+  ['BL1', '1. FC Köln', 'RheinEnergieSTADION', 'Köln', 'de', 'RheinEnergieStadion', ['FC Köln', 'Köln', 'FC Cologne', 'Cologne']],
   ['BL1', 'Hamburger SV', 'Volksparkstadion', 'Hamburg', 'de', '', ['Hamburg']],
   ['BL1', 'FC Schalke 04', 'Veltins-Arena', 'Gelsenkirchen', 'de', '', ['Schalke 04', 'Schalke']],
   ['BL1', 'SC Paderborn 07', 'Home Deluxe Arena', 'Paderborn', 'de', '', ['Paderborn']],

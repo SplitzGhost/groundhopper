@@ -1,52 +1,56 @@
 // Sammelkarten im Stil eines Kartenspiels: Vorderseite je Kartentyp, Kartenrücken und
 // leerer Platz im Album. Alle Maße skalieren mit der Kartenbreite (Container-Einheiten).
 
-import { memo, type CSSProperties, type ReactNode } from 'react'
+import { memo, useState, type CSSProperties, type ReactNode } from 'react'
 import { Lock, Users } from 'lucide-react'
 import { cardColors, cardNo, type Card } from '../../lib/cards.ts'
 import { RARITY_LABEL, stadiumSpec, type Rarity } from '../../data/stadiumInfo.ts'
 import { clubInfo } from '../../data/clubs.ts'
 import { leagueByCode } from '../../shared/leagues.ts'
-import { useMatches } from '../../state/matches.ts'
+import { crestFor } from '../../lib/crests.ts'
 import { StadiumArt } from '../StadiumArt.tsx'
-import { Jersey } from '../Jersey.tsx'
 import { Flag } from '../Flag.tsx'
 import { AchievementIcon } from '../AchievementIcon.tsx'
 import { StadiumIcon } from '../icons.tsx'
-
-const GREY = { body: '#d9dee5', detail: '#c4cad3' }
 
 function Pips({ rarity }: { rarity: Rarity }) {
   const n = { common: 1, rare: 2, epic: 3, legendary: 4 }[rarity]
   return <span className="tc-pips" aria-label={RARITY_LABEL[rarity]}>{Array.from({ length: n }, (_, i) => <i key={i} />)}</span>
 }
 
+// ---------- Wappen ----------
+
+/** Vereinswappen auf heller Scheibe; gesperrt nur als grauer Schattenriss */
+const Logo = memo(function Logo({ club, locked, className = '' }: { club: string; locked: boolean; className?: string }) {
+  const src = crestFor(club, 'lg')
+  const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
+  return (
+    <span className={`tc-logo ${locked ? 'silhouette' : ''} ${className}`}>
+      {src && !failed
+        ? <img src={src} alt="" draggable={false} decoding="async" className={loaded ? 'loaded' : ''}
+            onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
+        : <b>{clubInfo(club).short}</b>}
+    </span>
+  )
+})
+
 // ---------- Bildfeld je Kartentyp ----------
 
 function CardArt({ card, locked }: { card: Card; locked: boolean }) {
-  const { crests } = useMatches()
   switch (card.kind) {
     case 'stadium':
       return <StadiumArt stadiumId={card.stadium.id} mono={locked} className="tc-art-svg" />
-    case 'club': {
-      const c = clubInfo(card.club)
-      return (
-        <Jersey className="tc-jersey" body={locked ? GREY.body : c.kit[0]} detail={locked ? GREY.detail : c.kit[1]}
-          pattern={locked ? 'solid' : c.kit[2]} crest={locked ? null : crests.get(card.club)} label={locked ? undefined : c.short} />
-      )
-    }
-    case 'derby': {
-      const [a, b] = card.derby.teams.map(clubInfo)
+    case 'club':
+      return <Logo club={card.club} locked={locked} />
+    case 'derby':
       return (
         <div className="tc-derby">
-          <Jersey className="tc-jersey left" body={locked ? GREY.body : a.kit[0]} detail={locked ? GREY.detail : a.kit[1]}
-            pattern={locked ? 'solid' : a.kit[2]} crest={locked ? null : crests.get(card.derby.teams[0])} label={locked ? undefined : a.short} />
-          <Jersey className="tc-jersey right" body={locked ? GREY.body : b.kit[0]} detail={locked ? GREY.detail : b.kit[1]}
-            pattern={locked ? 'solid' : b.kit[2]} crest={locked ? null : crests.get(card.derby.teams[1])} label={locked ? undefined : b.short} />
+          <Logo club={card.derby.teams[0]} locked={locked} className="left" />
+          <Logo club={card.derby.teams[1]} locked={locked} className="right" />
           <span className="tc-vs">VS</span>
         </div>
       )
-    }
     case 'achievement':
       return (
         <span className="tc-ach-icon">
@@ -138,10 +142,10 @@ export const CardSlot = memo(function CardSlot({ card }: { card: Card }) {
       <span className="tc-slot-num">{cardNo(card.number)}</span>
       <div className="tc-slot-art">
         {card.kind === 'stadium'
-          ? <StadiumArt stadiumId={card.stadium.id} mono className="tc-art-svg" />
+          ? <StadiumArt stadiumId={card.stadium.id} mono size="sm" className="tc-art-svg" />
           : card.kind === 'achievement'
             ? <AchievementIcon id={card.achievement.id} size={26} strokeWidth={1.8} />
-            : <Jersey className="tc-jersey" body="currentColor" detail="currentColor" pattern="solid" />}
+            : <Logo club={card.kind === 'club' ? card.club : card.derby.teams[0]} locked />}
       </div>
       <span className="tc-slot-name">{card.title}</span>
     </div>

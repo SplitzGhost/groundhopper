@@ -5,6 +5,7 @@ import { formatTime } from '../lib/dates.ts'
 import { stadiumById } from '../lib/stadiums.ts'
 import { hasStarted } from '../lib/matchState.ts'
 import { Star } from 'lucide-react'
+import { crestFor } from '../lib/crests.ts'
 import { CheckToggle, Crest, StarToggle } from './ui.tsx'
 
 
@@ -76,12 +77,12 @@ export function VisitRow({ visit: v, onOpen }: { visit: Visit; onOpen: (v: Visit
         </div>
         <div className="match-teams">
           <div className="match-team">
-            <Crest src={v.homeCrest} name={v.homeTeam} size={24} />
+            <Crest src={crestFor(v.homeTeam) ?? v.homeCrest} name={v.homeTeam} size={24} />
             <span className="truncate">{v.homeTeam}</span>
             <span className="score">{v.homeScore ?? ''}</span>
           </div>
           <div className="match-team">
-            <Crest src={v.awayCrest} name={v.awayTeam} size={24} />
+            <Crest src={crestFor(v.awayTeam) ?? v.awayCrest} name={v.awayTeam} size={24} />
             <span className="truncate">{v.awayTeam}</span>
             <span className="score">{v.awayScore ?? ''}</span>
           </div>

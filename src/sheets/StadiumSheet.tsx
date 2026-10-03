@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { motion } from 'motion/react'
 import type { CSSProperties } from 'react'
-import { Check, ChevronRight, Lock, MapPin, Navigation } from 'lucide-react'
+import { Check, ChevronRight, Lock, MapPin, Navigation, Rotate3d } from 'lucide-react'
 import type { Match } from '../shared/types.ts'
 import { stadiumById } from '../lib/stadiums.ts'
 import { distanceKm } from '../lib/geo.ts'
@@ -14,7 +14,7 @@ import { closeAllSheets, focusMap, openCard, openSheet, tabStore } from '../stat
 import { stadiumSpec } from '../data/stadiumInfo.ts'
 import { clubInfo } from '../data/clubs.ts'
 import { stadiumCardFor } from '../lib/cards.ts'
-import { StadiumArt } from '../components/StadiumArt.tsx'
+import { Stadium3D } from '../components/Stadium3D.tsx'
 import { Flag } from '../components/Flag.tsx'
 import { Sheet } from '../components/Sheet.tsx'
 import { MatchRow } from '../components/MatchRow.tsx'
@@ -44,6 +44,7 @@ export function StadiumSheet({ id }: { id: string }) {
   const spec = stadiumSpec(s.id)
   const club = clubInfo(s.teams[0].name)
   const card = stadiumCardFor(s.id)
+  const openStadiumCard = () => { if (card) openCard(card.id) }
   const visitedIds = new Set(data.visits.map((v) => v.matchId))
   const watchIds = new Set(data.watchlist)
 
@@ -62,19 +63,21 @@ export function StadiumSheet({ id }: { id: string }) {
         </div>
       </div>
 
-      <motion.button type="button" className={`stadium-hero ${myVisits.length ? 'got' : ''}`} style={{ '--c1': club.primary } as CSSProperties}
-        initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={softSpring}
-        whileTap={{ scale: 0.98 }} onClick={() => card && openCard(card.id)} aria-label="Sammelkarte ansehen">
-        <StadiumArt stadiumId={s.id} mono={!myVisits.length} className="stadium-hero-art" />
+      <motion.div className={`stadium-hero ${myVisits.length ? 'got' : ''}`} style={{ '--c1': club.primary } as CSSProperties}
+        initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={softSpring}>
+        <Stadium3D stadiumId={s.id} mono={!myVisits.length} className="stadium-hero-art" onTap={openStadiumCard} />
         <span className="stadium-hero-tag">
           {myVisits.length ? <><Check size={12} strokeWidth={3} /> Gesammelt</> : <><Lock size={11} strokeWidth={2.6} /> Noch nicht gesammelt</>}
         </span>
+        <span className="stadium-hero-hint"><Rotate3d size={12} strokeWidth={2.4} /> 3D</span>
         <span className="stadium-hero-stats">
           <span><b className="tnum">{spec.capacity.toLocaleString('de-DE')}</b> Plätze</span>
           {spec.opened && <span><b className="tnum">{spec.opened}</b> eröffnet</span>}
-          <span className="stadium-hero-card">Karte <ChevronRight size={13} strokeWidth={2.8} /></span>
+          <motion.button type="button" className="stadium-hero-card" whileTap={{ scale: 0.94 }} onClick={openStadiumCard}>
+            Karte <ChevronRight size={13} strokeWidth={2.8} />
+          </motion.button>
         </span>
-      </motion.button>
+      </motion.div>
 
       <motion.div className="card inset" style={{ marginTop: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 14 }}
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={softSpring}>

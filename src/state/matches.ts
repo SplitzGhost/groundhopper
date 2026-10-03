@@ -4,6 +4,7 @@ import { useSyncExternalStore } from 'react'
 import type { Match, MatchesResponse, ProviderName } from '../shared/types.ts'
 import { fetchMatches } from '../lib/api.ts'
 import { localDateKey } from '../lib/dates.ts'
+import { allCrests, crestFor } from '../lib/crests.ts'
 
 export interface MatchesState {
   status: 'loading' | 'ready' | 'error'
@@ -22,7 +23,7 @@ export interface MatchesState {
 
 let state: MatchesState = {
   status: 'loading', matches: [], byId: new Map(), byDay: new Map(), byStadium: new Map(),
-  crests: new Map(), provider: null, warnings: [], error: null,
+  crests: allCrests(), provider: null, warnings: [], error: null,
 }
 const listeners = new Set<() => void>()
 let started = false
@@ -31,8 +32,16 @@ function index(res: MatchesResponse): MatchesState {
   const byId = new Map<string, Match>()
   const byDay = new Map<string, Match[]>()
   const byStadium = new Map<string, Match[]>()
-  const crests = new Map<string, string>()
-  for (const m of res.matches) {
+  const crests = allCrests()
+  const matches: Match[] = []
+  for (const raw of res.matches) {
+    // Einheitliche Wappen aus der eigenen Tabelle, die der Quelle nur als Ersatz
+    const m: Match = {
+      ...raw,
+      home: { ...raw.home, crest: crestFor(raw.home.name, 'sm', raw.league) ?? raw.home.crest },
+      away: { ...raw.away, crest: crestFor(raw.away.name, 'sm', raw.league) ?? raw.away.crest },
+    }
+    matches.push(m)
     byId.set(m.id, m)
     const day = localDateKey(m.kickoff)
     if (!byDay.has(day)) byDay.set(day, [])
@@ -41,11 +50,11 @@ function index(res: MatchesResponse): MatchesState {
       if (!byStadium.has(m.stadiumId)) byStadium.set(m.stadiumId, [])
       byStadium.get(m.stadiumId)!.push(m)
     }
-    if (m.home.crest) crests.set(m.home.name, m.home.crest)
-    if (m.away.crest) crests.set(m.away.name, m.away.crest)
+    if (m.home.crest && !crests.has(m.home.name)) crests.set(m.home.name, m.home.crest)
+    if (m.away.crest && !crests.has(m.away.name)) crests.set(m.away.name, m.away.crest)
   }
   return {
-    status: 'ready', matches: res.matches, byId, byDay, byStadium, crests,
+    status: 'ready', matches, byId, byDay, byStadium, crests,
     provider: res.provider, warnings: res.warnings, error: null,
   }
 }
