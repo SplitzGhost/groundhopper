@@ -1,30 +1,28 @@
 // Spiele: Spielplan Tag für Tag, nach Ligen getrennt. Wischen nach rechts zeigt den Vortag,
 // nach links den nächsten Tag; Wochenleiste und Kalender springen direkt zu einem Datum.
-// Dazu Merkliste und besuchte Spiele.
+// Die Merkliste öffnet sich über den Stern oben rechts.
 
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { AnimatePresence, animate, motion, useMotionValue, type PanInfo } from 'motion/react'
 import { ArrowRight, CalendarDays, Plus, Search, Star, X } from 'lucide-react'
-import type { LeagueCode, Match } from '../shared/types.ts'
+import type { Match } from '../shared/types.ts'
 import { LEAGUES } from '../shared/leagues.ts'
 import { normalizeTeamName } from '../shared/teamMatch.ts'
-import { addDays, formatDayFriendly, formatDayLong, formatDayMedium, keyToDate, localDateKey, relativeDay } from '../lib/dates.ts'
+import { addDays, formatDayLong, formatDayMedium, keyToDate, localDateKey, relativeDay } from '../lib/dates.ts'
 import { stadiumById } from '../lib/stadiums.ts'
 import { leagueLogo } from '../lib/crests.ts'
 import { useMatches } from '../state/matches.ts'
 import { toggleMatchVisit, toggleWatch, useUserData } from '../state/userData.ts'
 import { gamesDayStore, openSheet } from '../state/ui.ts'
 import { ScreenScaffold } from '../components/ScreenScaffold.tsx'
-import { MatchRow, VisitRow } from '../components/MatchRow.tsx'
+import { MatchRow } from '../components/MatchRow.tsx'
 import { hasStarted } from '../lib/matchState.ts'
-import { Chip, Empty, GlassButton, PillButton, Segmented } from '../components/ui.tsx'
+import { Empty, GlassButton, PillButton } from '../components/ui.tsx'
 import { ProfileButton } from '../components/ProfileButton.tsx'
 import { Flag } from '../components/Flag.tsx'
 import { softSpring } from '../lib/motion.ts'
 import { BallIcon } from '../components/icons.tsx'
-
-type Mode = 'plan' | 'watch' | 'visited'
 
 const norm = (s: string) => normalizeTeamName(s) || s.toLowerCase()
 
@@ -40,9 +38,7 @@ function weekStart(day: string) {
 export function GamesScreen() {
   const matches = useMatches()
   const data = useUserData()
-  const [mode, setMode] = useState<Mode>('plan')
   const [query, setQuery] = useState('')
-  const [league, setLeague] = useState<LeagueCode | 'all'>('all')
   const scrollRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
   const today = localDateKey()
@@ -53,12 +49,17 @@ export function GamesScreen() {
 
   const q = query.trim() ? norm(query.trim()) : ''
   const matchesFilter = useCallback((m: Match) => {
-    if (league !== 'all' && m.league !== league) return false
     if (!q) return true
     const s = stadiumById(m.stadiumId)
     return [m.home.name, m.away.name, m.home.shortName, m.away.shortName, s?.name ?? '', s?.city ?? '']
       .some((t) => norm(t).includes(q))
-  }, [league, q])
+  }, [q])
+
+  // Stern oben zählt die noch anstehenden gemerkten Spiele
+  const upcomingWatched = data.watchlist.filter((id) => {
+    const m = matches.byId.get(id)
+    return m && !hasStarted(m)
+  }).length
 
   const dayMatches = useCallback((d: string) => (matches.byDay.get(d) ?? []).filter(matchesFilter), [matches.byDay, matchesFilter])
 
@@ -77,9 +78,9 @@ export function GamesScreen() {
   const onVisit = useCallback((m: Match) => toggleMatchVisit(m), [])
   const onWatch = useCallback((m: Match) => toggleWatch(m.id), [])
 
-  const row = (m: Match, dateLabel?: string) => (
+  const row = (m: Match) => (
     <MatchRow key={m.id} match={m} visited={visitedIds.has(m.id)} watched={watchIds.has(m.id)}
-      onOpen={open} onToggleVisit={onVisit} onToggleWatch={onWatch} dateLabel={dateLabel} showStadium={!!dateLabel} />
+      onOpen={open} onToggleVisit={onVisit} onToggleWatch={onWatch} />
   )
 
   // ---------- Suche über die ganze Saison ----------
@@ -89,32 +90,18 @@ export function GamesScreen() {
     .filter(([, list]) => list.length)
     .sort(([a], [b]) => a.localeCompare(b)), [matches.byDay, q, matchesFilter])
 
-  // ---------- Merkliste & Besucht ----------
-
-  const watchMatches = data.watchlist.map((id) => matches.byId.get(id)).filter((m): m is Match => !!m && matchesFilter(m))
-    .sort((a, b) => a.kickoff.localeCompare(b.kickoff))
-  const upcoming = watchMatches.filter((m) => !hasStarted(m))
-  const past = watchMatches.filter((m) => hasStarted(m))
-
-  const visits = [...data.visits]
-    .filter((v) => (league === 'all' || v.league === league) && (!q || [v.homeTeam, v.awayTeam].some((t) => norm(t).includes(q))))
-    .sort((a, b) => b.date.localeCompare(a.date))
-
   return (
     <ScreenScaffold
       ref={scrollRef}
       title="Spiele"
       actions={<>
+        <GlassButton label="Merkliste" badge={upcomingWatched || null}
+          icon={<Star size={21} strokeWidth={2.2} />} onClick={() => openSheet({ kind: 'watchlist' })} />
         <GlassButton label="Spiel manuell eintragen" icon={<Plus size={22} strokeWidth={2.4} />} onClick={() => openSheet({ kind: 'add' })} />
         <ProfileButton />
       </>}
     >
-      <div style={{ padding: '0 16px 12px', display: 'grid', gap: 12 }}>
-        <Segmented id="games-mode" value={mode} onChange={setMode} options={[
-          { value: 'plan', label: 'Spielplan' },
-          { value: 'watch', label: `Merkliste${data.watchlist.length ? ` · ${data.watchlist.length}` : ''}` },
-          { value: 'visited', label: `Besucht${data.visits.length ? ` · ${data.visits.length}` : ''}` },
-        ]} />
+      <div style={{ padding: '0 16px 6px' }}>
         <label className="search-field">
           <Search size={18} strokeWidth={2.4} />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Verein oder Stadion suchen"
@@ -127,18 +114,9 @@ export function GamesScreen() {
           )}
         </label>
       </div>
-      <div className="chips" style={{ paddingBottom: 6 }}>
-        <Chip layoutId="games-league" on={league === 'all'} onClick={() => setLeague('all')}>Alle Ligen</Chip>
-        {LEAGUES.map((l) => (
-          <Chip key={l.code} layoutId="games-league" on={league === l.code} onClick={() => setLeague(l.code)}>
-            <Flag code={l.countryCode} size={11} /> {l.name}
-          </Chip>
-        ))}
-      </div>
 
-      <motion.div key={mode} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={softSpring}>
-        {mode === 'plan' && (
-          matches.status === 'loading' ? <LoadingList /> :
+      <motion.div key={q ? 'search' : 'plan'} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={softSpring}>
+        {matches.status === 'loading' ? <LoadingList /> :
           matches.status === 'error' ? <Empty title="Spielplan nicht erreichbar" text={matches.error ?? undefined} /> :
           q ? (
             searchDays.length === 0 ? <Empty icon={<Search size={30} />} title="Nichts gefunden" text="Versuch es mit einem anderen Vereinsnamen." /> :
@@ -148,7 +126,7 @@ export function GamesScreen() {
                   <span>{relativeDay(d) ? `${relativeDay(d)}, ` : ''}{formatDayLong(d)}</span>
                   <button type="button" className="section-link" onClick={() => { setQuery(''); gamesDayStore.set(d) }}>Ganzer Tag</button>
                 </div>
-                <div className="card inset list">{list.map((m) => row(m))}</div>
+                <div className="card inset list">{list.map(row)}</div>
               </section>
             ))
           ) : (
@@ -158,46 +136,7 @@ export function GamesScreen() {
                 render={(d) => <DayContent day={d} today={today} list={dayMatches(d)} row={row}
                   findNext={() => nextMatchDay(matches.byDay, d, matchesFilter)} />} />
             </>
-          )
-        )}
-
-        {mode === 'watch' && (
-          watchMatches.length === 0 ? (
-            <Empty icon={<Star size={30} strokeWidth={2} />} title="Deine Merkliste ist leer"
-              text="Tippe im Spielplan bei kommenden Spielen auf den Stern. Gemerkte Spiele siehst du auch auf der Karte." />
-          ) : <>
-            {upcoming.length > 0 && <>
-              <div className="day-head">Anstehend</div>
-              <div className="card inset list">{upcoming.map((m) => row(m, formatDayFriendly(localDateKey(m.kickoff))))}</div>
-            </>}
-            {past.length > 0 && <>
-              <div className="day-head">Vorbei – warst du da?</div>
-              <div className="card inset list">{past.map((m) => row(m, formatDayFriendly(localDateKey(m.kickoff))))}</div>
-            </>}
-          </>
-        )}
-
-        {mode === 'visited' && (
-          visits.length === 0 ? (
-            <Empty icon={<BallIcon size={32} />} title={data.visits.length ? 'Nichts gefunden' : 'Noch keine Spiele'}
-              text={data.visits.length ? undefined : 'Hake im Spielplan Spiele ab, bei denen du im Stadion warst – oder trag eines manuell ein.'}>
-              {!data.visits.length && (
-                <div style={{ marginTop: 12 }}>
-                  <PillButton tint onClick={() => setMode('plan')}>Zum Spielplan</PillButton>
-                </div>
-              )}
-            </Empty>
-          ) : (
-            <div className="card inset list" style={{ marginTop: 8 }}>
-              {visits.map((v) => {
-                const m = v.matchId ? matches.byId.get(v.matchId) : undefined
-                return m
-                  ? row(m, formatDayFriendly(v.date))
-                  : <VisitRow key={v.id} visit={v} onOpen={() => openSheet({ kind: 'visit', id: v.id })} />
-              })}
-            </div>
-          )
-        )}
+          )}
       </motion.div>
     </ScreenScaffold>
   )

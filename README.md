@@ -11,10 +11,10 @@ mit Liquid-Glass-Bedienelementen, folgt dem Hell-/Dunkelmodus des Systems.
 - **Spiele:** Spielplan Tag für Tag, nach Ligen getrennt (mit Spieltag). Nach rechts wischen = Vortag,
   nach links = nächster Tag; Wochenleiste und Kalender springen zu jedem Datum, leere Tage zeigen den
   nächsten Spieltag. Haken setzen („Ich war da“) öffnet direkt Bewertung & Notizen; kommende Spiele merken (★).
-  Suche über die ganze Saison, Reiter Merkliste und Besucht, Spiele auch von Hand eintragbar (+).
+  Suche über die ganze Saison; die Merkliste öffnet der Stern (★) oben, Spiele auch von Hand eintragbar (+).
 - **Sammelalbum:**
   - **Sammelordner:** Jedes besuchte Spiel wird eine Spielkarte – beide Wappen auf einer diagonal geteilten
-    Fläche in dezenten Vereinsfarben, der Endstand als Anzeigetafel auf der Naht, dazu Extras wie Derby,
+    Fläche in satten Vereinsfarben mit Glanz- und Schwebeeffekten im Loop (Derbys mit Glut und Funken), der Endstand als Anzeigetafel auf der Naht, dazu Extras wie Derby,
     Neues Stadion, Torfestival, Comeback, Last-Minute-Sieg, Hattrick, Flutlicht. Die Rückseite ist der
     Spielbericht: 3D-Stadion, Zuschauer, Schiedsrichter und Torticker (Quelle: ESPN, wird nach dem Abhaken
     geladen). „Mehr“ zeigt die eigene Erinnerung (Bewertung, Notizen). Neue Karten kommen verdeckt angeflogen
@@ -82,7 +82,7 @@ server/            Node-Server (läuft direkt als TypeScript, Node ≥ 22.18)
 src/
   App.tsx          Hülle: Tabs, Sheets, Dynamic-Island-Mitteilungen, iPhone-Rahmen am PC
   screens/         Karte, Spiele, Sammelalbum, Sammelordner, Sammellisten
-  sheets/          Bottom-Sheets: Stadion, Spiel, Verein, Liga, Derby, Kalender, Filter, Suche, Profil, Eintragen
+  sheets/          Bottom-Sheets: Stadion, Spiel, Verein, Liga, Derby, Kalender, Merkliste, Filter, Suche, Profil, Eintragen
   components/      Bausteine: Glas-Buttons, Haken, Sheet, Karte (MapLibre), Flaggen, Trikots …
     cards/         Spielkarten: Vorder-/Rückseite, Kartenreihe, vergrößerte Ansicht mit Erinnerung
     StadiumArt     3D-Stadiongrafik (Szene aus lib/stadiumScene.ts)

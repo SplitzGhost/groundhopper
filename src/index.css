@@ -732,6 +732,8 @@ textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: non
   letter-spacing: -0.2px;
   background: linear-gradient(var(--bg) 70%, transparent);
 }
+/* Im Sheet gibt es keine Navigationsleiste darüber */
+.sheet-body .day-head { top: 0; }
 .day-head .today-tag {
   font: 700 11px/1 var(--font-rounded);
   letter-spacing: 0.8px;

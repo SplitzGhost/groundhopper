@@ -43,6 +43,7 @@ export type SheetSpec =
   | { kind: 'league'; code: LeagueCode }
   | { kind: 'derby'; id: string }
   | { kind: 'calendar' }
+  | { kind: 'watchlist' }
 
 export interface OpenSheet {
   key: number

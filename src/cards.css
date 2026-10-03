@@ -38,12 +38,14 @@
   aspect-ratio: 5 / 7;
   container-type: inline-size;
   border-radius: 6.5% / 4.64%;
-  /* Rahmen in dezenten Vereinsfarben */
+  /* Rahmen in satten Vereinsfarben, oben links Heim, unten rechts Gast */
   background: linear-gradient(150deg,
-    color-mix(in srgb, var(--home) 52%, var(--card-tint)),
-    color-mix(in srgb, var(--home) 22%, var(--card-tint)) 48%,
-    color-mix(in srgb, var(--away) 22%, var(--card-tint)) 52%,
-    color-mix(in srgb, var(--away) 52%, var(--card-tint)));
+    color-mix(in srgb, var(--home) 80%, #fff),
+    var(--home) 44%,
+    var(--away) 56%,
+    color-mix(in srgb, var(--away) 82%, #000));
+  /* Versatz der Loop-Animationen, damit nicht alle Karten im Gleichtakt glänzen */
+  --delay: calc(var(--n, 0) * -1.37s);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.55) inset,
     0 8px 18px -10px rgba(10, 30, 70, 0.45),
@@ -57,6 +59,11 @@
 .mc.is-special {
   background: conic-gradient(from var(--foil), var(--home), #ffd34d, var(--away), #ffffff, var(--home));
   animation: foilSpin 7s linear infinite;
+}
+/* Derby: Rahmen lodert in Feuerfarben und Vereinsfarben, schneller */
+.mc.is-derby {
+  background: conic-gradient(from var(--foil), var(--home), #ff3b30, #ffb800, var(--away), #ff6a00, var(--home));
+  animation-duration: 4s;
 }
 @keyframes foilSpin { to { --foil: 360deg; } }
 
@@ -107,12 +114,19 @@
   background: var(--card-art);
 }
 .mc-half { position: absolute; inset: 0; }
+/* Volle Vereinsfarbe mit Licht von oben links und zarten Rasenstreifen */
 .mc-half.home {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--home) 34%, var(--card-tint)), color-mix(in srgb, var(--home) 12%, var(--card-tint)));
+  background:
+    repeating-linear-gradient(76deg, rgba(255, 255, 255, 0.07) 0 7cqw, transparent 7cqw 14cqw),
+    radial-gradient(120% 90% at 10% 0%, rgba(255, 255, 255, 0.38), transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--home) 86%, #fff), var(--home) 55%, color-mix(in srgb, var(--home) 82%, #000));
   clip-path: polygon(0 0, 100% 0, 100% 38%, 0 62%);
 }
 .mc-half.away {
-  background: linear-gradient(340deg, color-mix(in srgb, var(--away) 34%, var(--card-tint)), color-mix(in srgb, var(--away) 12%, var(--card-tint)));
+  background:
+    repeating-linear-gradient(76deg, rgba(255, 255, 255, 0.07) 0 7cqw, transparent 7cqw 14cqw),
+    radial-gradient(120% 90% at 100% 100%, rgba(0, 0, 0, 0.22), transparent 60%),
+    linear-gradient(340deg, color-mix(in srgb, var(--away) 80%, #000), var(--away) 50%, color-mix(in srgb, var(--away) 84%, #fff));
   clip-path: polygon(0 62%, 100% 38%, 100% 100%, 0 100%);
 }
 /* Naht zwischen beiden Hälften */
@@ -128,7 +142,7 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95) 20%, rgba(255, 255, 255, 0.95) 80%, transparent);
   pointer-events: none;
 }
-@media (prefers-color-scheme: dark) { .mc-art::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25) 20%, rgba(255, 255, 255, 0.25) 80%, transparent); } }
+@media (prefers-color-scheme: dark) { .mc-art::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7) 20%, rgba(255, 255, 255, 0.7) 80%, transparent); } }
 
 .mc-crest {
   position: absolute;
@@ -138,11 +152,20 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 34% 26%, #ffffff, #f1f4f8);
-  box-shadow: 0 2.4cqw 5cqw -1.6cqw rgba(10, 30, 70, 0.35), inset 0 0 0 0.6cqw rgba(255, 255, 255, 0.9);
+  background: radial-gradient(circle at 34% 26%, #ffffff, #eef2f7);
+  box-shadow:
+    0 0 0 1cqw rgba(255, 255, 255, 0.3),
+    0 2.8cqw 5.4cqw -1.4cqw rgba(0, 10, 30, 0.5),
+    inset 0 0 0 0.6cqw rgba(255, 255, 255, 0.9);
+  /* Wappen schweben sanft auf und ab, gegenläufig */
+  animation: crestFloat 5.2s ease-in-out var(--delay) infinite;
 }
 .mc-crest.home { left: 5%; top: 6%; }
-.mc-crest.away { right: 5%; bottom: 6%; }
+.mc-crest.away { right: 5%; bottom: 6%; animation-delay: calc(var(--delay) - 2.6s); }
+@keyframes crestFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1.4cqw; }
+}
 .mc-crest img {
   width: 70%;
   height: 70%;
@@ -178,6 +201,18 @@
   letter-spacing: -0.02em;
   text-shadow: 0 0 3cqw rgba(140, 200, 255, 0.45);
 }
+/* Leuchtrand der Tafel pulsiert ruhig */
+.mc-board::after {
+  content: '';
+  position: absolute;
+  inset: -0.4cqw;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 3.6cqw 0.6cqw rgba(120, 190, 255, 0.55);
+  opacity: 0;
+  animation: boardGlow 3.4s ease-in-out var(--delay) infinite;
+}
+@keyframes boardGlow { 50% { opacity: 1; } }
 .mc-score i { font-style: normal; font-size: 0.7em; opacity: 0.55; translate: 0 -0.06em; }
 .mc-ht { margin-top: 0.8cqw; text-align: center; font: 700 3.8cqw/1 var(--font-rounded); letter-spacing: 0.08em; opacity: 0.6; }
 
@@ -202,7 +237,25 @@
   text-overflow: ellipsis;
   box-shadow: 0 1.6cqw 4cqw -1cqw rgba(255, 59, 48, 0.6), inset 0 0.4cqw 0 rgba(255, 255, 255, 0.35);
 }
-.mc-ribbon svg { flex: none; width: 4.6cqw; height: 4.6cqw; }
+.mc-ribbon svg { flex: none; width: 4.6cqw; height: 4.6cqw; transform-origin: 50% 90%; animation: flameFlicker 1.6s ease-in-out infinite; }
+/* Lichtkante, die über das Banner läuft */
+.mc-ribbon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.65) 50%, transparent 70%);
+  translate: -120% 0;
+  animation: ribbonShine 2.8s ease-in-out infinite;
+}
+@keyframes flameFlicker {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.14, 1.2) rotate(-5deg); }
+  60% { transform: scale(0.95, 1.06) rotate(4deg); }
+}
+@keyframes ribbonShine {
+  0% { translate: -120% 0; }
+  45%, 100% { translate: 120% 0; }
+}
 
 /* Extras unten links */
 .mc-extras { position: absolute; z-index: 2; left: 3.4cqw; bottom: 3.4cqw; display: flex; gap: 1.4cqw; }
@@ -295,6 +348,110 @@
   transition: opacity 0.3s;
 }
 .cv .mc-glare { opacity: 1; }
+
+/* ---------- Loop-Effekte ---------- */
+
+/* Lichtstreif, der alle paar Sekunden schräg über das Bildfeld zieht */
+.mc-shine {
+  position: absolute;
+  z-index: 1;
+  inset: -20% 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mc-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 34%;
+  rotate: 16deg;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4) 45%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0.4) 55%, transparent);
+  translate: -150% 0;
+  animation: shineSweep 7s cubic-bezier(0.45, 0, 0.25, 1) var(--delay) infinite;
+}
+@keyframes shineSweep {
+  0% { translate: -150% 0; }
+  20%, 100% { translate: 420% 0; }
+}
+
+/* Derby: Glut hinter der Anzeigetafel, aufsteigende Funken, häufigerer, warmer Glanz */
+.mc-heat {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 90cqw;
+  aspect-ratio: 1;
+  margin: -45cqw 0 0 -45cqw;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 190, 40, 0.75), rgba(255, 90, 20, 0.4) 34%, transparent 64%);
+  mix-blend-mode: screen;
+  animation: heatPulse 2.4s ease-in-out infinite;
+}
+@keyframes heatPulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.82); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Glut steigt vom unteren Rand auf und flackert */
+.mc-embers { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.mc-embers::before {
+  content: '';
+  position: absolute;
+  inset: 55% 0 0;
+  background: linear-gradient(to top, rgba(255, 110, 0, 0.6), rgba(255, 170, 0, 0.18) 55%, transparent);
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+  animation: emberFloor 1.9s ease-in-out infinite;
+}
+@keyframes emberFloor {
+  0%, 100% { opacity: 0.55; transform: scaleY(0.9); }
+  35% { opacity: 1; transform: scaleY(1.06); }
+  65% { opacity: 0.7; transform: scaleY(0.96); }
+}
+.mc-embers i {
+  position: absolute;
+  bottom: -3cqw;
+  left: var(--x);
+  width: var(--s, 2.2cqw);
+  height: var(--s, 2.2cqw);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6c2 15%, #ffb800 45%, rgba(255, 80, 0, 0) 72%);
+  opacity: 0;
+  animation: emberRise var(--t) ease-out var(--d) infinite;
+}
+.mc-embers i:nth-child(1) { --x: 8%; --t: 3.2s; --d: 0s; --dx: 4cqw; }
+.mc-embers i:nth-child(2) { --x: 22%; --t: 2.6s; --d: -1.1s; --dx: -3cqw; }
+.mc-embers i:nth-child(3) { --x: 37%; --t: 3.6s; --d: -2.3s; --dx: 5cqw; }
+.mc-embers i:nth-child(4) { --x: 52%; --t: 2.9s; --d: -0.6s; --dx: -4cqw; }
+.mc-embers i:nth-child(5) { --x: 66%; --t: 3.3s; --d: -1.8s; --dx: 3cqw; }
+.mc-embers i:nth-child(6) { --x: 79%; --t: 2.7s; --d: -2.7s; --dx: -5cqw; }
+.mc-embers i:nth-child(7) { --x: 90%; --t: 3.8s; --d: -1.4s; --dx: 2cqw; }
+.mc-embers i:nth-child(8) { --x: 45%; --t: 4.2s; --d: -3.1s; --dx: -2cqw; }
+.mc-embers i:nth-child(9) { --x: 14%; --t: 2.4s; --d: -0.3s; --dx: 3cqw; --s: 1.5cqw; }
+.mc-embers i:nth-child(10) { --x: 58%; --t: 2.2s; --d: -1.6s; --dx: -3cqw; --s: 1.5cqw; }
+.mc-embers i:nth-child(11) { --x: 73%; --t: 3s; --d: -0.9s; --dx: 4cqw; --s: 2.8cqw; }
+.mc-embers i:nth-child(12) { --x: 30%; --t: 2.8s; --d: -2s; --dx: -2cqw; --s: 2.8cqw; }
+@keyframes emberRise {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), -95cqw) scale(0.35); }
+}
+
+.mc.is-derby .mc-shine::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 220, 140, 0.45) 45%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 220, 140, 0.45) 55%, transparent);
+  animation-duration: 3.6s;
+}
+.mc.is-derby .mc-crest { animation-duration: 3.2s; }
+.mc.is-derby .mc-board::after { box-shadow: 0 0 4.4cqw 1cqw rgba(255, 120, 30, 0.75); animation-duration: 1.8s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mc, .mc *, .mc *::before, .mc *::after { animation: none !important; }
+  .mc-shine, .mc-embers { display: none; }
+}
 
 /* ---------- Rückseite: Spielbericht ---------- */
 

@@ -54,7 +54,10 @@ const CardCrest = memo(function CardCrest({ club, size, className }: { club: str
 })
 
 const cardVars = (c: MatchCard, style?: CSSProperties) =>
-  ({ '--home': c.colors.home, '--away': c.colors.away, ...style }) as CSSProperties
+  ({ '--home': c.colors.home, '--away': c.colors.away, '--n': c.number, ...style }) as CSSProperties
+
+/** Aufsteigende Funken auf Derbykarten – Position und Takt kommen aus cards.css */
+const EMBERS = Array.from({ length: 12 }, (_, i) => <i key={i} />)
 
 // ---------- Vorderseite ----------
 
@@ -85,8 +88,11 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
         <div className="mc-art">
           <span className="mc-half home" />
           <span className="mc-half away" />
+          {card.derby && <span className="mc-heat" />}
           <CardCrest club={card.home} size={size} className="home" />
           <CardCrest club={card.away} size={size} className="away" />
+          <span className="mc-shine" />
+          {card.derby && <span className="mc-embers">{EMBERS}</span>}
           <div className="mc-board">
             <div className="mc-score tnum">
               <b>{hasScore ? v.homeScore : '–'}</b><i>:</i><b>{hasScore ? v.awayScore : '–'}</b>
