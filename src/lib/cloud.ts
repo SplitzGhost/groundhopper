@@ -5,8 +5,8 @@
 import type { Visit } from '../shared/types.ts'
 
 // Supabase-Projekt (Einstellungen → API). Zum Testen per VITE_SUPABASE_URL / VITE_SUPABASE_KEY überschreibbar.
-const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? ''
-const SUPABASE_KEY: string = import.meta.env.VITE_SUPABASE_KEY ?? ''
+const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? 'https://mdrtltdminlbfvtgmhto.supabase.co'
+const SUPABASE_KEY: string = import.meta.env.VITE_SUPABASE_KEY ?? 'sb_publishable_U5UVO1oNjh3ZXl5q--LvDQ_1x9cRidu'
 
 /** Ohne eingetragenes Supabase-Projekt läuft die App wie bisher rein lokal. */
 export const cloudEnabled = !!(SUPABASE_URL && SUPABASE_KEY)
