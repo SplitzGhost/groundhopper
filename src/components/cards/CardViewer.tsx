@@ -3,7 +3,7 @@
 // Erinnerung (Bewertung, Notizen). Frisch verdiente Karten kommen verdeckt angeflogen.
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'motion/react'
 import { BookOpen, PenLine, Quote, RotateCcw, Star, X } from 'lucide-react'
 import type { MatchCard } from '../../lib/matchCards.ts'
 import { shortClub } from '../../lib/matchCards.ts'
@@ -80,32 +80,57 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
 
   // ---------- Neigen & Drehen ----------
 
-  const rx = useSpring(0, { stiffness: 260, damping: 22 })
-  const ry = useSpring(0, { stiffness: 260, damping: 22 })
-  const flip = useSpring(0, { stiffness: 170, damping: 20, mass: 1 })
+  const rx = useSpring(0, { stiffness: 200, damping: 24 })
+  const ry = useSpring(0, { stiffness: 200, damping: 24 })
+  const flip = useMotionValue(0)
   const rotateY = useTransform(() => flip.get() + ry.get())
+  // Beim Drehen hebt sich die Karte ein Stück an und wird zur Kante hin dunkler
+  const halfTurn = (v: number) => Math.sin(((((v % 180) + 180) % 180) / 180) * Math.PI)
+  const lift = useTransform(flip, (v) => 1 + halfTurn(v) * 0.06)
+  const edgeShade = useTransform(rotateY, (v) => Math.abs(Math.sin((v * Math.PI) / 180)) * 0.32)
+  // Statt backface-visibility (in Safari unzuverlässig, sobald Kinder animiert sind)
+  // wird die abgewandte Seite komplett ausgeblendet
+  const faceUp = (v: number) => Math.cos((v * Math.PI) / 180) >= 0
+  const visA = useTransform(rotateY, (v) => (faceUp(v) ? 'visible' : 'hidden'))
+  const visB = useTransform(rotateY, (v) => (faceUp(v) ? 'hidden' : 'visible'))
   const mx = useMotionValue(50)
   const my = useMotionValue(30)
-  const glareX = useTransform(mx, (v) => `${v}%`)
-  const glareY = useTransform(my, (v) => `${v}%`)
+  // Glanz als eigene Ebene – CSS-Variablen auf der Karte würden jede Frame den ganzen Kartenbaum neu berechnen
+  const glare = useTransform(() => `radial-gradient(circle at ${mx.get()}% ${my.get()}%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 52%)`)
   const press = useRef<{ x: number; y: number; t: number } | null>(null)
-  const touching = useRef(false)
+  const tilting = useRef(false)
+  const still = useRef(false)
 
+  // Fast kritisch gedämpft: dreht zügig, ohne am Ende nachzuwippen. Beim Schließen so
+  // schnell wie der Rückflug, damit die Karte mit der Vorderseite im Ordner landet.
+  const isPresent = useIsPresent()
   useEffect(() => {
-    flip.set(turn * 180)
-  }, [turn, flip])
+    const c = animate(flip, turn * 180, isPresent
+      ? { type: 'spring', stiffness: 130, damping: 21, mass: 1 }
+      : { type: 'spring', stiffness: 380, damping: 36 })
+    return () => c.stop()
+  }, [turn, flip, isPresent])
 
-  // Leichtes Schweben, solange niemand die Karte berührt – lässt den Glanz wandern
+  // Neue Karte genau dann aufdecken, wenn sie hochkant steht
+  const revealedNow = useRef(false)
+  useMotionValueEvent(flip, 'change', (v) => {
+    if (!hiddenAtOpen || revealedNow.current || v < 90) return
+    revealedNow.current = true
+    reveal(visitId)
+    setBurst((b) => b + 1)
+  })
+
+  // Ruhiges Schweben, solange niemand die Karte neigt – lässt den Glanz wandern
   useEffect(() => {
     let raf = 0
     const start = performance.now()
     const tick = (now: number) => {
-      if (!touching.current) {
+      if (!tilting.current && !still.current) {
         const t = (now - start) / 1000
-        ry.set(Math.sin(t * 0.9) * 5)
-        rx.set(Math.cos(t * 0.7) * 2.5)
-        mx.set(50 + Math.sin(t * 0.9) * 30)
-        my.set(35 + Math.cos(t * 0.7) * 20)
+        ry.set(Math.sin(t * 0.8) * 3.5)
+        rx.set(Math.cos(t * 0.6) * 1.8)
+        mx.set(50 + Math.sin(t * 0.8) * 28)
+        my.set(35 + Math.cos(t * 0.6) * 18)
       }
       raf = requestAnimationFrame(tick)
     }
@@ -113,13 +138,29 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
     return () => cancelAnimationFrame(raf)
   }, [rx, ry, mx, my])
 
+  // Beim Schließen flach und mit der Vorderseite zurück in den Ordner
+  useEffect(() => {
+    if (isPresent) return
+    still.current = true
+    rx.set(0)
+    ry.set(0)
+    if (sideAt(turn) === 'back') setTurn(turn + 1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPresent])
+
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (!touching.current) return
+    const p = press.current
+    if (!p) return
+    // Erst neigen, wenn der Finger wirklich zieht – ein Tipp soll nur drehen, nicht wackeln
+    if (!tilting.current) {
+      if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 8) return
+      tilting.current = true
+    }
     const r = e.currentTarget.getBoundingClientRect()
     const px = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width))
     const py = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))
-    ry.set((px - 0.5) * 26)
-    rx.set(-(py - 0.5) * 22)
+    ry.set((px - 0.5) * 22)
+    rx.set(-(py - 0.5) * 18)
     mx.set(px * 100)
     my.set(py * 100)
   }
@@ -127,14 +168,12 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     // Knöpfe auf der Karte (z. B. „Mehr“) bekommen ihren Klick selbst
     if ((e.target as HTMLElement).closest('button')) return
-    touching.current = true
     press.current = { x: e.clientX, y: e.clientY, t: performance.now() }
     e.currentTarget.setPointerCapture(e.pointerId)
-    onMove(e)
   }
 
   const onUp = (e: PointerEvent<HTMLDivElement>) => {
-    touching.current = false
+    tilting.current = false
     const p = press.current
     press.current = null
     if (!p) return
@@ -149,28 +188,25 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
 
   const lastTurn = useRef(0)
   const advance = () => {
-    // Manche Browser melden einen Tipp doppelt (Touch + Maus) – nur einmal drehen
+    // Manche Browser melden einen Tipp doppelt (Touch + Maus) – und solange die Karte
+    // noch hochkant steht, würde ein neuer Inhalt auf der sichtbaren Seite aufblitzen
     const now = performance.now()
-    if (now - lastTurn.current < 350) return
+    if (now - lastTurn.current < 380) return
     lastTurn.current = now
-    const nextTurn = turn + 1
-    setTurn(nextTurn)
-    if (hiddenAtOpen && nextTurn === 1) {
-      // Aufdecken, wenn die Karte halb gedreht ist
-      setTimeout(() => {
-        reveal(visitId)
-        setBurst((b) => b + 1)
-      }, 260)
-    }
+    setTurn((t) => t + 1)
   }
 
   // ---------- Seiten ----------
 
-  const sideAt = (k: number): Side => hiddenAtOpen
-    ? (k === 0 ? 'reverse' : k % 2 === 1 ? 'front' : 'back')
-    : (k % 2 === 0 ? 'front' : 'back')
-  const sideA = sideAt(turn % 2 === 0 ? turn : turn + 1)
-  const sideB = sideAt(turn % 2 === 1 ? turn : turn + 1)
+  function sideAt(k: number): Side {
+    return hiddenAtOpen
+      ? (k === 0 ? 'reverse' : k % 2 === 1 ? 'front' : 'back')
+      : (k % 2 === 0 ? 'front' : 'back')
+  }
+  // Seite A zeigt gerade, Seite B ungerade Drehungen. Eine Seite bekommt ihren neuen
+  // Inhalt erst, wenn sie abgewandt ist – sonst springt beim Aufdecken der Rücken weg.
+  const sideA = sideAt(turn % 2 === 0 ? turn : turn - 1)
+  const sideB = sideAt(turn % 2 === 1 ? turn : Math.max(1, turn - 1))
   const current = sideAt(turn)
 
   const colors = useMemo(() => card ? [card.colors.home, card.colors.away, '#ffffff', '#ffd34d'] : [], [card])
@@ -208,14 +244,22 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
       >
         <motion.div
           className="cv-card"
-          style={{ rotateX: rx, rotateY, '--mx': glareX, '--my': glareY } as never}
+          style={{ rotateX: rx, rotateY, scale: lift }}
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
-          onPointerCancel={() => { touching.current = false; press.current = null }}
+          onPointerCancel={() => { tilting.current = false; press.current = null }}
         >
-          <div className="cv-face">{render(sideA)}</div>
-          <div className="cv-face back">{render(sideB)}</div>
+          <motion.div className="cv-face" style={{ visibility: visA }}>
+            {render(sideA)}
+            <motion.span className="cv-glare" style={{ background: glare }} />
+            <motion.span className="cv-shade" style={{ opacity: edgeShade }} />
+          </motion.div>
+          <motion.div className="cv-face back" style={{ visibility: visB }}>
+            {render(sideB)}
+            <motion.span className="cv-glare" style={{ background: glare }} />
+            <motion.span className="cv-shade" style={{ opacity: edgeShade }} />
+          </motion.div>
         </motion.div>
         <Burst key={burst} active={burst > 0} colors={colors} />
       </motion.div>

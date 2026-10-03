@@ -64,7 +64,23 @@ function Binder() {
   const backShade = useTransform(angle, [-180, -90], [0, 0.3])
   const underShade = useTransform(angle, [-180, -110, -20, 0], [0, 0.32, 0.12, 0])
   const sheetShadow = useTransform(angle, [-90, -45, 0], [0, 0.3, 0])
-  const shadow = useTransform(sheetShadow, (o) => `0 18px 40px -10px rgba(5, 20, 50, ${o})`)
+  // Vorder- und Rückseite je nach Winkel zeigen – backface-visibility lässt in Safari
+  // animierte Karten gespiegelt durchscheinen
+  const frontVis = useTransform(angle, (a) => (a > -90 ? 'visible' : 'hidden'))
+  const backVis = useTransform(angle, (a) => (a > -90 ? 'hidden' : 'visible'))
+
+  // Einband schwingt auf
+  const cover = useMotionValue(0)
+  const coverFrontVis = useTransform(cover, (a) => (a > -90 ? 'visible' : 'hidden'))
+  const coverBackVis = useTransform(cover, (a) => (a > -90 ? 'hidden' : 'visible'))
+  useEffect(() => {
+    const c = animate(cover, -180, { type: 'spring', stiffness: 70, damping: 15, delay: 0.28 })
+    void c.then(() => setCoverGone(true))
+    return () => c.stop()
+  }, [cover])
+
+  // Nach einer Wischgeste keinen Klick auf die Karte darunter auslösen
+  const swiped = useRef(false)
 
   const finish = (d: Dir, complete: boolean, velocity = 0) => {
     busy.current = true
@@ -116,6 +132,7 @@ function Binder() {
       }
       // Am Ende des Ordners hebt sich die Seite nur ein Stück
       g.dir = g.blocked ? 'next' : d
+      swiped.current = true
       angle.jump(g.dir === 'prev' ? -180 : 0)
       flushSync(() => setDir(g.dir))
     }
@@ -133,9 +150,11 @@ function Binder() {
     const g = gesture.current
     gesture.current = null
     if (!g?.dir) return
+    // Der Klick folgt direkt auf pointerup – danach wieder freigeben
+    setTimeout(() => { swiped.current = false }, 0)
     const dx = e.clientX - g.x
     const p = Math.abs(dx) / (width() * 0.92)
-    const vel = g.vx * 1000 / width() * 180
+    const vel = g.vx * 1000 / (width() * 0.92) * 180
     if (g.blocked) return finish('next', false)
     if (g.dir === 'next') finish('next', p > 0.38 || g.vx < -0.45, vel)
     else finish('prev', p > 0.38 || g.vx > 0.45, vel)
@@ -177,38 +196,38 @@ function Binder() {
 
       <div className="binder-stage" ref={stage}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
-        onPointerCancel={() => { const d = gesture.current?.dir; gesture.current = null; if (d) finish(d, false) }}>
+        onClickCapture={(e) => { if (swiped.current) { e.stopPropagation(); e.preventDefault() } }}
+        onPointerCancel={() => { const d = gesture.current?.dir; gesture.current = null; swiped.current = false; if (d) finish(d, false) }}>
         <div className="binder-book">
           <div className="binder-rings" aria-hidden><i /><i /><i /></div>
 
           <motion.div key={shownSort} className="binder-under" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
-            {under ? <Page page={under} no={underNo} total={pages.length} /> : <BlankPage />}
+            {under ? <Page page={under} no={underNo} total={pages.length} intro={!coverGone} /> : <BlankPage />}
             <motion.span className="binder-under-shade" style={{ opacity: underShade }} />
           </motion.div>
 
           {moving && (
-            <motion.div className="binder-sheet" style={{ rotateY: angle, boxShadow: shadow }}>
-              <div className="binder-sheet-front">
+            <motion.div className="binder-sheet" style={{ rotateY: angle }}>
+              <motion.span className="binder-sheet-shadow" style={{ opacity: sheetShadow }} />
+              <motion.div className="binder-sheet-front" style={{ visibility: frontVis }}>
                 <Page page={moving} no={movingNo} total={pages.length} />
                 <motion.span className="binder-sheet-shade" style={{ opacity: frontShade }} />
-              </div>
-              <div className="binder-sheet-back">
+              </motion.div>
+              <motion.div className="binder-sheet-back" style={{ visibility: backVis }}>
                 <motion.span className="binder-sheet-shade" style={{ opacity: backShade }} />
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
           {!coverGone && (
-            <motion.div className="binder-cover" initial={{ rotateY: 0 }} animate={{ rotateY: -180 }}
-              transition={{ type: 'spring', stiffness: 70, damping: 15, delay: 0.28 }}
-              onAnimationComplete={() => setCoverGone(true)}>
-              <div className="binder-cover-front">
+            <motion.div className="binder-cover" style={{ rotateY: cover }}>
+              <motion.div className="binder-cover-front" style={{ visibility: coverFrontVis }}>
                 <span className="binder-cover-badge"><CardsIcon size={30} /></span>
                 <b>Groundhopper</b>
                 <span>Meine Spiele</span>
-              </div>
-              <div className="binder-cover-back" />
+              </motion.div>
+              <motion.div className="binder-cover-back" style={{ visibility: coverBackVis }} />
             </motion.div>
           )}
         </div>
@@ -253,7 +272,7 @@ function SortMenu({ onClose }: { onClose: () => void }) {
   )
 }
 
-function Page({ page, no, total }: { page: BinderPage; no: number; total: number }) {
+function Page({ page, no, total, intro = false }: { page: BinderPage; no: number; total: number; intro?: boolean }) {
   const slots = Array.from({ length: PER_PAGE }, (_, i) => page.cards[i] ?? null)
   return (
     <div className="bp">
@@ -265,7 +284,7 @@ function Page({ page, no, total }: { page: BinderPage; no: number; total: number
       <div className="bp-grid">
         {slots.map((card, i) => (
           <div key={card?.id ?? `empty-${i}`} className="bp-sleeve">
-            {card && <BinderCard card={card} index={i} />}
+            {card && <BinderCard card={card} index={i} intro={intro} />}
           </div>
         ))}
       </div>
@@ -289,7 +308,9 @@ function BlankPage() {
   )
 }
 
-const BinderCard = memo(function BinderCard({ card, index }: { card: MatchCard; index: number }) {
+// Karten blenden nur beim Aufschlagen gestaffelt ein. Beim Blättern wird dieselbe Seite neu
+// aufgebaut (Blatt ↔ Unterlage) – ein erneutes Einblenden würde dort aufblitzen.
+const BinderCard = memo(function BinderCard({ card, index, intro }: { card: MatchCard; index: number; intro: boolean }) {
   const revealed = useRevealed()
   const flying = flyingCardStore.use() === card.id
   const isNew = !revealed.has(card.id)
@@ -298,8 +319,9 @@ const BinderCard = memo(function BinderCard({ card, index }: { card: MatchCard; 
       type="button"
       className={`bp-card ${isNew ? 'is-new' : ''}`}
       data-card={card.id}
-      style={{ visibility: flying ? 'hidden' : 'visible' }}
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      // Nur ausblenden, nie 'visible' erzwingen – sonst schiene die Karte durch ein ausgeblendetes Blatt
+      style={flying ? { visibility: 'hidden' } : undefined}
+      initial={intro ? { opacity: 0, y: 10, scale: 0.95 } : false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 30, delay: 0.05 + index * 0.04 }}
       whileTap={{ scale: 0.95 }}

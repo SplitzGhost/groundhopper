@@ -38,16 +38,19 @@ export function ExtraBadge({ extra, label = true }: { extra: Extra; label?: bool
   )
 }
 
+/** Schon einmal geladene Wappen erscheinen sofort – sonst blinken sie bei jedem Umblättern neu ein */
+const loadedCrests = new Set<string>()
+
 /** Wappen auf heller Scheibe; ohne Bild das Vereinskürzel */
 const CardCrest = memo(function CardCrest({ club, size, className }: { club: string; size: CrestSize; className: string }) {
   const src = crestFor(club, size)
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(() => !!src && loadedCrests.has(src))
   const [failed, setFailed] = useState(false)
   return (
     <span className={`mc-crest ${className}`}>
       {src && !failed
-        ? <img src={src} alt="" draggable={false} decoding="async" className={loaded ? 'loaded' : ''}
-            onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
+        ? <img src={src} alt="" draggable={false} decoding={loaded ? "sync" : "async"} className={loaded ? 'loaded' : ''}
+            onLoad={() => { loadedCrests.add(src); setLoaded(true) }} onError={() => setFailed(true)} />
         : <b>{clubInfo(club).short}</b>}
     </span>
   )

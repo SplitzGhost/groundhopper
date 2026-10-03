@@ -334,7 +334,6 @@
   0%, 100% { background-position: 100% 100%; }
   50% { background-position: 0% 0%; }
 }
-.cv .mc-foil { animation: none; background-position: var(--mx, 50%) var(--my, 50%); }
 
 .mc-glare {
   position: absolute;
@@ -347,7 +346,6 @@
   mix-blend-mode: overlay;
   transition: opacity 0.3s;
 }
-.cv .mc-glare { opacity: 1; }
 
 /* ---------- Loop-Effekte ---------- */
 
@@ -990,14 +988,15 @@
   place-items: center;
   padding: 0 14px 0 22px;
   touch-action: none;
-  perspective: 1800px;
   cursor: grab;
 }
+/* Ohne preserve-3d: Seite und Einband drehen jeweils flach mit eigener Perspektive,
+   die Stapelung bleibt fest (Seiten < Ringe < Einband) – kein Flackern zwischen Ebenen */
 .binder-book {
   position: relative;
   /* Seite (4 Karten + Kopf) so groß wie möglich, ohne über den Rand zu ragen */
   width: min(100cqw - 36px, (100cqh - 74px) / 1.4 + 40px);
-  transform-style: preserve-3d;
+  perspective: 1800px;
 }
 .binder-under { position: relative; z-index: 1; }
 .binder-under-shade, .binder-sheet-shade {
@@ -1012,19 +1011,25 @@
   inset: 0;
   z-index: 3;
   transform-origin: 0 50%;
-  transform-style: preserve-3d;
   border-radius: 8px 22px 22px 8px;
+  will-change: transform;
 }
 .binder-sheet-front, .binder-sheet-back {
   position: absolute;
   inset: 0;
   border-radius: 8px 22px 22px 8px;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+}
+.binder-sheet-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px 22px 22px 8px;
+  box-shadow: 0 18px 40px -10px rgba(5, 20, 50, 1);
+  opacity: 0;
+  pointer-events: none;
 }
 .binder-sheet-shade { background: linear-gradient(90deg, rgba(5, 15, 35, 0.15), rgba(5, 15, 35, 0.55)); }
 .binder-sheet-back {
-  transform: rotateY(180deg);
+  transform: scaleX(-1);
   background:
     repeating-linear-gradient(90deg, transparent 0 calc(50% - 6px), rgba(10, 30, 70, 0.05) calc(50% - 6px) calc(50% + 6px), transparent calc(50% + 6px) 100%),
     var(--page-back);
@@ -1052,14 +1057,12 @@
   inset: -5px -6px -5px -2px;
   z-index: 5;
   transform-origin: 0 50%;
-  transform-style: preserve-3d;
+  will-change: transform;
 }
 .binder-cover-front, .binder-cover-back {
   position: absolute;
   inset: 0;
   border-radius: 8px 24px 24px 8px;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 }
 .binder-cover-front {
   display: flex;
@@ -1092,7 +1095,7 @@
   background: rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 10px 24px -10px rgba(0, 0, 0, 0.5);
 }
-.binder-cover-back { transform: rotateY(180deg); background: linear-gradient(150deg, #0a4fc4, #062f7a); }
+.binder-cover-back { transform: scaleX(-1); background: linear-gradient(150deg, #0a4fc4, #062f7a); }
 
 /* Seite mit vier Kartenhüllen */
 .bp {
@@ -1592,21 +1595,27 @@
   z-index: 2;
   perspective: 1200px;
 }
+/* Bewusst ohne preserve-3d: Die Seiten werden flach in die Karte gerendert und je nach
+   Drehwinkel ein- oder ausgeblendet. So gibt es in Safari kein Durchscheinen der Rückseite. */
 .cv-card {
   position: relative;
   width: 100%;
   aspect-ratio: 5 / 7;
-  transform-style: preserve-3d;
   touch-action: none;
   cursor: grab;
+  will-change: transform;
 }
-.cv-face {
+.cv-face { position: absolute; inset: 0; }
+.cv-face.back { transform: scaleX(-1); }
+.cv-glare, .cv-shade {
   position: absolute;
   inset: 0;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  z-index: 6;
+  border-radius: 6.5% / 4.64%;
+  pointer-events: none;
 }
-.cv-face.back { transform: rotateY(180deg); }
+.cv-shade { background: rgb(4, 12, 30); opacity: 0; }
+.cv .mc-glare { display: none; }
 .cv-face .mc { height: 100%; box-shadow: 0 34px 60px -24px rgba(0, 0, 0, 0.6), 0 12px 24px -12px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.55) inset; }
 .cv-bottom {
   position: absolute;
