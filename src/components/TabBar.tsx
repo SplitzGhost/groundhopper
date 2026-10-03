@@ -1,18 +1,21 @@
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { Map as MapIcon } from 'lucide-react'
+import { Map as MapIcon, Users } from 'lucide-react'
 import { tabStore, type Tab } from '../state/ui.ts'
 import { BallIcon, CardsIcon } from './icons.tsx'
 import { softSpring } from '../lib/motion.ts'
+import { usePendingCount } from '../state/social.ts'
 
 const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: 'map', label: 'Karte', icon: <MapIcon size={22} strokeWidth={2.1} /> },
   { id: 'games', label: 'Spiele', icon: <BallIcon size={22} /> },
   { id: 'album', label: 'Sammelalbum', icon: <CardsIcon size={23} /> },
+  { id: 'friends', label: 'Freunde', icon: <Users size={22} strokeWidth={2.1} /> },
 ]
 
 export function TabBar() {
   const tab = tabStore.use()
+  const pending = usePendingCount()
   return (
     <nav className="glass tabbar" aria-label="Hauptnavigation">
       {TABS.map((t) => (
@@ -33,6 +36,12 @@ export function TabBar() {
             transition={{ type: 'spring', stiffness: 520, damping: 14 }}>
             {t.icon}
           </motion.span>
+          {t.id === 'friends' && pending > 0 && (
+            <motion.span key={pending} className="tab-badge tnum" initial={{ scale: 0 }} animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 520, damping: 16 }}>
+              {pending > 9 ? '9+' : pending}
+            </motion.span>
+          )}
           <span>{t.label}</span>
         </motion.button>
       ))}

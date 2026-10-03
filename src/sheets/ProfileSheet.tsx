@@ -12,6 +12,8 @@ import { authOpenStore, deleteAccount, resetCollection, signOut, sync, syncStatu
 import { cloudEnabled } from '../lib/cloud.ts'
 import { Sheet } from '../components/Sheet.tsx'
 import { ProgressRing } from '../components/ui.tsx'
+import { AvatarEdit } from '../components/social.tsx'
+import { useSocial } from '../state/social.ts'
 
 export function ProfileSheet() {
   const data = useUserData()
@@ -115,6 +117,7 @@ function AccountSection() {
   const account = useAccount()
   const status = syncStatusStore.use()
   const pending = account.mode === 'user' && account.dirty && status === 'idle'
+  const social = useSocial()
 
   const askReset = () => showAlert({
     title: 'Sammlung zurücksetzen?',
@@ -161,17 +164,19 @@ function AccountSection() {
       <div className="card inset list">
         {account.mode === 'user' ? (
           <>
-            <button type="button" className="list-row row-press" onClick={() => void sync()}>
-              <span className="avatar">{account.username.slice(0, 1).toUpperCase()}</span>
-              <div className="row-main">
-                <div className="row-title truncate">{account.username}</div>
-                <div className={`row-sub sync-line ${status}`}>
-                  {status === 'offline' || status === 'error' ? <CloudOff size={13} /> : <span className="sync-dot" />}
-                  {pending ? STATUS_TEXT.syncing : STATUS_TEXT[status]}
+            <div className="list-row account-row">
+              <AvatarEdit name={account.username} v={social.data?.me.avatar ?? null} size={44} />
+              <button type="button" className="account-sync" onClick={() => void sync()}>
+                <div className="row-main">
+                  <div className="row-title truncate">{account.username}</div>
+                  <div className={`row-sub sync-line ${status}`}>
+                    {status === 'offline' || status === 'error' ? <CloudOff size={13} /> : <span className="sync-dot" />}
+                    {pending ? STATUS_TEXT.syncing : STATUS_TEXT[status]}
+                  </div>
                 </div>
-              </div>
-              <RefreshCw size={18} className={`dim ${status === 'syncing' || pending ? 'spin' : ''}`} />
-            </button>
+                <RefreshCw size={18} className={`dim ${status === 'syncing' || pending ? 'spin' : ''}`} />
+              </button>
+            </div>
             <button type="button" className="list-row row-press" onClick={() => void askSignOut()}>
               <LogOut size={20} style={{ color: 'var(--accent)' }} />
               <div className="row-main"><div className="row-title">Abmelden</div><div className="row-sub">Sammlung bleibt im Konto gespeichert</div></div>

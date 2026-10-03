@@ -22,8 +22,6 @@ import { PillButton } from '../components/ui.tsx'
 export function AlbumScreen() {
   const data = useUserData()
   const c = useMemo(() => collect(data.visits), [data.visits])
-  const level = levelOf(c.points)
-  const clubsSeen = [...c.clubs.keys()].filter((n) => TEAM_NAMES.has(n)).length
   const cards = useCards()
   const recent = useMemo(() => [...cards].reverse().slice(0, 10), [cards])
   // Länder, in denen schon etwas gesammelt ist, nach vorn – sonst Katalogreihenfolge (Top 5 zuerst)
@@ -33,31 +31,7 @@ export function AlbumScreen() {
 
   return (
     <ScreenScaffold title="Sammelalbum" actions={<ProfileButton />}>
-      {/* Sammler-Pass */}
-      <motion.div className="pass" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 28 }}>
-        <div className="pass-top">
-          <div className="pass-level">
-            <svg viewBox="0 0 64 64" aria-hidden>
-              <circle cx="32" cy="32" r="27" className="pass-track" />
-              <motion.circle cx="32" cy="32" r="27" className="pass-fill" initial={{ pathLength: 0 }}
-                animate={{ pathLength: Math.max(0.03, level.progress) }} transition={{ duration: 1.2, ease: [0.32, 0.72, 0, 1], delay: 0.15 }} />
-            </svg>
-            <span><small>Level</small><b className="tnum">{level.level}</b></span>
-          </div>
-          <div className="pass-main">
-            <div className="pass-name">{level.name}</div>
-            <div className="pass-points"><AnimatedNumber value={c.points} /> Punkte</div>
-            <div className="pass-next">{level.next ? `Noch ${level.toNext} bis „${level.next}“` : 'Höchstes Level erreicht'}</div>
-          </div>
-        </div>
-        <div className="pass-stats">
-          <Stat value={data.visits.length} label="Spiele" />
-          <Stat value={c.stadiums.size} label="Stadien" />
-          <Stat value={clubsSeen} label="Vereine" />
-          <Stat value={c.countries.size} label="Länder" />
-        </div>
-      </motion.div>
+      <CollectorPass c={c} />
 
       <SectionHead title="Sammelordner" />
       <BinderCover />
@@ -95,6 +69,38 @@ export function AlbumScreen() {
         {(['leagues', 'derbies', 'achievements'] as ListId[]).map((id, i) => <MoreTile key={id} id={id} c={c} index={i} />)}
       </div>
     </ScreenScaffold>
+  )
+}
+
+/** Sammler-Pass: Level, Punkte und die wichtigsten Zahlen – auch für Profile von Freunden */
+export function CollectorPass({ c }: { c: Collection }) {
+  const level = levelOf(c.points)
+  const clubsSeen = [...c.clubs.keys()].filter((n) => TEAM_NAMES.has(n)).length
+  return (
+    <motion.div className="pass" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 28 }}>
+      <div className="pass-top">
+        <div className="pass-level">
+          <svg viewBox="0 0 64 64" aria-hidden>
+            <circle cx="32" cy="32" r="27" className="pass-track" />
+            <motion.circle cx="32" cy="32" r="27" className="pass-fill" initial={{ pathLength: 0 }}
+              animate={{ pathLength: Math.max(0.03, level.progress) }} transition={{ duration: 1.2, ease: [0.32, 0.72, 0, 1], delay: 0.15 }} />
+          </svg>
+          <span><small>Level</small><b className="tnum">{level.level}</b></span>
+        </div>
+        <div className="pass-main">
+          <div className="pass-name">{level.name}</div>
+          <div className="pass-points"><AnimatedNumber value={c.points} /> Punkte</div>
+          <div className="pass-next">{level.next ? `Noch ${level.toNext} bis „${level.next}“` : 'Höchstes Level erreicht'}</div>
+        </div>
+      </div>
+      <div className="pass-stats">
+        <Stat value={c.visits.length} label="Spiele" />
+        <Stat value={c.stadiums.size} label="Stadien" />
+        <Stat value={clubsSeen} label="Vereine" />
+        <Stat value={c.countries.size} label="Länder" />
+      </div>
+    </motion.div>
   )
 }
 

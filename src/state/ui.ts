@@ -27,7 +27,7 @@ export function createStore<T>(initial: T) {
 
 // ---------- Tabs ----------
 
-export type Tab = 'map' | 'games' | 'album'
+export type Tab = 'map' | 'games' | 'album' | 'friends'
 export const tabStore = createStore<Tab>('map')
 
 // ---------- Sheets ----------
@@ -83,14 +83,27 @@ export const listStore = createStore<ListId | null>(null)
 export const openList = (id: ListId) => listStore.set(id)
 export const closeList = () => listStore.set(null)
 
-/** Vergrößert angezeigte Spielkarte (Besuchs-ID); `memory` öffnet gleich die Erinnerung */
-export const cardViewStore = createStore<{ visitId: string; memory?: boolean } | null>(null)
-export function openCard(visitId: string, memory = false) {
-  cardViewStore.set({ visitId, memory })
+/** Vergrößert angezeigte Spielkarte (Besuchs-ID); `memory` öffnet gleich die Erinnerung,
+ *  `owner` ist der Benutzername bei Karten eines Freundes */
+export const cardViewStore = createStore<{ visitId: string; memory?: boolean; owner?: string } | null>(null)
+export function openCard(visitId: string, memory = false, owner?: string) {
+  cardViewStore.set({ visitId, memory, owner })
 }
 export function closeCard() {
   cardViewStore.set(null)
 }
+
+// ---------- Freunde ----------
+
+/** Aufgeschlagenes Profil eines Freundes (Benutzername) */
+export const friendViewStore = createStore<string | null>(null)
+export const openFriend = (username: string) => friendViewStore.set(username)
+export const closeFriend = () => friendViewStore.set(null)
+
+/** Fotos in groß: `owner` null = eigene Karte */
+export const photoViewStore = createStore<{ owner: string | null; visitId: string; photoId: string } | null>(null)
+export const openPhoto = (owner: string | null, visitId: string, photoId: string) => photoViewStore.set({ owner, visitId, photoId })
+export const closePhoto = () => photoViewStore.set(null)
 
 /** Karte, deren Platz im Ordner während des Flugs leer bleibt */
 export const flyingCardStore = createStore<string | null>(null)

@@ -4,17 +4,20 @@
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'motion/react'
-import { BookOpen, PenLine, Quote, RotateCcw, Star, X } from 'lucide-react'
+import { BookOpen, Camera, PenLine, Quote, RotateCcw, Star, Users, X } from 'lucide-react'
 import type { MatchCard } from '../../lib/matchCards.ts'
 import { shortClub } from '../../lib/matchCards.ts'
 import { useCards } from '../../state/cards.ts'
 import { ensureReport, updateVisit } from '../../state/userData.ts'
+import { useAccount } from '../../state/account.ts'
+import { friendCards, useCompanions, useFriend, type Companion } from '../../state/social.ts'
 import { reveal, useRevealed } from '../../state/revealed.ts'
 import { cardViewStore, closeCard, flyingCardStore, openSheet, pendingCardStore, sheetStore, tabStore } from '../../state/ui.ts'
 import { leagueByCode } from '../../shared/leagues.ts'
 import { formatDayLong } from '../../lib/dates.ts'
 import { GlassButton, PillButton } from '../ui.tsx'
 import { CardReverse, ExtraBadge, MatchCardBack, MatchCardFront } from './MatchCard.tsx'
+import { Avatar, CompanionChip, Companions, PhotoStrip } from '../social.tsx'
 
 export function CardViewer() {
   const view = cardViewStore.use()
@@ -33,7 +36,7 @@ export function CardViewer() {
 
   return (
     <AnimatePresence onExitComplete={() => flyingCardStore.set(null)}>
-      {view && <Viewer key={view.visitId} visitId={view.visitId} memoryAtOpen={!!view.memory} />}
+      {view && <Viewer key={view.visitId} visitId={view.visitId} memoryAtOpen={!!view.memory} owner={view.owner} />}
     </AnimatePresence>
   )
 }
@@ -55,12 +58,15 @@ function sourceOffset(id: string, width: number) {
 
 type Side = 'reverse' | 'front' | 'back'
 
-function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: boolean }) {
-  const cards = useCards()
+/** `owner`: Benutzername, wenn es die Karte eines Freundes ist */
+function Viewer({ visitId, memoryAtOpen, owner }: { visitId: string; memoryAtOpen: boolean; owner?: string }) {
+  const ownCards = useCards()
+  const friend = useFriend(owner)
+  const cards = owner ? friendCards(friend?.profile) : ownCards
   const card = cards.find((c) => c.id === visitId)
   const revealed = useRevealed()
-  // Verdeckt nur, wenn die Karte beim Öffnen noch nicht aufgedeckt war
-  const [hiddenAtOpen] = useState(() => !revealed.has(visitId))
+  // Verdeckt nur, wenn die eigene Karte beim Öffnen noch nicht aufgedeckt war
+  const [hiddenAtOpen] = useState(() => !owner && !revealed.has(visitId))
   const [fresh] = useState(() => !document.querySelector(`[data-card="${CSS.escape(visitId)}"]`))
   const [turn, setTurn] = useState(0)
   const [burst, setBurst] = useState(0)
@@ -72,8 +78,8 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
 
   useEffect(() => {
     flyingCardStore.set(visitId)
-    void ensureReport(visitId)
-  }, [visitId])
+    if (!owner) void ensureReport(visitId)
+  }, [visitId, owner])
 
   useEffect(() => {
     if (!card) closeCard()
@@ -213,7 +219,7 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
   const colors = useMemo(() => card ? [card.colors.home, card.colors.away, '#ffffff', '#ffd34d'] : [], [card])
   if (!card) return null
 
-  const loading = !card.visit.details && !!card.visit.league && !!leagueByCode(card.visit.league).espn
+  const loading = !owner && !card.visit.details && !!card.visit.league && !!leagueByCode(card.visit.league).espn
   const render = (side: Side): ReactNode => {
     if (side === 'reverse') return <CardReverse isNew />
     if (side === 'back') return <MatchCardBack card={card} loading={loading} onMore={() => setMemory(true)} />
@@ -275,6 +281,7 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
                 {current === 'reverse' ? 'Neue Karte – tippen zum Aufdecken' : current === 'front' ? 'Tippen für den Spielbericht' : 'Tippen zum Zurückdrehen'}
               </motion.div>
             </AnimatePresence>
+            {current !== 'reverse' && <WithChip visitId={visitId} owner={owner} onClick={() => setMemory(true)} />}
             {current !== 'reverse' && (
               <div className="cv-actions">
                 <PillButton small onClick={advance}><RotateCcw size={15} strokeWidth={2.5} /> Umdrehen</PillButton>
@@ -283,21 +290,66 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
             )}
           </motion.div>
         )}
-        {memory && <Memory key="memory" card={card} cards={cards} onClose={() => setMemory(false)} />}
+        {memory && <Memory key="memory" card={card} cards={cards} owner={owner} onClose={() => setMemory(false)} />}
       </AnimatePresence>
     </div>
   )
 }
 
+// ---------- Mit dabei ----------
+
+/** Wer bei dem Spiel dabei war: eigene Karte aus dem Freundes-Stand, Karte eines Freundes aus seinem Profil */
+function useCardCompanions(visitId: string, owner?: string): Companion[] {
+  const own = useCompanions(visitId)
+  const friend = useFriend(owner)
+  return useMemo(() => {
+    if (!owner) return own
+    const seen = new Map<string, Companion>()
+    for (const g of friend?.profile?.groups ?? []) {
+      if (g.visit !== visitId) continue
+      for (const m of g.members) seen.set(m.username.toLowerCase(), m)
+    }
+    return [...seen.values()]
+  }, [own, friend, owner, visitId])
+}
+
+/** „bernd“, „bernd & carla“, „bernd, carla & 2 weiteren“ */
+function nameList(names: string[]) {
+  if (names.length <= 2) return names.join(' & ')
+  if (names.length === 3) return `${names[0]}, ${names[1]} & ${names[2]}`
+  return `${names[0]}, ${names[1]} & ${names.length - 2} weiteren`
+}
+
+/** Kleine Glas-Plakette unter der Karte: „Mit bernd & carla“ */
+function WithChip({ visitId, owner, onClick }: { visitId: string; owner?: string; onClick: () => void }) {
+  const account = useAccount()
+  const me = account.mode === 'user' ? account.username.toLowerCase() : ''
+  const together = useCardCompanions(visitId, owner).filter((m) => m.status === 'accepted')
+  if (!together.length) return null
+  const names = together.map((m) => (m.username.toLowerCase() === me ? 'dir' : m.username))
+  return (
+    <motion.button type="button" className="glass cv-with" onClick={onClick}
+      initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 420, damping: 26, delay: 0.2 }}>
+      <span className="cv-with-avatars">
+        {together.slice(0, 3).map((m) => <Avatar key={m.username} name={m.username} v={m.avatar} size={22} />)}
+      </span>
+      <span className="truncate">Mit {nameList(names)}</span>
+    </motion.button>
+  )
+}
+
 // ---------- Erinnerung ----------
 
-function Memory({ card, cards, onClose }: { card: MatchCard; cards: MatchCard[]; onClose: () => void }) {
+function Memory({ card, cards, owner, onClose }: { card: MatchCard; cards: MatchCard[]; owner?: string; onClose: () => void }) {
   const v = card.visit
+  const account = useAccount()
+  const signedIn = account.mode === 'user'
+  const companions = useCardCompanions(v.id, owner)
   const before = cards.filter((c) => c.number <= card.number)
   const atGround = card.visit.stadiumId ? before.filter((c) => c.visit.stadiumId === card.visit.stadiumId).length : 0
   const sawHome = before.filter((c) => c.home === card.home || c.away === card.home).length
   const facts = [
-    `Dein ${card.number}. Spiel`,
+    owner ? `${card.number}. Spiel von ${owner}` : `Dein ${card.number}. Spiel`,
     atGround ? `${atGround}. Besuch im Stadion` : null,
     `${sawHome}× ${shortClub(card.home)} live`,
   ].filter(Boolean) as string[]
@@ -313,31 +365,33 @@ function Memory({ card, cards, onClose }: { card: MatchCard; cards: MatchCard[];
       transition={{ type: 'spring', stiffness: 360, damping: 34 }}>
       <div className="cv-memory-head">
         <div>
-          <b>Deine Erinnerung</b>
+          <b>{owner ? `Erinnerung von ${owner}` : 'Deine Erinnerung'}</b>
           <span>{formatDayLong(v.date)}</span>
         </div>
         <GlassButton small label="Erinnerung schließen" icon={<X size={17} strokeWidth={2.6} />} onClick={onClose} />
       </div>
 
-      <div className="cv-memory-stars" role="radiogroup" aria-label="Bewertung">
+      <div className="cv-memory-stars" role={owner ? 'img' : 'radiogroup'} aria-label={owner ? `${v.rating ?? 0} von 5 Sternen` : 'Bewertung'}>
         {[1, 2, 3, 4, 5].map((n) => {
           const on = (v.rating ?? 0) >= n
           return (
-            <motion.button key={n} type="button" className={`star-btn ${on ? 'on' : ''}`} aria-label={`${n} Sterne`}
-              whileTap={{ scale: 0.75 }} initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }}
+            <motion.button key={n} type="button" className={`star-btn ${on ? 'on' : ''}`} aria-label={`${n} Sterne`} disabled={!!owner}
+              whileTap={owner ? undefined : { scale: 0.75 }} initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', stiffness: 460, damping: 16, delay: 0.08 + n * 0.04 }}
-              onClick={() => updateVisit(v.id, { rating: v.rating === n ? null : n })}>
+              onClick={() => { if (!owner) updateVisit(v.id, { rating: v.rating === n ? null : n }) }}>
               <Star size={28} strokeWidth={1.8} fill={on ? 'currentColor' : 'none'} />
             </motion.button>
           )
         })}
       </div>
 
-      <motion.div className={`cv-memory-notes ${v.notes ? '' : 'empty'}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}>
-        <Quote size={14} strokeWidth={2.6} />
-        <p>{v.notes || 'Noch keine Notizen – wie war die Stimmung, wer war dabei?'}</p>
-      </motion.div>
+      {!owner && (
+        <motion.div className={`cv-memory-notes ${v.notes ? '' : 'empty'}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}>
+          <Quote size={14} strokeWidth={2.6} />
+          <p>{v.notes || 'Noch keine Notizen – wie war die Stimmung, was war besonders?'}</p>
+        </motion.div>
+      )}
 
       {card.extras.length > 0 && (
         <div className="cv-memory-extras">
@@ -352,10 +406,28 @@ function Memory({ card, cards, onClose }: { card: MatchCard; cards: MatchCard[];
         ))}
       </div>
 
-      <div className="cv-memory-actions">
-        <PillButton small block onClick={edit}><PenLine size={15} strokeWidth={2.5} /> Bearbeiten</PillButton>
-        <PillButton small block onClick={() => { closeCard(); tabStore.set('album') }}>Zum Ordner</PillButton>
-      </div>
+      {signedIn && (owner ? companions.length > 0 : true) && (
+        <motion.section className="cv-memory-sec" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
+          <h4><Users size={14} strokeWidth={2.6} /> Mit dabei</h4>
+          {owner
+            ? <div className="companions">{companions.map((m) => <CompanionChip key={m.username} member={m} me={account.username} />)}</div>
+            : <Companions visit={v} collapsed />}
+        </motion.section>
+      )}
+
+      {signedIn && (
+        <motion.section className="cv-memory-sec" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
+          <h4><Camera size={14} strokeWidth={2.6} /> Fotos</h4>
+          <PhotoStrip owner={owner ?? null} visitId={v.id} canAdd={!owner} />
+        </motion.section>
+      )}
+
+      {!owner && (
+        <div className="cv-memory-actions">
+          <PillButton small block onClick={edit}><PenLine size={15} strokeWidth={2.5} /> Bearbeiten</PillButton>
+          <PillButton small block onClick={() => { closeCard(); tabStore.set('album') }}>Zum Ordner</PillButton>
+        </div>
+      )}
     </motion.div>
   )
 }

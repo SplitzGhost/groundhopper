@@ -36,8 +36,8 @@ function migrate(data: unknown): UserData {
 
 export const newId = () => crypto.randomUUID()
 
-export function createVisit(fields: Omit<Visit, 'id' | 'createdAt'>): Visit {
-  return { ...fields, id: newId(), createdAt: new Date().toISOString() }
+export function createVisit(fields: Omit<Visit, 'id' | 'createdAt'>, id: string = newId()): Visit {
+  return { ...fields, id, createdAt: new Date().toISOString() }
 }
 
 export function exportUserData(data: UserData): Blob {

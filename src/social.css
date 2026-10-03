@@ -1,0 +1,316 @@
+/* ==========================================================================
+   Freunde: Tab, Profilbilder, „Mit dabei“, Fotos
+   ========================================================================== */
+
+/* Vier Tabs passen nebeneinander auch auf schmale iPhones */
+.tab { width: 82px; }
+.tab-badge {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 6px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font: 700 11px/18px var(--font-rounded);
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--glass-bg-strong);
+  z-index: 4;
+}
+
+/* ---------- Profilbild ---------- */
+
+.avatar { overflow: hidden; position: relative; }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.avatar-edit { position: relative; flex: none; border-radius: 50%; }
+.avatar-edit .avatar { box-shadow: 0 0 0 0.5px var(--sep), inset 0 1px 1px rgba(255, 255, 255, 0.5); }
+.avatar-edit-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 0 0 2.5px var(--bg-elev), 0 4px 10px -4px var(--accent-glow);
+}
+.avatar-edit-badge .spinner.sm { width: 13px; height: 13px; border-width: 2px; }
+
+/* ---------- Freunde-Tab ---------- */
+
+.me-card { display: flex; align-items: center; gap: 16px; padding: 16px; }
+.me-name { font: 800 22px/1.15 var(--font-display); letter-spacing: -0.5px; }
+.me-hint { font-size: 12.5px; color: var(--accent); font-weight: 600; margin-top: 4px; }
+.friends-search { padding: 14px 16px 0; }
+.search-clear {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--text-3);
+  color: var(--bg-elev);
+}
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  transition: opacity 0.15s, transform 0.35s var(--ease-spring);
+}
+.text-btn:active { opacity: 0.5; transform: scale(0.96); }
+.text-btn.small { font-size: 13px; padding: 4px 0 0; }
+.text-btn.danger { color: var(--danger); }
+
+.friends-note { display: flex; gap: 14px; align-items: center; padding: 16px; color: var(--text-2); font-size: 14.5px; }
+.friends-note b { display: block; color: var(--text); font-size: 16px; margin-bottom: 2px; }
+.friends-note p { margin: 0; line-height: 1.38; }
+.friends-note-icon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.friend-row { min-height: 64px; }
+
+.request-list { display: flex; flex-direction: column; }
+.request-list > * { margin-bottom: 10px; }
+.request-row { display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; overflow: hidden; }
+.round-btn {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-2);
+}
+.round-btn.glass-tint { color: #fff; }
+.round-btn > * { position: relative; z-index: 3; }
+
+/* „Warst du dabei?“ */
+.tag-card {
+  position: relative;
+  padding: 14px 16px 16px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.tag-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 110px;
+  background: linear-gradient(180deg, var(--accent-soft), transparent);
+  z-index: -1;
+}
+.tag-head { display: flex; align-items: center; gap: 9px; font-size: 14.5px; }
+.tag-head > span:nth-child(2) { flex: 1; min-width: 0; }
+.tag-head .dim { font-size: 12.5px; }
+.tag-match { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin-top: 14px; }
+.tag-mid { display: flex; flex-direction: column; align-items: center; min-width: 0; text-align: center; }
+.tag-mid b { font: 800 26px/1 var(--font-rounded); letter-spacing: -0.5px; }
+.tag-mid span { max-width: 100%; font-size: 13.5px; font-weight: 600; margin-top: 4px; }
+.tag-meta { margin-top: 8px; text-align: center; font-size: 12.5px; color: var(--text-2); }
+.tag-q { margin-top: 14px; text-align: center; font: 700 16px/1.2 var(--font-display); letter-spacing: -0.2px; }
+.tag-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; margin-top: 12px; }
+
+/* ---------- Profil eines Freundes ---------- */
+
+.friendpage .listpage-title b { display: block; }
+.friend-loading { display: grid; place-items: center; padding: 80px 0; }
+.friend-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px; }
+.friend-card { display: block; min-width: 0; }
+.stat-tile.together b { color: var(--accent); }
+
+/* ---------- Mit dabei ---------- */
+
+.section-icon { display: flex; align-items: center; gap: 7px; }
+.section-icon svg { color: var(--accent); }
+.companions-box { display: flex; flex-direction: column; gap: 10px; }
+.companions { display: flex; flex-wrap: wrap; gap: 6px; }
+.companions:empty { display: none; }
+.companion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 11px 0 4px;
+  border-radius: 99px;
+  font-size: 13.5px;
+  font-weight: 600;
+  background: var(--fill);
+}
+.companion.pending { color: var(--text-2); }
+.companion.pending .avatar { opacity: 0.55; }
+.companion > svg { color: var(--text-3); margin-left: -1px; }
+.companion.add { padding: 0 12px; color: var(--accent); background: var(--accent-soft); }
+.companions-empty { font-size: 13.5px; }
+.companions-sub { font-size: 13px; color: var(--text-2); font-weight: 600; padding: 2px 2px 8px; }
+.companions-hint { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-2); line-height: 1.38; }
+
+.friend-picker {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  margin: 0 -6px;
+  padding: 4px 6px;
+  scrollbar-width: none;
+}
+.friend-picker::-webkit-scrollbar { display: none; }
+.friend-pick {
+  flex: none;
+  width: 66px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: color 0.2s;
+}
+.friend-pick > span:last-child { max-width: 100%; }
+.friend-pick.on { color: var(--accent); }
+.friend-pick-avatar { position: relative; border-radius: 50%; transition: box-shadow 0.25s var(--ease-out); }
+.friend-pick.on .friend-pick-avatar { box-shadow: 0 0 0 2.5px var(--bg-elev), 0 0 0 4.5px var(--accent); }
+.friend-pick-check {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg-elev);
+}
+
+/* ---------- Fotos ---------- */
+
+.photo-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 -2px;
+  padding: 2px;
+  scrollbar-width: none;
+}
+.photo-strip::-webkit-scrollbar { display: none; }
+.photo-thumb, .photo-add {
+  position: relative;
+  flex: none;
+  width: 78px;
+  height: 78px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.photo-thumb { background: var(--fill); box-shadow: 0 0 0 0.5px var(--sep); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb.uploading { display: grid; place-items: center; }
+.photo-by { position: absolute; left: 4px; bottom: 4px; border-radius: 50%; box-shadow: 0 0 0 1.5px #fff; display: grid; }
+.photo-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft);
+}
+.photo-empty { font-size: 13.5px; }
+
+/* Großansicht */
+.pv { position: absolute; inset: 0; z-index: 78; display: flex; flex-direction: column; }
+.pv-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 14, 0.9);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(140%);
+}
+.pv-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(var(--safe-top) + 6px) 16px 8px;
+  color: #fff;
+}
+.pv-who { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 9px; }
+.pv-who div > b { display: block; font-size: 15px; }
+.pv-who div > span { display: block; font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+.pv-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.pv-photo { position: absolute; inset: 0 8px; display: grid; place-items: center; touch-action: none; cursor: grab; }
+.pv-thumb, .pv-full {
+  grid-area: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 14px;
+  pointer-events: none;
+}
+.pv-thumb { width: 100%; height: 100%; filter: blur(14px); opacity: 0.6; }
+.pv-full { position: relative; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7); }
+.pv-spinner { grid-area: 1 / 1; position: relative; }
+.pv-dots { position: relative; z-index: 2; display: flex; justify-content: center; gap: 6px; padding: 14px 0 calc(var(--safe-bottom) + 18px); }
+.pv-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); transition: background-color 0.25s, transform 0.25s var(--ease-spring); }
+.pv-dots i.on { background: #fff; transform: scale(1.25); }
+
+/* ---------- Große Karte: „Mit …“ und Erinnerung ---------- */
+
+.cv-with.glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 48px);
+  height: 36px;
+  padding: 0 14px 0 6px;
+  border-radius: 99px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.cv-with > * { position: relative; z-index: 3; }
+.cv-with-avatars { display: flex; flex: none; }
+.cv-with-avatars .avatar { box-shadow: 0 0 0 2px var(--glass-bg-strong); }
+.cv-with-avatars .avatar + .avatar { margin-left: -7px; }
+
+.cv-memory-sec { display: flex; flex-direction: column; gap: 8px; }
+.cv-memory-sec h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font: 700 13px/1 var(--font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.cv-memory-sec h4 svg { color: var(--accent); }
+.cv-memory .photo-thumb, .cv-memory .photo-add { width: 70px; height: 70px; }
+.star-btn:disabled { cursor: default; }
+
+/* ---------- Konto-Zeile im Profil ---------- */
+
+.account-row { padding-top: 12px; padding-bottom: 12px; }
+.account-sync { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; border-radius: 12px; }
+.account-sync:active { opacity: 0.6; }

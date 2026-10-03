@@ -1,4 +1,4 @@
-// App-Hülle: Karte liegt immer unten, Spiele und Album blenden darüber ein.
+// App-Hülle: Karte liegt immer unten, Spiele, Album und Freunde blenden darüber ein.
 // Am Computer wird die App in einem iPhone-Rahmen gezeigt – gebaut ist sie fürs iPhone.
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
@@ -8,6 +8,9 @@ import { tabStore, type Tab } from './state/ui.ts'
 import { MapScreen } from './screens/MapScreen.tsx'
 import { GamesScreen } from './screens/GamesScreen.tsx'
 import { AlbumScreen } from './screens/AlbumScreen.tsx'
+import { FriendsScreen } from './screens/FriendsScreen.tsx'
+import { FriendView } from './screens/FriendView.tsx'
+import { PhotoViewer } from './components/PhotoViewer.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { DynamicIsland } from './components/DynamicIsland.tsx'
 import { SheetHost } from './sheets/SheetHost.tsx'
@@ -44,11 +47,14 @@ export default function App() {
           <MapScreen />
           <Overlay tab="games"><GamesScreen /></Overlay>
           <Overlay tab="album"><AlbumScreen /></Overlay>
+          <Overlay tab="friends"><FriendsScreen /></Overlay>
           <TabBar />
           <ListView />
+          <FriendView />
           <BinderView />
           <SheetHost />
           <CardViewer />
+          <PhotoViewer />
           <InstallHint />
           <AuthScreen />
           <AlertHost />

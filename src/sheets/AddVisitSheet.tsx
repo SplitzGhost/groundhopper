@@ -14,6 +14,8 @@ import { notify } from '../state/toast.ts'
 import { Sheet } from '../components/Sheet.tsx'
 import { useSheet } from '../components/sheetContext.ts'
 import { PillButton } from '../components/ui.tsx'
+import { FriendPicker } from '../components/social.tsx'
+import { tagFriends, useSocial } from '../state/social.ts'
 
 /** Stadien nach Land gruppiert (für die Auswahlliste), Länder alphabetisch */
 const STADIUMS_BY_COUNTRY = [...new Set(STADIUMS.map((s) => s.country))]
@@ -34,6 +36,8 @@ export function AddVisitSheet() {
   const [competition, setCompetition] = useState<LeagueCode | 'other'>('BL1')
   const [otherName, setOtherName] = useState('')
   const [stadiumId, setStadiumId] = useState<'auto' | 'none' | string>('auto')
+  const [companions, setCompanions] = useState<string[]>([])
+  const friends = useSocial().data?.friends ?? []
 
   const autoStadium = useMemo(() => findTeam(home)?.stadiumId ?? null, [home])
   const resolvedStadium = stadiumId === 'auto' ? autoStadium : stadiumId === 'none' ? null : stadiumId
@@ -49,14 +53,16 @@ export function AddVisitSheet() {
 
   const save = () => {
     if (!valid) return
+    let visit
     if (linked) {
-      if (!getUserData().visits.some((v) => v.matchId === linked.id)) addVisit(visitFromMatch(linked))
-      else notify({ kind: 'info', title: 'Schon eingetragen', subtitle: 'Dieses Spiel ist bereits in deinem Album', icon: 'info' })
+      visit = getUserData().visits.find((v) => v.matchId === linked.id)
+      if (!visit) visit = addVisit(visitFromMatch(linked))
+      else if (!companions.length) notify({ kind: 'info', title: 'Schon eingetragen', subtitle: 'Dieses Spiel ist bereits in deinem Album', icon: 'info' })
     } else {
       const num = (s: string) => (s.trim() === '' ? null : Math.max(0, Number(s) || 0))
       const homeName = canonicalTeam(home.trim())
       const awayName = canonicalTeam(away.trim())
-      addVisit({
+      visit = addVisit({
         matchId: null,
         date,
         kickoff: null,
@@ -74,6 +80,8 @@ export function AddVisitSheet() {
         notes: '',
       })
     }
+    // Markierte Freunde bekommen eine „Warst du dabei?“-Anfrage
+    if (companions.length) void tagFriends(visit, companions)
     close()
   }
 
@@ -137,7 +145,19 @@ export function AddVisitSheet() {
           </div>
         </>}
 
-        <PillButton tint block disabled={!valid} onClick={save}>Eintragen</PillButton>
+        {friends.length > 0 && (
+          <div className="field">
+            <label>Wer war mit dabei?</label>
+            <div className="card" style={{ padding: '10px 6px' }}>
+              <FriendPicker friends={friends} picked={companions}
+                onToggle={(u) => setCompanions((p) => (p.includes(u) ? p.filter((x) => x !== u) : [...p, u]))} />
+            </div>
+          </div>
+        )}
+
+        <PillButton tint block disabled={!valid} onClick={save}>
+          {companions.length ? `Eintragen & ${companions.length === 1 ? companions[0] : `${companions.length} Freunde`} fragen` : 'Eintragen'}
+        </PillButton>
       </div>
     </Sheet>
   )

@@ -32,6 +32,7 @@ const accountStore = createStore<Account>(cloudEnabled ? loadPref<Account>(KEY, 
 
 export const useAccount = () => accountStore.use()
 export const getAccount = () => accountStore.get()
+export const subscribeAccount = accountStore.subscribe
 
 function setAccount(a: Account) {
   accountStore.set(a)

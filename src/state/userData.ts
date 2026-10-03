@@ -83,10 +83,12 @@ function welcome(visit: Visit) {
   void ensureReport(visit.id)
 }
 
-export function addVisit(fields: Omit<Visit, 'id' | 'createdAt'>) {
-  const visit = createVisit(fields)
-  set({ ...state, visits: [...state.visits, visit] })
+/** `id`: feste Besuchs-ID (z. B. wenn der Server sie schon kennt) */
+export function addVisit(fields: Omit<Visit, 'id' | 'createdAt'>, id?: string): Visit {
+  const visit = createVisit(fields, id)
+  set({ ...state, visits: [...state.visits, visit], watchlist: state.watchlist.filter((w) => w !== fields.matchId) })
   welcome(visit)
+  return visit
 }
 
 /** Haken setzen/entfernen: „Ich war bei diesem Spiel“. Beim Setzen öffnet sich gleich Bewertung & Notizen. */

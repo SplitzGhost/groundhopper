@@ -253,7 +253,7 @@ function DerbyRows({ c }: { c: Collection }) {
 
 // ---------- Erfolge ----------
 
-function AchievementGrid({ c }: { c: Collection }) {
+export function AchievementGrid({ c }: { c: Collection }) {
   return (
     <div className="la-grid">
       {c.achievements.map((a, i) => (

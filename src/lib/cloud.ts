@@ -31,6 +31,10 @@ export type CloudError =
   | 'invalid_session'
   | 'invalid_data'
   | 'conflict'
+  | 'not_found'
+  | 'not_friends'
+  | 'not_member'
+  | 'limit'
   | 'offline'
   | 'server'
 
@@ -77,6 +81,109 @@ export const cloud = {
     rpc<{ rev: number }>('gh_push', { p_token: token, p_data: data, p_base_rev: baseRev }),
   deleteAccount: (token: string, password: string) =>
     rpc<object>('gh_delete_account', { p_token: token, p_password: password }),
+
+  // ---------- Freunde ----------
+  social: (token: string) => rpc<SocialData>('gh_social', { p_token: token }),
+  searchUsers: (token: string, query: string) =>
+    rpc<{ users: FoundUser[] }>('gh_search_users', { p_token: token, p_query: query }),
+  friendRequest: (token: string, username: string) =>
+    rpc<{ relation: Relation }>('gh_friend_request', { p_token: token, p_username: username }),
+  friendRespond: (token: string, username: string, accept: boolean) =>
+    rpc<object>('gh_friend_respond', { p_token: token, p_username: username, p_accept: accept }),
+  friendRemove: (token: string, username: string) =>
+    rpc<object>('gh_friend_remove', { p_token: token, p_username: username }),
+  friend: (token: string, username: string) =>
+    rpc<FriendProfile>('gh_friend', { p_token: token, p_username: username }),
+
+  // ---------- Gemeinsame Spiele ----------
+  tagFriends: (token: string, group: string, visitId: string, visit: SharedVisit, usernames: string[]) =>
+    rpc<{ sent: number }>('gh_tag_friends', { p_token: token, p_group: group, p_visit_id: visitId, p_visit: visit, p_usernames: usernames }),
+  tagRespond: (token: string, group: string, accept: boolean, visitId: string | null) =>
+    rpc<object>('gh_tag_respond', { p_token: token, p_group: group, p_accept: accept, p_visit_id: visitId }),
+
+  // ---------- Fotos & Profilbilder ----------
+  addPhoto: (token: string, visitId: string, thumb: string, image: string) =>
+    rpc<{ id: string }>('gh_add_photo', { p_token: token, p_visit_id: visitId, p_thumb: thumb, p_image: image }),
+  photos: (token: string, username: string | null, visitId: string) =>
+    rpc<{ photos: PhotoInfo[] }>('gh_photos', { p_token: token, p_username: username, p_visit_id: visitId }),
+  photo: (token: string, id: string) => rpc<{ image: string }>('gh_photo', { p_token: token, p_id: id }),
+  deletePhoto: (token: string, id: string) => rpc<object>('gh_delete_photo', { p_token: token, p_id: id }),
+  setAvatar: (token: string, image: string | null) =>
+    rpc<{ v: number | null }>('gh_set_avatar', { p_token: token, p_image: image }),
+  avatars: (token: string, usernames: string[]) =>
+    rpc<{ avatars: { username: string; v: number; image: string }[] }>('gh_avatars', { p_token: token, p_usernames: usernames }),
+}
+
+// ---------- Freunde: Datentypen der Server-Antworten ----------
+
+/** `avatar`: Version des Profilbilds, null = keins */
+export interface SocialUser {
+  username: string
+  avatar: number | null
+}
+
+export interface FriendInfo extends SocialUser {
+  since: string | null
+  games: number
+  stadiums: number
+}
+
+export interface PendingRequest extends SocialUser {
+  at: string
+}
+
+/** Spieldaten, die beim Markieren mitgeschickt werden (ohne Bewertung und Notizen) */
+export type SharedVisit = Omit<Visit, 'id' | 'createdAt' | 'rating' | 'notes'>
+
+/** „Warst du dabei?“ – ein Freund hat einen bei einem Spiel markiert */
+export interface TagRequest {
+  group: string
+  /** null, falls das Konto inzwischen gelöscht ist */
+  from: string | null
+  avatar: number | null
+  visit: SharedVisit
+  at: string
+}
+
+export interface GroupMember extends SocialUser {
+  status: 'pending' | 'accepted'
+}
+
+/** Gemeinsam besuchtes Spiel: `visit` ist der eigene Besuch, `members` die anderen */
+export interface MatchGroup {
+  group: string
+  visit: string
+  members: GroupMember[]
+}
+
+export interface SocialData {
+  me: SocialUser
+  friends: FriendInfo[]
+  incoming: PendingRequest[]
+  outgoing: PendingRequest[]
+  tags: TagRequest[]
+  groups: MatchGroup[]
+}
+
+export type Relation = 'none' | 'friend' | 'outgoing' | 'incoming'
+
+export interface FoundUser extends SocialUser {
+  relation: Relation
+}
+
+export interface FriendProfile extends SocialUser {
+  /** Ohne Notizen */
+  visits: Visit[]
+  groups: { visit: string; members: GroupMember[] }[]
+}
+
+export interface PhotoInfo {
+  id: string
+  username: string
+  mine: boolean
+  /** Vorschaubild als Base64-JPEG */
+  thumb: string
+  at: string
 }
 
 /** Verständliche Meldung für die Oberfläche */
@@ -89,6 +196,11 @@ export function errorText(error: CloudError, retryAfter?: number): string {
     case 'locked': return `Zu viele Versuche. Bitte in ${Math.max(1, Math.ceil((retryAfter ?? 600) / 60))} Minuten erneut probieren.`
     case 'offline': return 'Keine Internetverbindung.'
     case 'invalid_session': return 'Deine Anmeldung ist abgelaufen.'
+    case 'not_found': return 'Nicht gefunden – vielleicht wurde es gerade gelöscht.'
+    case 'not_friends': return 'Ihr seid nicht mehr befreundet.'
+    case 'not_member': return 'Du bist bei diesem Spiel nicht als dabei eingetragen.'
+    case 'limit': return 'Das Limit ist erreicht.'
+    case 'invalid_data': return 'Das hat nicht geklappt – die Daten sind ungültig.'
     default: return 'Der Server ist gerade nicht erreichbar. Bitte später erneut versuchen.'
   }
 }

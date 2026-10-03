@@ -48,3 +48,16 @@ export function formatChip(dateKey: string): string {
 
 /** „Heute“ / „Morgen“ / „Sa., 10. Okt.“ */
 export const formatDayFriendly = (dateKey: string) => relativeDay(dateKey) ?? formatDayMedium(dateKey)
+
+/** „gerade eben“, „vor 5 Min.“, „vor 3 Std.“, „gestern“, „vor 4 Tagen“, sonst das Datum */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const min = Math.round((now - new Date(iso).getTime()) / 60_000)
+  if (min < 1) return 'gerade eben'
+  if (min < 60) return `vor ${min} Min.`
+  const h = Math.round(min / 60)
+  if (h < 24) return `vor ${h} Std.`
+  const days = Math.round(h / 24)
+  if (days === 1) return 'gestern'
+  if (days < 7) return `vor ${days} Tagen`
+  return formatDayMedium(localDateKey(iso))
+}

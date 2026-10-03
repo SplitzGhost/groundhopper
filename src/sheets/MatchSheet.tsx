@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Check, ChevronRight, Flame, Star, Trash2 } from 'lucide-react'
+import { Camera, Check, ChevronRight, Flame, Star, Trash2, Users } from 'lucide-react'
 import type { Visit } from '../shared/types.ts'
 import { leagueByCode } from '../shared/leagues.ts'
 import { stadiumById } from '../lib/stadiums.ts'
@@ -22,6 +22,8 @@ import { Crest, PillButton } from '../components/ui.tsx'
 import { softSpring, spring } from '../lib/motion.ts'
 import { StadiumThumb } from '../components/StadiumThumb.tsx'
 import { Flag } from '../components/Flag.tsx'
+import { Companions, PhotoStrip } from '../components/social.tsx'
+import { useAccount } from '../state/account.ts'
 
 export function MatchSheet({ id }: { id: string }) {
   const matches = useMatches()
@@ -178,6 +180,7 @@ function VisitEditor({ visit }: { visit: Visit }) {
   }, [])
 
   const pending = pendingCardStore.use() === visit.id
+  const signedIn = useAccount().mode === 'user'
 
   return (
     <div style={{ paddingTop: 8 }}>
@@ -209,9 +212,16 @@ function VisitEditor({ visit }: { visit: Visit }) {
         </div>
       </div>
 
+      {signedIn && <>
+        <div className="section-head"><h3 className="section-title section-icon"><Users size={17} strokeWidth={2.4} /> Mit dabei</h3></div>
+        <div className="card inset" style={{ padding: '12px 14px' }}>
+          <Companions visit={visit} />
+        </div>
+      </>}
+
       <div className="section-head"><h3 className="section-title">Notizen</h3></div>
       <div className="sheet-pad">
-        <textarea className="input" value={notes} placeholder="Stimmung, Choreo, Begleitung, Bratwurst …"
+        <textarea className="input" value={notes} placeholder="Stimmung, Choreo, Bratwurst …"
           onChange={(e) => {
             setNotes(e.target.value)
             latest.current.notes = e.target.value
@@ -223,6 +233,13 @@ function VisitEditor({ visit }: { visit: Visit }) {
             }
           }} />
       </div>
+
+      {signedIn && <>
+        <div className="section-head"><h3 className="section-title section-icon"><Camera size={17} strokeWidth={2.4} /> Fotos</h3></div>
+        <div className="sheet-pad">
+          <PhotoStrip owner={null} visitId={visit.id} canAdd />
+        </div>
+      </>}
 
       <div style={{ display: 'flex', justifyContent: 'center', padding: '18px 0 6px' }}>
         <button type="button" className="pressable" style={{ color: 'var(--danger)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}
