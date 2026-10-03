@@ -2,7 +2,8 @@
 // Ligen, Derbys und Erfolge – plus Punkte und Level.
 
 import type { LeagueCode, Visit } from '../shared/types.ts'
-import { LEAGUES } from '../shared/leagues.ts'
+import { DOMESTIC_LEAGUES, leagueByCode } from '../shared/leagues.ts'
+import { COUNTRY_NAMES } from '../shared/countries.ts'
 import { STADIUMS, findTeam, stadiumById, stadiumsOfLeague } from './stadiums.ts'
 import { DERBIES, derbyOf } from './derbies.ts'
 import { addDays } from './dates.ts'
@@ -10,14 +11,9 @@ import type { ToastIcon } from '../state/toast.ts'
 
 // ---------- Länder ----------
 
-export const COUNTRIES: Record<string, { name: string; flag: string }> = {
-  de: { name: 'Deutschland', flag: '🇩🇪' },
-  gb: { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  es: { name: 'Spanien', flag: '🇪🇸' },
-  it: { name: 'Italien', flag: '🇮🇹' },
-  fr: { name: 'Frankreich', flag: '🇫🇷' },
-  mc: { name: 'Monaco', flag: '🇲🇨' },
-}
+export const COUNTRIES: Record<string, { name: string }> = Object.fromEntries(
+  Object.entries(COUNTRY_NAMES).map(([code, name]) => [code, { name }]),
+)
 
 // ---------- Grundauswertung ----------
 
@@ -62,7 +58,7 @@ export function collect(visits: Visit[]): Collection {
   }
 
   const completeLeagues = new Set<LeagueCode>()
-  for (const l of LEAGUES) {
+  for (const l of DOMESTIC_LEAGUES) {
     const all = stadiumsOfLeague(l.code)
     if (all.length && all.every((s) => stadiums.has(s.id))) completeLeagues.add(l.code)
   }
@@ -168,6 +164,16 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   { id: 'derby', title: 'Derbyfieber', description: 'Dein erstes Derby', target: 1, progress: (c) => c.derbies.size },
   { id: 'europe', title: 'Europareise', description: 'Stadien in 3 Ländern', target: 3, progress: (c) => c.countries.size },
+  { id: 'world', title: 'Weltenbummler', description: 'Stadien in 10 Ländern', target: 10, progress: (c) => c.countries.size },
+  { id: 'grounds50', title: 'Stadionsammler', description: '50 verschiedene Stadien', target: 50, progress: (c) => c.stadiums.size },
+  {
+    id: 'cup', title: 'Pokalabend', description: 'Ein Pokal- oder Europapokalspiel', target: 1,
+    progress: (c) => (c.visits.some((v) => v.league && leagueByCode(v.league).kind === 'cup') ? 1 : 0),
+  },
+  {
+    id: 'europecup', title: 'Europapokal', description: 'Champions, Europa oder Conference League', target: 1,
+    progress: (c) => (c.visits.some((v) => v.league && leagueByCode(v.league).countryCode === 'uefa') ? 1 : 0),
+  },
   { id: 'complete', title: 'Komplettist', description: 'Alle Stadien einer Liga', target: 1, progress: (c) => c.completeLeagues.size },
 ]
 
@@ -190,7 +196,7 @@ export function diffUnlocks(before: Visit[], after: Visit[]): Unlock[] {
     }
   }
   for (const l of b.completeLeagues) {
-    if (!a.completeLeagues.has(l)) out.push({ title: LEAGUES.find((x) => x.code === l)!.name, subtitle: 'Liga komplett!', icon: 'trophy' })
+    if (!a.completeLeagues.has(l)) out.push({ title: leagueByCode(l).name, subtitle: 'Liga komplett!', icon: 'trophy' })
   }
   for (const id of b.derbies.keys()) {
     if (!a.derbies.has(id)) out.push({ title: DERBIES.find((d) => d.id === id)!.name, subtitle: 'Neues Derby erlebt', icon: 'derby' })

@@ -87,7 +87,8 @@ export function ProfileSheet() {
       </div>
 
       <p className="muted sheet-pad" style={{ fontSize: 12.5, marginTop: 16, lineHeight: 1.5 }}>
-        Spielplan: {matches.provider === 'football-data' ? 'football-data.org' : matches.provider === 'demo' ? 'freie Demo-Quellen' : '–'}
+        Spielplan: Top 5 über {matches.provider === 'football-data' ? 'football-data.org' : matches.provider === 'demo' ? 'freie Demo-Quellen' : '–'},
+        alle weiteren Ligen und Pokale über ESPN und OpenLigaDB
         {matches.status === 'ready' && ` · ${matches.matches.length.toLocaleString('de-DE')} Spiele`}<br />
         Karte © OpenFreeMap, OpenMapTiles, OpenStreetMap-Mitwirkende. Deine Daten bleiben auf diesem Gerät.
       </p>

@@ -5,14 +5,13 @@
 import { useMemo, type CSSProperties } from 'react'
 import { AnimatePresence, motion, type PanInfo } from 'motion/react'
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
-import type { LeagueCode } from '../shared/types.ts'
-import { LEAGUES, leagueByCode } from '../shared/leagues.ts'
+import type { League, Stadium } from '../shared/types.ts'
+import { LEAGUES } from '../shared/leagues.ts'
 import { collect, type Collection } from '../lib/album.ts'
-import { clubsOfLeague, groundsOfLeague, leagueOfList, listInfo, type ListId } from '../lib/lists.ts'
+import { clubSections, clubsOfLeague, countryOfList, groundSections, groundsOfLeague, listInfo, type ListId } from '../lib/lists.ts'
 import { DERBIES } from '../lib/derbies.ts'
 import { crestFor, leagueLogo } from '../lib/crests.ts'
-import { stadiumsOfLeague } from '../lib/stadiums.ts'
-import { stadiumSpec } from '../data/stadiumInfo.ts'
+import { stadiumCapacity } from '../data/stadiumInfo.ts'
 import { clubInfo } from '../data/clubs.ts'
 import { shortClub } from '../lib/matchCards.ts'
 import { useUserData } from '../state/userData.ts'
@@ -43,7 +42,7 @@ function ListPage({ id }: { id: ListId }) {
   const data = useUserData()
   const c = useMemo(() => collect(data.visits), [data.visits])
   const info = listInfo(id, c)
-  const code = leagueOfList(id)
+  const country = countryOfList(id)
 
   // Vom linken Rand nach rechts wischen = zurück (wie in iOS)
   const onDragEnd = (_: unknown, i: PanInfo) => {
@@ -58,7 +57,7 @@ function ListPage({ id }: { id: ListId }) {
       <header className="listpage-head">
         <GlassButton label="Zurück" icon={<ChevronLeft size={24} strokeWidth={2.4} />} onClick={closeList} />
         <div className="listpage-title">
-          <b>{code && <Flag code={leagueByCode(code).countryCode} size={14} />}{info.title}</b>
+          <b>{country && <Flag code={country} size={14} />}{info.title}</b>
           <span>{info.subtitle}</span>
         </div>
         <ProgressRing value={info.total ? info.got / info.total : 0} size={46} stroke={4.5}>
@@ -66,8 +65,8 @@ function ListPage({ id }: { id: ListId }) {
         </ProgressRing>
       </header>
       <div className="listpage-body">
-        {id.startsWith('clubs:') && <ClubGrid code={code!} c={c} />}
-        {id.startsWith('stadiums:') && <StadiumGrid code={code!} c={c} />}
+        {id.startsWith('clubs:') && <ClubGrid country={country!} c={c} />}
+        {id.startsWith('stadiums:') && <StadiumGrid country={country!} c={c} />}
         {id === 'leagues' && <LeagueRows c={c} />}
         {id === 'derbies' && <DerbyRows c={c} />}
         {id === 'achievements' && <AchievementGrid c={c} />}
@@ -78,12 +77,40 @@ function ListPage({ id }: { id: ListId }) {
 
 // ---------- Vereine ----------
 
-function ClubGrid({ code, c }: { code: LeagueCode; c: Collection }) {
-  const clubs = clubsOfLeague(code)
+/** Überschrift eines Liga-Abschnitts – nur, wenn das Land mehrere Ligen hat */
+function SectionHead({ league, got, total, show }: { league: League; got: number; total: number; show: boolean }) {
+  if (!show) return null
+  return (
+    <div className="lsec-head">
+      <img src={leagueLogo(league.code)} alt="" draggable={false} />
+      <b>{league.name}</b>
+      <span className="tnum">{got}/{total}</span>
+    </div>
+  )
+}
+
+function ClubGrid({ country, c }: { country: string; c: Collection }) {
+  const sections = clubSections(country)
   // Gesehene zuerst? Nein – feste alphabetische Reihenfolge, wie ein Stickeralbum
+  let n = 0
+  return sections.map(({ league, items }) => {
+    const offset = n
+    n += items.length
+    return (
+      <section key={league.code}>
+        <SectionHead league={league} show={sections.length > 1} total={items.length}
+          got={items.filter((x) => c.clubs.has(x.name)).length} />
+        <ClubItems clubs={items} c={c} offset={offset} />
+      </section>
+    )
+  })
+}
+
+function ClubItems({ clubs, c, offset }: { clubs: ReturnType<typeof clubsOfLeague>; c: Collection; offset: number }) {
   return (
     <div className="lc-grid">
-      {clubs.map((club, i) => {
+      {clubs.map((club, j) => {
+        const i = offset + j
         const seen = c.clubs.get(club.name)?.length ?? 0
         return (
           <motion.button key={club.name} type="button" className={`lc-item ${seen ? 'got' : ''}`} {...pop(i)}
@@ -104,48 +131,67 @@ function ClubGrid({ code, c }: { code: LeagueCode; c: Collection }) {
 
 // ---------- Stadien ----------
 
-function StadiumGrid({ code, c }: { code: LeagueCode; c: Collection }) {
-  const grounds = groundsOfLeague(code)
+function StadiumGrid({ country, c }: { country: string; c: Collection }) {
+  const sections = groundSections(country)
+  let n = 0
+  return sections.map(({ league, items }) => {
+    const offset = n
+    n += items.length
+    return (
+      <section key={league.code}>
+        <SectionHead league={league} show={sections.length > 1} total={items.length}
+          got={items.filter((s) => c.stadiums.has(s.id)).length} />
+        <div className="ls-grid">
+          {items.map((s, j) => <StadiumItem key={s.id} s={s} c={c} i={offset + j} />)}
+        </div>
+      </section>
+    )
+  })
+}
+
+function StadiumItem({ s, c, i }: { s: Stadium; c: Collection; i: number }) {
+  const visits = c.stadiums.get(s.id)?.length ?? 0
+  const capacity = stadiumCapacity(s)
   return (
-    <div className="ls-grid">
-      {grounds.map((s, i) => {
-        const visits = c.stadiums.get(s.id)?.length ?? 0
-        return (
-          <motion.button key={s.id} type="button" className={`ls-item ${visits ? 'got' : ''}`} {...pop(i)}
-            whileTap={{ scale: 0.95 }} style={{ '--club': clubInfo(s.teams[0].name).primary } as CSSProperties}
-            onClick={() => openSheet({ kind: 'stadium', id: s.id })}>
-            <span className="ls-art"><StadiumArt stadiumId={s.id} mono={!visits} size="sm" /></span>
-            {visits > 0 && <span className="ls-badge"><Check size={11} strokeWidth={3.4} />{visits > 1 ? `${visits}×` : ''}</span>}
-            <span className="ls-name truncate">{s.name}</span>
-            <span className="ls-sub truncate">{s.city} · {stadiumSpec(s.id).capacity.toLocaleString('de-DE')}</span>
-          </motion.button>
-        )
-      })}
-    </div>
+    <motion.button type="button" className={`ls-item ${visits ? 'got' : ''}`} {...pop(i)}
+      whileTap={{ scale: 0.95 }} style={{ '--club': clubInfo(s.teams[0].name).primary } as CSSProperties}
+      onClick={() => openSheet({ kind: 'stadium', id: s.id })}>
+      <span className="ls-art"><StadiumArt stadiumId={s.id} mono={!visits} size="sm" /></span>
+      {visits > 0 && <span className="ls-badge"><Check size={11} strokeWidth={3.4} />{visits > 1 ? `${visits}×` : ''}</span>}
+      <span className="ls-name truncate">{s.name}</span>
+      <span className="ls-sub truncate">{s.city}{capacity ? ` · ${capacity.toLocaleString('de-DE')}` : ''}</span>
+    </motion.button>
   )
 }
 
 // ---------- Ligen ----------
 
 function LeagueRows({ c }: { c: Collection }) {
+  // Wettbewerbe mit Spielen zuerst, sonst Katalogreihenfolge
+  const games = (code: string) => c.visits.filter((v) => v.league === code).length
+  const list = [...LEAGUES].sort((a, b) => Number(games(b.code) > 0) - Number(games(a.code) > 0))
   return (
     <div className="ll-list">
-      {LEAGUES.map((l, i) => {
-        const games = c.visits.filter((v) => v.league === l.code).length
-        const grounds = stadiumsOfLeague(l.code)
+      {list.map((l, i) => {
+        const n = games(l.code)
+        const grounds = groundsOfLeague(l.code)
         const gotGrounds = grounds.filter((s) => c.stadiums.has(s.id)).length
         const clubs = clubsOfLeague(l.code)
         const gotClubs = clubs.filter((x) => c.clubs.has(x.name)).length
         return (
-          <motion.button key={l.code} type="button" className={`ll-item ${games ? 'got' : ''}`} {...pop(i)}
+          <motion.button key={l.code} type="button" className={`ll-item ${n ? 'got' : ''}`} {...pop(i)}
             whileTap={{ scale: 0.97 }} onClick={() => openSheet({ kind: 'league', code: l.code })}>
-            <span className="ll-logo"><img src={leagueLogo(l.code)} alt="" draggable={false} /></span>
+            <span className="ll-logo"><img src={leagueLogo(l.code)} alt="" loading="lazy" draggable={false} /></span>
             <div className="ll-main">
               <div className="ll-title"><b>{l.name}</b><Flag code={l.countryCode} size={11} /></div>
-              <div className="ll-bars">
-                <Bar label="Stadien" got={gotGrounds} total={grounds.length} />
-                <Bar label="Vereine" got={gotClubs} total={clubs.length} />
-              </div>
+              {l.kind === 'league' && clubs.length ? (
+                <div className="ll-bars">
+                  <Bar label="Stadien" got={gotGrounds} total={grounds.length} />
+                  <Bar label="Vereine" got={gotClubs} total={clubs.length} />
+                </div>
+              ) : (
+                <div className="ll-cup tnum">{n ? `${n} ${n === 1 ? 'Spiel' : 'Spiele'} live` : l.kind === 'cup' ? 'Pokal · noch kein Spiel' : 'Noch kein Spiel'}</div>
+              )}
             </div>
             <ChevronRight size={18} className="dim" />
           </motion.button>
@@ -160,7 +206,7 @@ function Bar({ label, got, total }: { label: string; got: number; total: number 
     <span className="ll-bar">
       <span className="tnum">{label} {got}/{total}</span>
       <span className={`tile-bar ${got === total ? 'done' : ''}`}>
-        <motion.i initial={{ width: 0 }} animate={{ width: `${(got / total) * 100}%` }} transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1], delay: 0.3 }} />
+        <motion.i initial={{ width: 0 }} animate={{ width: `${total ? (got / total) * 100 : 0}%` }} transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1], delay: 0.3 }} />
       </span>
     </span>
   )
@@ -173,6 +219,7 @@ function DerbyRows({ c }: { c: Collection }) {
     <div className="ld-list">
       {LEAGUES.map((l) => {
         const derbies = DERBIES.filter((d) => d.league === l.code)
+        if (!derbies.length) return null
         return (
           <section key={l.code}>
             <div className="ld-head"><Flag code={l.countryCode} size={12} />{l.name}</div>

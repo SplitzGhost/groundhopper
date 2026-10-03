@@ -31,7 +31,7 @@ function buildMatch(
   }
 }
 
-// ---------- OpenLigaDB ----------
+// ---------- OpenLigaDB (auch für 3. Liga und Regionalligen) ----------
 
 interface OldbTeam { teamId: number; teamName: string; shortName: string; teamIconUrl: string | null }
 interface OldbMatch {
@@ -44,7 +44,7 @@ interface OldbMatch {
   matchResults: { resultTypeID: number; pointsTeam1: number; pointsTeam2: number }[]
 }
 
-async function openLigaDb(league: LeagueCode, shortcut: string, season: number): Promise<LeagueResult> {
+export async function openLigaDb(league: LeagueCode, shortcut: string, season: number): Promise<LeagueResult> {
   const data = await fetchJson<OldbMatch[]>(`https://api.openligadb.de/getmatchdata/${shortcut}/${season}`)
   const team = (t: OldbTeam): TeamRef => ({
     id: 'oldb-' + t.teamId,

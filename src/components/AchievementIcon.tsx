@@ -1,6 +1,6 @@
 // Symbole der Erfolge (statt Emojis).
 
-import { Crown, Flame, House, Lightbulb, Medal, PartyPopper, Plane, Snowflake, Ticket, Tickets, TrainFront, Zap } from 'lucide-react'
+import { Crown, Earth, Flame, House, Landmark, Lightbulb, Medal, PartyPopper, Plane, Snowflake, Star, Ticket, Tickets, TrainFront, Trophy, Zap } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { StadiumIcon } from './icons.tsx'
 
@@ -17,6 +17,10 @@ const ICONS: Record<string, ComponentType<{ size?: number; strokeWidth?: number 
   floodlight: Lightbulb,
   derby: Flame,
   europe: Plane,
+  world: Earth,
+  grounds50: Landmark,
+  cup: Trophy,
+  europecup: Star,
   complete: Crown,
 }
 

@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react'
 import type { Match, MatchesResponse, ProviderName } from '../shared/types.ts'
 import { fetchMatches } from '../lib/api.ts'
 import { localDateKey } from '../lib/dates.ts'
-import { allCrests, crestFor } from '../lib/crests.ts'
+import { allCrests, crestForTeam } from '../lib/crests.ts'
 
 export interface MatchesState {
   status: 'loading' | 'ready' | 'error'
@@ -38,8 +38,8 @@ function index(res: MatchesResponse): MatchesState {
     // Einheitliche Wappen aus der eigenen Tabelle, die der Quelle nur als Ersatz
     const m: Match = {
       ...raw,
-      home: { ...raw.home, crest: crestFor(raw.home.name, 'sm', raw.league) ?? raw.home.crest },
-      away: { ...raw.away, crest: crestFor(raw.away.name, 'sm', raw.league) ?? raw.away.crest },
+      home: { ...raw.home, crest: crestForTeam(raw.home, raw.league) },
+      away: { ...raw.away, crest: crestForTeam(raw.away, raw.league) },
     }
     matches.push(m)
     byId.set(m.id, m)

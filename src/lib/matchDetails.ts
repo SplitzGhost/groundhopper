@@ -4,9 +4,11 @@
 
 import type { LeagueCode, MatchDetails, MatchEvent, Visit } from '../shared/types.ts'
 import { espnTeamId } from './crests.ts'
+import { leagueByCode } from '../shared/leagues.ts'
 import { addDays } from './dates.ts'
 
-const SLUG: Record<LeagueCode, string> = { BL1: 'ger.1', PL: 'eng.1', PD: 'esp.1', SA: 'ita.1', FL1: 'fra.1' }
+/** ESPN-Kürzel des Wettbewerbs – OpenLigaDB-Ligen (3. Liga, Regionalliga) haben keinen Spielbericht */
+const slug = (league: LeagueCode) => leagueByCode(league).espn
 const BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer'
 
 interface EspnCompetitor { homeAway: 'home' | 'away'; score?: string; team: { id: string } }
@@ -42,7 +44,7 @@ const compact = (day: string) => day.replaceAll('-', '')
 async function findEvent(league: LeagueCode, day: string, homeId: string, awayId: string) {
   // ESPN ordnet Spiele nach US-Ostküstenzeit – zur Sicherheit auch die Nachbartage prüfen
   for (const d of [day, addDays(day, -1), addDays(day, 1)]) {
-    const json = await getJson<{ events?: EspnEvent[] }>(`${BASE}/${SLUG[league]}/scoreboard?dates=${compact(d)}`)
+    const json = await getJson<{ events?: EspnEvent[] }>(`${BASE}/${slug(league)}/scoreboard?dates=${compact(d)}`)
     const hit = json.events?.find((e) => {
       const ids = e.competitions[0]?.competitors.map((c) => c.team.id) ?? []
       return ids.includes(homeId) && ids.includes(awayId)
@@ -80,7 +82,7 @@ export async function fetchReport(v: Visit): Promise<FetchedReport> {
     details: { found: false, final: false, attendance: null, referee: null, venue: null, events: [], fetchedAt },
     score: null,
   }
-  if (!v.league) return missing
+  if (!v.league || !slug(v.league)) return missing
   const homeId = espnTeamId(v.homeTeam, v.league)
   const awayId = espnTeamId(v.awayTeam, v.league)
   if (!homeId || !awayId) return missing
@@ -99,7 +101,7 @@ export async function fetchReport(v: Visit): Promise<FetchedReport> {
   let attendance = comp.attendance || null
   try {
     const summary = await getJson<{ gameInfo?: { attendance?: number; officials?: { displayName?: string; order?: number }[] } }>(
-      `${BASE}/${SLUG[v.league]}/summary?event=${event.id}`)
+      `${BASE}/${slug(v.league)}/summary?event=${event.id}`)
     referee = summary.gameInfo?.officials?.find((o) => o.order === 1)?.displayName
       ?? summary.gameInfo?.officials?.[0]?.displayName ?? null
     attendance ||= summary.gameInfo?.attendance || null
@@ -118,7 +120,7 @@ export async function fetchReport(v: Visit): Promise<FetchedReport> {
 
 /** Muss (erneut) geladen werden? Nicht gefundene Spiele nur selten neu versuchen. */
 export function needsReport(v: Visit, now = Date.now()): boolean {
-  if (!v.league) return false
+  if (!v.league || !slug(v.league)) return false
   const d = v.details
   if (!d) return true
   const age = now - new Date(d.fetchedAt).getTime()

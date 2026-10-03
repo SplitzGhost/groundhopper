@@ -11,6 +11,7 @@ import { useCards } from '../../state/cards.ts'
 import { ensureReport, updateVisit } from '../../state/userData.ts'
 import { reveal, useRevealed } from '../../state/revealed.ts'
 import { cardViewStore, closeCard, flyingCardStore, openSheet, pendingCardStore, sheetStore, tabStore } from '../../state/ui.ts'
+import { leagueByCode } from '../../shared/leagues.ts'
 import { formatDayLong } from '../../lib/dates.ts'
 import { GlassButton, PillButton } from '../ui.tsx'
 import { CardReverse, ExtraBadge, MatchCardBack, MatchCardFront } from './MatchCard.tsx'
@@ -212,7 +213,7 @@ function Viewer({ visitId, memoryAtOpen }: { visitId: string; memoryAtOpen: bool
   const colors = useMemo(() => card ? [card.colors.home, card.colors.away, '#ffffff', '#ffd34d'] : [], [card])
   if (!card) return null
 
-  const loading = !card.visit.details && !!card.visit.league
+  const loading = !card.visit.details && !!card.visit.league && !!leagueByCode(card.visit.league).espn
   const render = (side: Side): ReactNode => {
     if (side === 'reverse') return <CardReverse isNew />
     if (side === 'back') return <MatchCardBack card={card} loading={loading} onMore={() => setMemory(true)} />

@@ -6,7 +6,7 @@ import type { Match } from '../shared/types.ts'
 import { stadiumById } from '../lib/stadiums.ts'
 import { distanceKm } from '../lib/geo.ts'
 import { formatDayFriendly, formatDayMedium, localDateKey } from '../lib/dates.ts'
-import { COUNTRIES } from '../lib/album.ts'
+import { countryName } from '../shared/countries.ts'
 import { useMatches } from '../state/matches.ts'
 import { useLocation } from '../state/location.ts'
 import { toggleMatchVisit, toggleWatch, useUserData } from '../state/userData.ts'
@@ -43,7 +43,6 @@ export function StadiumSheet({ id }: { id: string }) {
   const recent = list.filter((m) => hasStarted(m)).slice(-5).reverse()
   const myVisits = data.visits.filter((v) => v.stadiumId === id).sort((a, b) => b.date.localeCompare(a.date))
   const km = loc.position ? distanceKm(loc.position, s) : null
-  const country = COUNTRIES[s.country]
   const spec = stadiumSpec(s.id)
   const club = clubInfo(s.teams[0].name)
 
@@ -60,7 +59,7 @@ export function StadiumSheet({ id }: { id: string }) {
       <div className="sheet-pad">
         <div className="muted stadium-where">
           <MapPin size={15} strokeWidth={2.4} />
-          {s.city} · <Flag code={s.country} size={10} /> {country?.name}
+          {s.city} · <Flag code={s.country} size={10} /> {countryName(s.country)}
           {km !== null && <span className="tnum">· {km < 10 ? km.toFixed(1) : Math.round(km).toLocaleString('de-DE')} km</span>}
         </div>
       </div>
@@ -73,7 +72,7 @@ export function StadiumSheet({ id }: { id: string }) {
         </span>
         <span className="stadium-hero-hint"><Rotate3d size={12} strokeWidth={2.4} /> 3D</span>
         <span className="stadium-hero-stats">
-          <span><b className="tnum">{spec.capacity.toLocaleString('de-DE')}</b> Plätze</span>
+          {spec.capacity > 0 && <span><b className="tnum">{spec.capacity.toLocaleString('de-DE')}</b> Plätze</span>}
           {spec.opened && <span><b className="tnum">{spec.opened}</b> eröffnet</span>}
           {cards.length > 0 && (
             <motion.button type="button" className="stadium-hero-card" whileTap={{ scale: 0.94 }} onClick={openStadiumCard}>

@@ -1,20 +1,20 @@
 // Spiele: Spielplan Tag für Tag, nach Ligen getrennt. Wischen nach rechts zeigt den Vortag,
 // nach links den nächsten Tag; Wochenleiste und Kalender springen direkt zu einem Datum.
-// Die Merkliste öffnet sich über den Stern oben rechts.
+// Die Merkliste öffnet sich über den Stern oben rechts. Der Ligen-Filter ist derselbe wie auf der Karte.
 
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { AnimatePresence, animate, motion, useMotionValue, type PanInfo } from 'motion/react'
-import { ArrowRight, CalendarDays, Plus, Search, Star, X } from 'lucide-react'
-import type { Match } from '../shared/types.ts'
-import { LEAGUES } from '../shared/leagues.ts'
+import { ArrowRight, CalendarDays, Plus, Search, SlidersHorizontal, Star, X } from 'lucide-react'
+import type { League, Match } from '../shared/types.ts'
+import { LEAGUES, LEAGUE_CODES } from '../shared/leagues.ts'
 import { normalizeTeamName } from '../shared/teamMatch.ts'
 import { addDays, formatDayLong, formatDayMedium, keyToDate, localDateKey, relativeDay } from '../lib/dates.ts'
 import { stadiumById } from '../lib/stadiums.ts'
 import { leagueLogo } from '../lib/crests.ts'
 import { useMatches } from '../state/matches.ts'
 import { toggleMatchVisit, toggleWatch, useUserData } from '../state/userData.ts'
-import { gamesDayStore, openSheet } from '../state/ui.ts'
+import { gamesDayStore, mapFilterStore, openSheet } from '../state/ui.ts'
 import { ScreenScaffold } from '../components/ScreenScaffold.tsx'
 import { MatchRow } from '../components/MatchRow.tsx'
 import { hasStarted } from '../lib/matchState.ts'
@@ -43,17 +43,21 @@ export function GamesScreen() {
   const barRef = useRef<HTMLDivElement>(null)
   const today = localDateKey()
   const day = gamesDayStore.use() ?? today
+  const filter = mapFilterStore.use()
+  const leagueSet = useMemo(() => new Set(filter.leagues), [filter.leagues])
+  const filtered = filter.leagues.length < LEAGUE_CODES.length
 
   const visitedIds = useMemo(() => new Set(data.visits.map((v) => v.matchId).filter(Boolean)), [data.visits])
   const watchIds = useMemo(() => new Set(data.watchlist), [data.watchlist])
 
   const q = query.trim() ? norm(query.trim()) : ''
   const matchesFilter = useCallback((m: Match) => {
+    if (!leagueSet.has(m.league)) return false
     if (!q) return true
     const s = stadiumById(m.stadiumId)
     return [m.home.name, m.away.name, m.home.shortName, m.away.shortName, s?.name ?? '', s?.city ?? '']
       .some((t) => norm(t).includes(q))
-  }, [q])
+  }, [q, leagueSet])
 
   // Stern oben zählt die noch anstehenden gemerkten Spiele
   const upcomingWatched = data.watchlist.filter((id) => {
@@ -95,6 +99,8 @@ export function GamesScreen() {
       ref={scrollRef}
       title="Spiele"
       actions={<>
+        <GlassButton label="Ligen filtern" badge={filtered ? 1 : null}
+          icon={<SlidersHorizontal size={21} strokeWidth={2.2} />} onClick={() => openSheet({ kind: 'filter' })} />
         <GlassButton label="Merkliste" badge={upcomingWatched || null}
           icon={<Star size={21} strokeWidth={2.2} />} onClick={() => openSheet({ kind: 'watchlist' })} />
         <GlassButton label="Spiel manuell eintragen" icon={<Plus size={22} strokeWidth={2.4} />} onClick={() => openSheet({ kind: 'add' })} />
@@ -133,8 +139,8 @@ export function GamesScreen() {
             <>
               <DayBar ref={barRef} day={day} today={today} count={(d) => dayMatches(d).length} />
               <DayPager day={day} onChange={(d) => gamesDayStore.set(d)}
-                render={(d) => <DayContent day={d} today={today} list={dayMatches(d)} row={row}
-                  findNext={() => nextMatchDay(matches.byDay, d, matchesFilter)} />} />
+                render={(d, side) => <DayContent day={d} today={today} list={dayMatches(d)} row={row} limit={side ? 8 : undefined}
+                  filtered={filtered} findNext={() => nextMatchDay(matches.byDay, d, matchesFilter)} />} />
             </>
           )}
       </motion.div>
@@ -213,7 +219,8 @@ const DayBar = forwardRef<HTMLDivElement, { day: string; today: string; count: (
 
 // ---------- Tagesseiten zum Wischen ----------
 
-function DayPager({ day, onChange, render }: { day: string; onChange: (d: string) => void; render: (d: string) => ReactNode }) {
+/** `render(d, side)`: side = Nachbartag, der nur beim Wischen hervorschaut – dort reichen die ersten Spiele */
+function DayPager({ day, onChange, render }: { day: string; onChange: (d: string) => void; render: (d: string, side?: boolean) => ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
   // Per Wischen erreichter Tag (steht schon an Ort und Stelle) bzw. Richtung bei Sprüngen über Wochenleiste/Kalender
@@ -247,27 +254,41 @@ function DayPager({ day, onChange, render }: { day: string; onChange: (d: string
   return (
     <div className="pager" ref={ref}>
       <motion.div className="pager-track" style={{ x }} drag="x" dragDirectionLock dragMomentum={false} onDragEnd={onDragEnd}>
-        <div className="pager-side prev" aria-hidden>{render(addDays(day, -1))}</div>
+        <div className="pager-side prev" aria-hidden>{render(addDays(day, -1), true)}</div>
         <motion.div key={day} className="pager-page"
           initial={swipedTo === day || !jumpDir ? false : { opacity: 0, x: jumpDir * 40 }}
           animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 34 }}>
           {render(day)}
         </motion.div>
-        <div className="pager-side next" aria-hidden>{render(addDays(day, 1))}</div>
+        <div className="pager-side next" aria-hidden>{render(addDays(day, 1), true)}</div>
       </motion.div>
     </div>
   )
 }
 
-function DayContent({ day, today, list, row, findNext }: {
+function DayContent({ day, today, list, row, findNext, limit, filtered }: {
   day: string
   today: string
   list: Match[]
   row: (m: Match) => ReactNode
   findNext: () => string | null
+  /** Höchstens so viele Spiele zeigen (Vorschau beim Wischen) */
+  limit?: number
+  filtered: boolean
 }) {
-  const groups = LEAGUES.map((l) => ({ league: l, matches: list.filter((m) => m.league === l.code).sort((a, b) => a.kickoff.localeCompare(b.kickoff)) }))
-    .filter((g) => g.matches.length)
+  const byLeague = new Map<string, Match[]>()
+  for (const m of list) {
+    if (!byLeague.has(m.league)) byLeague.set(m.league, [])
+    byLeague.get(m.league)!.push(m)
+  }
+  const groups: { league: League; matches: Match[] }[] = []
+  let left = limit ?? Infinity
+  for (const l of LEAGUES) {
+    if (left <= 0 || !byLeague.has(l.code)) continue
+    const matches = byLeague.get(l.code)!.sort((x, y) => x.kickoff.localeCompare(y.kickoff)).slice(0, left)
+    left -= matches.length
+    groups.push({ league: l, matches })
+  }
   const rel = relativeDay(day, today)
 
   return (
@@ -281,13 +302,13 @@ function DayContent({ day, today, list, row, findNext }: {
       </div>
 
       {groups.length === 0 ? (
-        <NoGames findNext={findNext} />
+        <NoGames findNext={findNext} filtered={filtered} />
       ) : groups.map((g) => {
         const md = g.matches.find((m) => m.matchday)?.matchday
         return (
           <section key={g.league.code} className="lg-sec">
             <div className="lg-head">
-              <span className="lg-logo"><img src={leagueLogo(g.league.code)} alt="" draggable={false} /></span>
+              <span className="lg-logo"><img src={leagueLogo(g.league.code)} alt="" loading="lazy" draggable={false} /></span>
               <b>{g.league.name}</b>
               <Flag code={g.league.countryCode} size={10} />
               {md && <span className="lg-md">{md}. Spieltag</span>}
@@ -300,13 +321,13 @@ function DayContent({ day, today, list, row, findNext }: {
   )
 }
 
-function NoGames({ findNext }: { findNext: () => string | null }) {
+function NoGames({ findNext, filtered }: { findNext: () => string | null; filtered: boolean }) {
   const next = findNext()
   return (
     <div className="no-games">
       <span className="no-games-icon"><BallIcon size={30} /></span>
       <b>Keine Spiele an diesem Tag</b>
-      <p>Wische weiter oder spring direkt zum nächsten Spieltag.</p>
+      <p>{filtered ? 'In den gewählten Ligen ist frei. ' : ''}Wische weiter oder spring direkt zum nächsten Spieltag.</p>
       {next && (
         <PillButton small tint onClick={() => gamesDayStore.set(next)}>
           {formatDayMedium(next)} <ArrowRight size={15} strokeWidth={2.6} />

@@ -2,6 +2,9 @@
 // und die Bauform, aus der StadiumArt die vereinfachte 3D-Grafik erzeugt.
 // Kapazitäten gerundet, Stand Saison 2026/27.
 
+import type { Stadium } from '../shared/types.ts'
+import { stadiumById } from '../lib/stadiums.ts'
+
 export type StadiumShape =
   /** Ovale Schüssel */
   | 'bowl'
@@ -166,11 +169,33 @@ const ROWS: Record<string, Row> = {
   'stade-de-l-aube-troyes': [21684, 1924, 'box', 'full', 1, 'concrete'],
 }
 
-const FALLBACK: StadiumSpec = { capacity: 20000, opened: null, shape: 'arena', roof: 'full', tiers: 1, facade: 'concrete' }
-
 export const STADIUM_INFO: Record<string, StadiumSpec> = Object.fromEntries(
   Object.entries(ROWS).map(([id, [capacity, opened, shape, roof, tiers, facade, extra]]) =>
     [id, { capacity, opened, shape, roof, tiers, facade, ...extra }]),
 )
 
-export const stadiumSpec = (id: string): StadiumSpec => STADIUM_INFO[id] ?? FALLBACK
+const FACADES: Facade[] = ['concrete', 'metal', 'brick', 'glass', 'club']
+const hash = (s: string) => [...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7)
+
+/** Stadien ohne Steckbrief (alle Ligen außer den Top 5): Bauform grob nach Größe schätzen. */
+function guessSpec(id: string): StadiumSpec {
+  const capacity = stadiumById(id)?.capacity ?? 0
+  const facade = FACADES[hash(id) % FACADES.length]
+  const base = { capacity, opened: null, facade }
+  if (!capacity) return { ...base, shape: 'box', roof: 'sides', tiers: 1 }
+  if (capacity < 6000) return { ...base, shape: 'box', roof: 'main', tiers: 1, sides: [1, 0.45, 0.6, 0.45] }
+  if (capacity < 20000) return { ...base, shape: 'box', roof: 'full', tiers: 1 }
+  if (capacity < 40000) return { ...base, shape: 'arena', roof: 'full', tiers: 2 }
+  return { ...base, shape: 'bowl', roof: 'full', tiers: capacity < 65000 ? 2 : 3 }
+}
+
+const guessed = new Map<string, StadiumSpec>()
+
+export function stadiumSpec(id: string): StadiumSpec {
+  if (STADIUM_INFO[id]) return STADIUM_INFO[id]
+  if (!guessed.has(id)) guessed.set(id, guessSpec(id))
+  return guessed.get(id)!
+}
+
+/** Plätze im Stadion, null wenn unbekannt */
+export const stadiumCapacity = (s: Pick<Stadium, 'id'>): number | null => stadiumSpec(s.id).capacity || null

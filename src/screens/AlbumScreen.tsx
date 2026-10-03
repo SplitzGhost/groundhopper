@@ -5,8 +5,7 @@ import { useEffect, useMemo, type ReactNode } from 'react'
 import { motion, useSpring, useTransform } from 'motion/react'
 import { ChevronRight, Swords, Trophy } from 'lucide-react'
 import { collect, levelOf, TEAM_NAMES, type Collection } from '../lib/album.ts'
-import { CLUB_LISTS, STADIUM_LISTS, leagueOfList, listInfo, type ListId } from '../lib/lists.ts'
-import { leagueByCode } from '../shared/leagues.ts'
+import { CLUB_LISTS, STADIUM_LISTS, countryOfList, leaguesOfCountry, listInfo, type ListId } from '../lib/lists.ts'
 import { leagueLogo } from '../lib/crests.ts'
 import { useUserData } from '../state/userData.ts'
 import { useCards } from '../state/cards.ts'
@@ -27,6 +26,10 @@ export function AlbumScreen() {
   const clubsSeen = [...c.clubs.keys()].filter((n) => TEAM_NAMES.has(n)).length
   const cards = useCards()
   const recent = useMemo(() => [...cards].reverse().slice(0, 10), [cards])
+  // Länder, in denen schon etwas gesammelt ist, nach vorn – sonst Katalogreihenfolge (Top 5 zuerst)
+  const byProgress = (ids: ListId[]) => [...ids].sort((a, b) => Number(listInfo(b, c).got > 0) - Number(listInfo(a, c).got > 0))
+  const clubLists = useMemo(() => byProgress(CLUB_LISTS), [c]) // eslint-disable-line react-hooks/exhaustive-deps
+  const stadiumLists = useMemo(() => byProgress(STADIUM_LISTS), [c]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ScreenScaffold title="Sammelalbum" actions={<ProfileButton />}>
@@ -77,14 +80,14 @@ export function AlbumScreen() {
         </motion.div>
       )}
 
-      <SectionHead title="Vereine" hint="Jedes Land eine Liste" />
+      <SectionHead title="Vereine" hint={`${CLUB_LISTS.length} Länder`} />
       <div className="list-tiles">
-        {CLUB_LISTS.map((id, i) => <ListTile key={id} id={id} c={c} index={i} />)}
+        {clubLists.map((id, i) => <ListTile key={id} id={id} c={c} index={i} />)}
       </div>
 
       <SectionHead title="Stadien" hint="Alle Grounds abhaken" />
       <div className="list-tiles">
-        {STADIUM_LISTS.map((id, i) => <ListTile key={id} id={id} c={c} index={i} />)}
+        {stadiumLists.map((id, i) => <ListTile key={id} id={id} c={c} index={i} />)}
       </div>
 
       <SectionHead title="Weitere Listen" />
@@ -163,22 +166,22 @@ function Progress({ got, total, delay = 0 }: { got: number; total: number; delay
 
 function ListTile({ id, c, index }: { id: ListId; c: Collection; index: number }) {
   const info = listInfo(id, c)
-  const code = leagueOfList(id)!
-  const league = leagueByCode(code)
+  const country = countryOfList(id)!
+  const leagues = leaguesOfCountry(country)
   const isClubs = id.startsWith('clubs')
   return (
     <motion.button type="button" className="ltile" onClick={() => openList(id)}
       initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-      transition={{ type: 'spring', stiffness: 380, damping: 30, delay: index * 0.04 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 30, delay: Math.min(index, 8) * 0.04 }}
       whileTap={{ scale: 0.95 }}>
       <div className="ltile-top">
-        <Flag code={league.countryCode} size={20} />
-        <span className="ltile-icon">{isClubs ? <img src={leagueLogo(code)} alt="" /> : <StadiumIcon size={18} />}</span>
+        <Flag code={country} size={20} />
+        <span className="ltile-icon">{isClubs ? <img src={leagueLogo(leagues[0].code)} alt="" loading="lazy" /> : <StadiumIcon size={18} />}</span>
       </div>
       <b className="ltile-title">{info.title}</b>
-      <span className="ltile-sub truncate">{league.name}</span>
+      <span className="ltile-sub truncate">{leagues.length === 1 ? leagues[0].name : `${leagues.length} Ligen`}</span>
       <span className="ltile-count tnum"><b>{info.got}</b>/{info.total}</span>
-      <Progress got={info.got} total={info.total} delay={0.1 + index * 0.05} />
+      <Progress got={info.got} total={info.total} delay={0.1 + Math.min(index, 8) * 0.05} />
     </motion.button>
   )
 }

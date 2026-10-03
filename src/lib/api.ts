@@ -1,4 +1,5 @@
 import type { LeagueCode, MatchesResponse } from '../shared/types.ts'
+import { unpackMatches, type CompactMatches } from '../shared/compactMatches.ts'
 
 export interface MatchQuery {
   leagues?: LeagueCode[]
@@ -16,7 +17,7 @@ export async function fetchMatches(query: MatchQuery = {}): Promise<MatchesRespo
   if (STATIC) {
     const res = await fetch(`${import.meta.env.BASE_URL}data/matches.json`, { cache: 'no-cache' })
     if (!res.ok) throw new Error(`Spiele konnten nicht geladen werden (${res.status})`)
-    const data = (await res.json()) as MatchesResponse
+    const data = unpackMatches((await res.json()) as CompactMatches)
     data.matches = data.matches.filter((m) =>
       (!query.leagues?.length || query.leagues.includes(m.league))
       && (!query.from || m.kickoff.slice(0, 10) >= query.from)

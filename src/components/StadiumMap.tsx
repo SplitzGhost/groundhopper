@@ -1,7 +1,9 @@
 // Vektorkarte (MapLibre + OpenFreeMap, ohne API-Schlüssel) mit Stadion-Pins.
-// Pins sind HTML-Elemente, damit sie per CSS federnd aufploppen können.
+// Pins sind HTML-Elemente, damit sie per CSS federnd aufploppen können. Weit herausgezoomt zeichnet
+// bei vielen Stadien (weltweit fast 1000) eine Punkt-Ebene auf der GPU – HTML-Pins gibt es dann nur
+// im sichtbaren Ausschnitt, sonst ruckelt das Verschieben auf dem iPhone.
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 // Worker von Vite bündeln lassen – MapLibre sucht ihn sonst neben der (umgebündelten) Bibliothek.
@@ -19,6 +21,38 @@ const STYLES = {
 }
 /** Unterhalb dieser Zoomstufe werden Pins zu kleinen Punkten */
 const FAR_ZOOM = 6.3
+/** Bis zu so vielen Pins bleiben alle als HTML-Pins mit Beschriftung (z. B. ein Spieltag in der Nähe) */
+const FEW_PINS = 30
+/** Höchstzahl gleichzeitiger HTML-Pins im Ausschnitt */
+const MAX_DOM_PINS = 320
+const SOURCE = 'gh-stadiums'
+const DOTS = 'gh-dots'
+
+interface View { far: boolean; bounds: maplibregl.LngLatBounds | null }
+type DotData = Exclude<Parameters<maplibregl.GeoJSONSource['setData']>[0], string>
+
+/** Punkt-Ebene für weit herausgezoomt – nach Stilwechsel (Hell/Dunkel) neu anlegen */
+function ensureDotLayers(m: maplibregl.Map, data: DotData) {
+  const src = m.getSource(SOURCE) as maplibregl.GeoJSONSource | undefined
+  if (src) {
+    src.setData(data)
+    return
+  }
+  m.addSource(SOURCE, { type: 'geojson', data })
+  m.addLayer({
+    id: DOTS + '-halo', type: 'circle', source: SOURCE, maxzoom: FAR_ZOOM, filter: ['==', ['get', 'm'], 1],
+    paint: { 'circle-radius': 10, 'circle-color': '#0a7cff', 'circle-opacity': 0.22 },
+  })
+  m.addLayer({
+    id: DOTS, type: 'circle', source: SOURCE, maxzoom: FAR_ZOOM,
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 2.5, 3.6, FAR_ZOOM, 6.5],
+      'circle-color': ['case', ['==', ['get', 'v'], 1], '#0a7cff', '#ffffff'],
+      'circle-stroke-color': ['case', ['==', ['get', 'v'], 1], '#ffffff', '#0a7cff'],
+      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 2.5, 1.6, FAR_ZOOM, 2.6],
+    },
+  })
+}
 
 export interface Pin {
   stadium: Stadium
@@ -70,6 +104,8 @@ export const StadiumMap = forwardRef<StadiumMapHandle, Props>(function StadiumMa
   const clickRef = useRef(onPinClick)
   const dark = useDarkMode()
   const styleDark = useRef(dark)
+  const [view, setView] = useState<View>({ far: startZoom < FAR_ZOOM, bounds: null })
+  const dotData = useRef<DotData>({ type: 'FeatureCollection', features: [] })
 
   useEffect(() => {
     clickRef.current = onPinClick
@@ -89,9 +125,25 @@ export const StadiumMap = forwardRef<StadiumMapHandle, Props>(function StadiumMa
       attributionControl: false,
       fadeDuration: 250,
     })
-    const updateFar = () => m.getContainer().classList.toggle('zoom-far', m.getZoom() < FAR_ZOOM)
+    const updateFar = () => {
+      const far = m.getZoom() < FAR_ZOOM
+      m.getContainer().classList.toggle('zoom-far', far)
+      // Beim Überschreiten der Schwelle sofort umschalten, nicht erst am Ende der Geste
+      setView((v) => (v.far === far ? v : { ...v, far }))
+    }
     m.on('zoom', updateFar)
     updateFar()
+    m.on('moveend', () => setView({ far: m.getZoom() < FAR_ZOOM, bounds: m.getBounds() }))
+    m.on('load', () => setView({ far: m.getZoom() < FAR_ZOOM, bounds: m.getBounds() }))
+    m.on('style.load', () => ensureDotLayers(m, dotData.current))
+    // Punkte sind klein – großzügig um den Finger herum suchen
+    m.on('click', (e) => {
+      if (!m.getLayer(DOTS)) return
+      const { x, y } = e.point
+      const hit = m.queryRenderedFeatures([[x - 16, y - 16], [x + 16, y + 16]], { layers: [DOTS] })[0]
+      const id = hit?.properties?.id as string | undefined
+      if (id) clickRef.current(id)
+    })
     setMap(m)
     return () => {
       m.remove()
@@ -111,10 +163,40 @@ export const StadiumMap = forwardRef<StadiumMapHandle, Props>(function StadiumMa
 
   // ---------- Pins abgleichen ----------
 
+  const few = pins.length <= FEW_PINS
+
+  // Punkt-Ebene: alle Pins, solange es viele sind
+  useEffect(() => {
+    if (!map) return
+    dotData.current = {
+      type: 'FeatureCollection',
+      features: few ? [] : pins.map((p) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [p.stadium.lon, p.stadium.lat] },
+        properties: { id: p.stadium.id, v: visited.has(p.stadium.id) ? 1 : 0, m: p.hasMatch ? 1 : 0 },
+      })),
+    }
+    if (map.isStyleLoaded()) ensureDotLayers(map, dotData.current)
+  }, [map, pins, visited, few])
+
+  // HTML-Pins: bei wenigen alle, sonst nur nah herangezoomt im (großzügigen) Ausschnitt
+  const domPins = useMemo(() => {
+    if (few) return pins
+    const selected = pins.filter((p) => p.stadium.id === selectedId)
+    if (view.far || !view.bounds) return selected
+    const b = view.bounds
+    const padLat = (b.getNorth() - b.getSouth()) * 0.5
+    const padLon = (b.getEast() - b.getWest()) * 0.5
+    const inView = pins.filter((p) => p.stadium.id !== selectedId
+      && p.stadium.lat > b.getSouth() - padLat && p.stadium.lat < b.getNorth() + padLat
+      && p.stadium.lon > b.getWest() - padLon && p.stadium.lon < b.getEast() + padLon)
+    return [...selected, ...inView.slice(0, MAX_DOM_PINS)]
+  }, [few, pins, view, selectedId])
+
   useEffect(() => {
     if (!map) return
     const current = markers.current
-    const wanted = new Set(pins.map((p) => p.stadium.id))
+    const wanted = new Set(domPins.map((p) => p.stadium.id))
 
     for (const [id, e] of current) {
       if (wanted.has(id)) continue
@@ -125,7 +207,7 @@ export const StadiumMap = forwardRef<StadiumMapHandle, Props>(function StadiumMa
     }
 
     let popIndex = 0
-    for (const p of pins) {
+    for (const p of domPins) {
       const id = p.stadium.id
       const v = visited.has(id)
       const key = pinKey(p, v)
@@ -149,13 +231,13 @@ export const StadiumMap = forwardRef<StadiumMapHandle, Props>(function StadiumMa
       current.set(id, { marker, el, key })
     }
     // Bei wenigen Pins (z. B. ein Spieltag) auch weit herausgezoomt volle Pins mit Uhrzeit zeigen
-    map.getContainer().classList.toggle('few-pins', pins.length <= 30)
+    map.getContainer().classList.toggle('few-pins', few)
     // Pins mit Spiel über die anderen legen
-    for (const p of pins) {
+    for (const p of domPins) {
       const e = current.get(p.stadium.id)
       if (e) e.el.style.zIndex = p.hasMatch ? '2' : '1'
     }
-  }, [map, pins, visited])
+  }, [map, domPins, visited, few])
 
   // Ausgewählten Pin hervorheben – direkt am Element, ohne Neuaufbau
   useEffect(() => {
@@ -164,7 +246,7 @@ export const StadiumMap = forwardRef<StadiumMapHandle, Props>(function StadiumMa
       e.el.firstElementChild?.classList.toggle('selected', on)
       if (on) e.el.style.zIndex = '10'
     }
-  }, [selectedId, pins])
+  }, [selectedId, domPins])
 
   // ---------- Eigener Standort ----------
 

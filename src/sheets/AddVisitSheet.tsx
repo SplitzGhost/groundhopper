@@ -3,8 +3,9 @@
 
 import { useMemo, useState } from 'react'
 import type { LeagueCode } from '../shared/types.ts'
-import { LEAGUES } from '../shared/leagues.ts'
-import { STADIUMS, findTeam } from '../lib/stadiums.ts'
+import { LEAGUE_GROUPS } from '../shared/leagues.ts'
+import { countryName } from '../shared/countries.ts'
+import { STADIUMS, findTeam, stadiumById } from '../lib/stadiums.ts'
 import { ALL_TEAMS, canonicalTeam } from '../lib/album.ts'
 import { localDateKey } from '../lib/dates.ts'
 import { useMatches } from '../state/matches.ts'
@@ -13,6 +14,14 @@ import { notify } from '../state/toast.ts'
 import { Sheet } from '../components/Sheet.tsx'
 import { useSheet } from '../components/sheetContext.ts'
 import { PillButton } from '../components/ui.tsx'
+
+/** Stadien nach Land gruppiert (für die Auswahlliste), Länder alphabetisch */
+const STADIUMS_BY_COUNTRY = [...new Set(STADIUMS.map((s) => s.country))]
+  .map((cc) => ({
+    country: countryName(cc),
+    list: STADIUMS.filter((s) => s.country === cc).sort((a, b) => a.name.localeCompare(b.name, 'de')),
+  }))
+  .sort((a, b) => a.country.localeCompare(b.country, 'de'))
 
 export function AddVisitSheet() {
   const { close } = useSheet()
@@ -103,19 +112,27 @@ export function AddVisitSheet() {
           <div className="field">
             <label htmlFor="add-comp">Wettbewerb</label>
             <select id="add-comp" className="input" value={competition} onChange={(e) => setCompetition(e.target.value as LeagueCode | 'other')}>
-              {LEAGUES.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
+              {LEAGUE_GROUPS.map((g) => (
+                <optgroup key={g.countryCode} label={g.country}>
+                  {g.leagues.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
+                </optgroup>
+              ))}
               <option value="other">Anderer Wettbewerb …</option>
             </select>
           </div>
           {competition === 'other' && (
-            <input className="input" value={otherName} onChange={(e) => setOtherName(e.target.value)} placeholder="z. B. DFB-Pokal, Testspiel" />
+            <input className="input" value={otherName} onChange={(e) => setOtherName(e.target.value)} placeholder="z. B. Testspiel, Oberliga" />
           )}
           <div className="field">
             <label htmlFor="add-stadium">Stadion</label>
             <select id="add-stadium" className="input" value={stadiumId} onChange={(e) => setStadiumId(e.target.value)}>
-              <option value="auto">{autoStadium ? `Heimstadion: ${STADIUMS.find((s) => s.id === autoStadium)!.name}` : 'Automatisch (Heimverein)'}</option>
+              <option value="auto">{autoStadium ? `Heimstadion: ${stadiumById(autoStadium)!.name}` : 'Automatisch (Heimverein)'}</option>
               <option value="none">Anderes / unbekannt</option>
-              {STADIUMS.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.city})</option>)}
+              {STADIUMS_BY_COUNTRY.map((g) => (
+                <optgroup key={g.country} label={g.country}>
+                  {g.list.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.city})</option>)}
+                </optgroup>
+              ))}
             </select>
           </div>
         </>}

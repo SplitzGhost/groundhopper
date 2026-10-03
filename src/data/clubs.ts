@@ -1,6 +1,10 @@
 // Vereinsdaten für die Sammelkarten: Farben, Gründungsjahr, Spitzname, Kürzel.
 // Schlüssel = Vereinsname wie in stadiums.json. Farben sind auf die Darstellung abgestimmt,
-// keine offiziellen Farbwerte.
+// keine offiziellen Farbwerte. Vereine ohne eigenen Eintrag (alle Ligen außer den Top 5)
+// bekommen Farben und Kürzel aus stadiums.json (Quelle: ESPN).
+
+import data from './stadiums.json'
+import type { Stadium } from '../shared/types.ts'
 
 export interface ClubInfo {
   /** Erkennungsfarbe (Sitze im Stadion, Kartenakzent) */
@@ -133,6 +137,20 @@ export const CLUBS: Record<string, ClubInfo> = Object.fromEntries(
     [name, { primary, secondary, founded, nickname, short }]),
 )
 
+const GENERATED = new Map<string, ClubInfo>()
+for (const s of data as Stadium[]) {
+  for (const t of s.teams) {
+    if (CLUBS[t.name] || (!t.colors && !t.short)) continue
+    GENERATED.set(t.name, {
+      ...DEFAULT,
+      ...(t.colors ? { primary: t.colors[0], secondary: t.colors[1] } : {}),
+      short: t.short ?? '',
+    })
+  }
+}
+
 export function clubInfo(name: string): ClubInfo {
-  return CLUBS[name] ?? { ...DEFAULT, short: name.replace(/[^A-ZÄÖÜ]/g, '').slice(0, 3) || name.slice(0, 3).toUpperCase() }
+  const info = CLUBS[name] ?? GENERATED.get(name)
+  if (info?.short) return info
+  return { ...(info ?? DEFAULT), short: name.replace(/[^A-ZÄÖÜ]/g, '').slice(0, 3) || name.slice(0, 3).toUpperCase() }
 }

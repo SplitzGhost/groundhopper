@@ -16,6 +16,7 @@
     "icons": "node tools/icons.ts",
     "crests": "node tools/crests.ts",
     "data": "node --env-file-if-exists=.env tools/build-data.ts",
+    "world": "node tools/world.ts",
     "dev:static": "vite --mode static --port 5174 --strictPort"
   },
   "dependencies": {

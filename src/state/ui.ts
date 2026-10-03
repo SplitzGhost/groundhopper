@@ -115,16 +115,30 @@ export interface MapFilter {
   onlyUnvisited: boolean
 }
 
-const savedFilter = loadPref<Pick<MapFilter, 'leagues' | 'onlyUnvisited'>>('mapfilter', {
-  leagues: LEAGUE_CODES, onlyUnvisited: false,
-})
+interface SavedFilter {
+  leagues: LeagueCode[]
+  onlyUnvisited: boolean
+  /** Wettbewerbe, die es beim Speichern gab – später hinzugekommene werden automatisch eingeschaltet */
+  known?: LeagueCode[]
+}
 
-export const mapFilterStore = createStore<MapFilter>({ ...savedFilter, day: 'all', watchlist: false })
+const savedFilter = loadPref<SavedFilter>('mapfilter', { leagues: LEAGUE_CODES, onlyUnvisited: false, known: LEAGUE_CODES })
+// Ältere Versionen kannten nur die Top 5
+const known = new Set(savedFilter.known ?? ['BL1', 'PL', 'PD', 'SA', 'FL1'])
+const savedLeagues = new Set(savedFilter.leagues)
+
+export const mapFilterStore = createStore<MapFilter>({
+  leagues: LEAGUE_CODES.filter((c) => savedLeagues.has(c) || !known.has(c)),
+  onlyUnvisited: savedFilter.onlyUnvisited,
+  day: 'all',
+  watchlist: false,
+})
 
 export function setMapFilter(patch: Partial<MapFilter>) {
   mapFilterStore.set((f) => {
     const next = { ...f, ...patch }
-    savePref('mapfilter', { leagues: next.leagues, onlyUnvisited: next.onlyUnvisited })
+    const saved: SavedFilter = { leagues: next.leagues, onlyUnvisited: next.onlyUnvisited, known: LEAGUE_CODES }
+    savePref('mapfilter', saved)
     return next
   })
 }

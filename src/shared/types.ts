@@ -1,15 +1,32 @@
 // Datentypen, die Server und App gemeinsam nutzen.
 
-export type LeagueCode = 'BL1' | 'PL' | 'PD' | 'SA' | 'FL1'
+/** Top 5: 'BL1', 'PL', 'PD', 'SA', 'FL1'; ESPN-Wettbewerbe mit ihrem Kürzel (z. B. 'ger.2'),
+ *  OpenLigaDB-Ligen mit deren Kürzel (z. B. 'bl3'). */
+export type LeagueCode = string
+
+export type LeagueSource = 'top5' | 'espn' | 'openligadb'
 
 export interface League {
   code: LeagueCode
   name: string
   shortName: string
+  /** Land bzw. Verband auf Deutsch */
   country: string
-  /** ISO-3166-Ländercode, kleingeschrieben */
+  /** Länder-/Verbandscode, siehe shared/countries.ts */
   countryCode: string
-  flag: string
+  /** 'league' = Ligabetrieb mit festen Vereinen, 'cup' = Pokal/Europapokal */
+  kind: 'league' | 'cup'
+  /** Spielklasse (1 = höchste), nur bei Ligen */
+  tier?: number
+  /** Saison = Kalenderjahr (z. B. MLS, Brasilien) statt Herbst bis Frühjahr */
+  calendar?: boolean
+  source: LeagueSource
+  /** ESPN-Kürzel – für Spielplan und Spielbericht */
+  espn?: string
+  /** Kürzel bei OpenLigaDB */
+  openLigaDb?: string
+  /** ESPN-Logo-ID, null = kein Logo */
+  logo: number | null
 }
 
 // ---------- Stadien ----------
@@ -18,6 +35,12 @@ export interface StadiumTeam {
   name: string
   league: LeagueCode
   aliases: string[]
+  /** Vereins-ID bei ESPN (Wappen, Spielberichte, Zuordnung von Pokalspielen) */
+  espnId?: string
+  /** Vereinsfarben [Haupt, Zweit] – für Vereine ohne eigenen Eintrag in data/clubs.ts */
+  colors?: [string, string]
+  /** Kürzel, z. B. „AJA“ */
+  short?: string
 }
 
 export interface Stadium {
@@ -30,6 +53,10 @@ export interface Stadium {
   /** true = Koordinaten nur auf Stadtebene gefunden */
   approx: boolean
   teams: StadiumTeam[]
+  /** Stadion-IDs bei ESPN – ordnet Spiele auf neutralem Platz (Endspiele) zu */
+  espnVenues?: string[]
+  /** Plätze laut OpenStreetMap bzw. Wikidata, falls bekannt */
+  capacity?: number
 }
 
 // ---------- Spiele ----------

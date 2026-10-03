@@ -1,14 +1,19 @@
 # Groundhopper
 
-Fußball-App zum Sammeln von Stadionbesuchen – iPhone-Prototyp mit den Top-5-Ligen Europas
-(Bundesliga, Premier League, La Liga, Serie A, Ligue 1). Blau-weißes Design im Apple-Stil
-mit Liquid-Glass-Bedienelementen, folgt dem Hell-/Dunkelmodus des Systems.
+Fußball-App zum Sammeln von Stadionbesuchen – iPhone-Prototyp mit 97 Wettbewerben weltweit:
+die Top-5-Ligen Europas, zweite bis fünfte Ligen (2. Bundesliga, 3. Liga, Regionalliga Nord und
+Nordost, Championship bis National League, LaLiga 2, Serie B, Ligue 2 …), das übrige Europa
+(Eredivisie, Liga Portugal, Scottish Premiership, Süper Lig, Skandinavien …), Nord- und Südamerika,
+Asien, Afrika und Australien – dazu nationale Pokale und Europapokale (Champions League, Europa League,
+Conference League, Copa Libertadores …). Rund 900 Stadien auf der Karte. Blau-weißes Design im
+Apple-Stil mit Liquid-Glass-Bedienelementen, folgt dem Hell-/Dunkelmodus des Systems.
 
-- **Karte:** Vollbild-Karte mit Standort und allen Stadien. Filter nach Ligen und „nur neue Stadien“,
+- **Karte:** Vollbild-Karte mit Standort und allen Stadien. Filter nach Ligen und Pokalen (nach Ländern
+  gruppiert, Schnellauswahl Weltweit/Europa/Deutschland/Top 5) und „nur neue Stadien“,
   Tagesleiste unten (Heute, Morgen, nächste Spieltage, Datum frei wählbar) – dann erscheinen nur
   Stadien mit Spielen an diesem Tag, samt Anstoßzeit und Karussell nach Entfernung sortiert.
   ★ zeigt nur gemerkte Spiele. Suche nach Stadion, Verein oder Ort.
-- **Spiele:** Spielplan Tag für Tag, nach Ligen getrennt (mit Spieltag). Nach rechts wischen = Vortag,
+- **Spiele:** Spielplan Tag für Tag, nach Ligen getrennt (mit Spieltag); es gilt derselbe Ligen-Filter wie auf der Karte. Nach rechts wischen = Vortag,
   nach links = nächster Tag; Wochenleiste und Kalender springen zu jedem Datum, leere Tage zeigen den
   nächsten Spieltag. Haken setzen („Ich war da“) öffnet direkt Bewertung & Notizen; kommende Spiele merken (★).
   Suche über die ganze Saison; die Merkliste öffnet der Stern (★) oben, Spiele auch von Hand eintragbar (+).
@@ -20,8 +25,8 @@ mit Liquid-Glass-Bedienelementen, folgt dem Hell-/Dunkelmodus des Systems.
     geladen). „Mehr“ zeigt die eigene Erinnerung (Bewertung, Notizen). Neue Karten kommen verdeckt angeflogen
     und werden mit einem Tipp aufgedeckt. Im Ordner liegen vier Karten pro Seite, Wischen blättert die Seite
     in 3D um; sortierbar nach Datum, Alphabet oder Liga.
-  - **Listen zum Vervollständigen:** Vereine und Stadien je Land (grau, bis man dort war), Ligen, Derbys und
-    Erfolge. Antippen zeigt Infos und die zugehörigen Spielkarten.
+  - **Listen zum Vervollständigen:** Vereine und Stadien je Land, unterteilt nach Ligen (grau, bis man dort
+    war), Wettbewerbe, Derbys (Top 5 und weltweit, vom Old Firm bis zum Superclásico) und Erfolge. Antippen zeigt Infos und die zugehörigen Spielkarten.
   - Sammler-Pass mit Level und Punkten.
 - **Profil:** Statistiken, Backup als Datei exportieren/importieren. Alle Nutzerdaten bleiben auf dem Gerät.
 
@@ -63,12 +68,20 @@ dann **Teilen → „Zum Home-Bildschirm“** – so läuft die App im Vollbild 
 
 ## Datenquelle
 
-| Modus | Wann | Quelle |
-|---|---|---|
-| `football-data` | `FOOTBALL_DATA_API_KEY` steht in `.env` | football-data.org (Gratis-Plan, alle 5 Ligen) |
-| `demo` | kein Schlüssel | OpenLigaDB (BL), openfootball (PL, La Liga, Serie A), football-data.co.uk (Ligue 1, eingeschränkt) |
+| Wettbewerbe | Quelle |
+|---|---|
+| Top 5, mit `FOOTBALL_DATA_API_KEY` in `.env` | football-data.org (Gratis-Plan) |
+| Top 5, ohne Schlüssel | OpenLigaDB (BL), openfootball (PL, La Liga, Serie A), football-data.co.uk (Ligue 1, eingeschränkt) |
+| 3. Liga, Regionalliga Nord und Nordost | OpenLigaDB |
+| alle übrigen Ligen und Pokale | ESPN (frei, ohne Schlüssel) – Spielplan, Anstoßzeiten, Endstände, Spielort |
 
 `.env.example` nach `.env` kopieren und den Schlüssel eintragen. Die Datei wird nicht eingecheckt.
+Welche Wettbewerbe es gibt, steht in `src/shared/leagues.ts`.
+
+**Stadion-Datenbank:** Top 5, 3. Liga und Regionalligen sind handgepflegt (`tools/stadiums.source.ts`).
+Alle anderen Vereine samt Heimstadion, Farben und Kürzel liest `npm run world` aus den ESPN-Spielplänen
+(`tools/world.source.json`); `npm run stadiums` sucht dann die Koordinaten über OpenStreetMap, ersatzweise
+Wikidata (Zwischenspeicher `tools/geocache.json`). Zum Saisonwechsel beides neu laufen lassen.
 
 Karte: MapLibre mit Vektorkacheln von [OpenFreeMap](https://openfreemap.org) – kostenlos, kein Schlüssel nötig.
 
@@ -77,7 +90,7 @@ Karte: MapLibre mit Vektorkacheln von [OpenFreeMap](https://openfreemap.org) –
 ```
 server/            Node-Server (läuft direkt als TypeScript, Node ≥ 22.18)
   index.ts         API-Endpunkte /api/health, /api/matches
-  providers/       Datenquellen (football-data.org, Demo)
+  providers/       Datenquellen (football-data.org, Demo, ESPN, OpenLigaDB)
   cache.ts         Zwischenspeicher (.cache/), schont Anfrage-Limits
 src/
   App.tsx          Hülle: Tabs, Sheets, Dynamic-Island-Mitteilungen, iPhone-Rahmen am PC
@@ -94,8 +107,9 @@ src/
                    Spielbericht (ESPN), Derbys,
                    stadiumScene (Stadion-Geometrie → Polygone)
 tools/
-  stadiums.source.ts  Stadion-Quelldaten (Verein → Stadion)
-  geocode.ts          `npm run stadiums` – Koordinaten über OpenStreetMap
+  stadiums.source.ts  Stadion-Quelldaten (Verein → Stadion), handgepflegt
+  world.ts            `npm run world` – Vereine und Heimstadien aus den ESPN-Spielplänen
+  geocode.ts          `npm run stadiums` – Koordinaten über OpenStreetMap / Wikidata
   icons.ts            `npm run icons` – App-Icons als PNG
   build-data.ts       `npm run data` – Spielplan als statische Datei für GitHub Pages
 ```
@@ -108,7 +122,8 @@ tools/
 | `npm run dev:phone` | wie `dev`, aber mit HTTPS fürs iPhone |
 | `npm run dev:static` | App ohne API-Server, Spielplan aus `public/data/` (wie auf GitHub Pages) |
 | `npm run data` | Spielplan nach `public/data/matches.json` schreiben |
-| `npm run stadiums` | Stadion-Koordinaten neu erzeugen (nach Änderungen an der Quellliste) |
+| `npm run world` | Vereine und Heimstadien aller ESPN-Ligen einlesen (zum Saisonwechsel) |
+| `npm run stadiums` | Stadion-Koordinaten neu erzeugen (nach `world` oder Änderungen an der Quellliste) |
 | `npm run icons` | App-Icons neu erzeugen |
 | `npm run typecheck` | TypeScript prüfen |
 | `npm run build` | Produktions-Build |

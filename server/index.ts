@@ -1,6 +1,6 @@
 // Kleiner API-Server für die App.
 //   GET /api/health                                  – welche Datenquelle aktiv ist
-//   GET /api/matches?leagues=BL1,PL&from=…&to=…      – Spiele der Saison (optional gefiltert)
+//   GET /api/matches?leagues=BL1,ger.2&from=…&to=…   – Spiele der laufenden Saison (optional gefiltert)
 //
 // Start: npm run dev (zusammen mit der App) oder npm run dev:api
 
@@ -27,10 +27,9 @@ const server = createServer(async (req, res) => {
       const leagues = requested.length
         ? LEAGUE_CODES.filter((c) => requested.includes(c))
         : LEAGUE_CODES
-      const season = Number(url.searchParams.get('season')) || currentSeason()
       const from = url.searchParams.get('from')
       const to = url.searchParams.get('to')
-      const data = await loadMatches(leagues, season)
+      const data = await loadMatches(leagues)
       // from/to (YYYY-MM-DD) filtern grob nach UTC-Datum; die App rechnet in Ortszeit nach.
       if (from) data.matches = data.matches.filter((m) => m.kickoff.slice(0, 10) >= from)
       if (to) data.matches = data.matches.filter((m) => m.kickoff.slice(0, 10) <= to)

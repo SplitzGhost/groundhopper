@@ -160,7 +160,10 @@ function rangeTitle(a: string, b: string) {
   return a === b ? a : `${a} – ${b}`
 }
 
-const leagueRank = (c: MatchCard) => (c.league ? LEAGUES.findIndex((l) => l.code === c.league) : LEAGUES.length)
+const leagueRank = (c: MatchCard) => {
+  const i = c.league ? LEAGUES.findIndex((l) => l.code === c.league) : -1
+  return i < 0 ? LEAGUES.length : i
+}
 
 export function sortCards(cards: MatchCard[], sort: BinderSort): MatchCard[] {
   const list = [...cards]

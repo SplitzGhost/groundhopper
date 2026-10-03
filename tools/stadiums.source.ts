@@ -1,4 +1,5 @@
-// Quelldaten der Stadion-Datenbank (Saison 2026/27, Top-5-Ligen).
+// Handgepflegte Stadion-Quelldaten (Saison 2026/27): Top-5-Ligen sowie 3. Liga und Regionalligen.
+// Alle übrigen Ligen erzeugt `npm run world` automatisch aus den ESPN-Spielplänen (tools/world.source.json).
 // `npm run stadiums` geokodiert diese Liste über OpenStreetMap und schreibt src/data/stadiums.json.
 //
 // Felder: Liga, Vereinsname, Stadion, Stadt, Land (ISO), Geokodier-Suchbegriff, Aliasnamen.
@@ -123,4 +124,66 @@ export const STADIUM_SOURCE: StadiumSource[] = [
   ['FL1', 'Le Mans FC', 'MMArena', 'Le Mans', 'fr', 'MMArena', ['Le Mans']],
   ['FL1', 'FC Lorient', 'Stade du Moustoir', 'Lorient', 'fr', '', ['Lorient']],
   ['FL1', 'ES Troyes AC', "Stade de l'Aube", 'Troyes', 'fr', '', ['Troyes']],
+
+  // ---------- 3. Liga (OpenLigaDB) ----------
+  ['bl3', 'Fortuna Düsseldorf', 'Merkur Spiel-Arena', 'Düsseldorf', 'de', '', ['Fortuna Duesseldorf']],
+  ['bl3', 'FC Hansa Rostock', 'Ostseestadion', 'Rostock', 'de', '', ['Hansa Rostock']],
+  ['bl3', 'Alemannia Aachen', 'Tivoli', 'Aachen', 'de', 'Neuer Tivoli', ['Aachen']],
+  ['bl3', 'MSV Duisburg', 'Schauinsland-Reisen-Arena', 'Duisburg', 'de', '', ['Duisburg']],
+  ['bl3', 'Rot-Weiss Essen', 'Stadion an der Hafenstraße', 'Essen', 'de', '', ['RW Essen']],
+  ['bl3', '1. FC Saarbrücken', 'Ludwigsparkstadion', 'Saarbrücken', 'de', '', ['Saarbrücken']],
+  ['bl3', 'SC Preußen Münster', 'LVM-Preußenstadion', 'Münster', 'de', 'Preußenstadion', ['Preußen Münster']],
+  ['bl3', 'SV Waldhof Mannheim', 'Carl-Benz-Stadion', 'Mannheim', 'de', '', ['Waldhof Mannheim']],
+  ['bl3', 'SSV Jahn Regensburg', 'Jahnstadion Regensburg', 'Regensburg', 'de', '', ['Jahn Regensburg']],
+  ['bl3', 'SV Meppen', 'Hänsch-Arena', 'Meppen', 'de', '', ['Meppen']],
+  ['bl3', 'SC Fortuna Köln', 'Südstadion', 'Köln', 'de', '', ['Fortuna Köln']],
+  ['bl3', 'SV Wehen Wiesbaden', 'Brita-Arena', 'Wiesbaden', 'de', '', ['Wehen Wiesbaden']],
+  ['bl3', 'FC Ingolstadt 04', 'Audi Sportpark', 'Ingolstadt', 'de', '', ['Ingolstadt']],
+  ['bl3', 'FC Viktoria Köln', 'Sportpark Höhenberg', 'Köln', 'de', '', ['Viktoria Köln']],
+  ['bl3', 'Würzburger Kickers', 'Akon Arena', 'Würzburg', 'de', 'Sportpark am Dallenberg', ['Wuerzburger Kickers']],
+  ['bl3', 'SC Verl', 'Sportclub Arena', 'Verl', 'de', '', ['Verl']],
+  ['bl3', 'TSG Hoffenheim II', 'Dietmar-Hopp-Stadion', 'Sinsheim', 'de', '', ['TSG 1899 Hoffenheim II']],
+  ['bl3', 'SG Sonnenhof Großaspach', 'WIRmachenDRUCK Arena', 'Aspach', 'de', '', ['Großaspach']],
+  ['bl3', 'VfB Stuttgart II', 'WIRmachenDRUCK Arena', 'Aspach', 'de', '', []],
+  ['bl3', 'TSV Havelse', 'Heinz-von-Heiden-Arena', 'Hannover', 'de', '', ['Havelse']],
+
+  // ---------- Regionalliga Nord (OpenLigaDB) ----------
+  ['rln', 'VfB Oldenburg', 'Marschweg-Stadion', 'Oldenburg', 'de', '', []],
+  ['rln', 'VfB Lübeck', 'Stadion an der Lohmühle', 'Lübeck', 'de', '', []],
+  ['rln', '1. FC Phönix Lübeck', 'Stadion an der Lohmühle', 'Lübeck', 'de', '', ['Phönix Lübeck']],
+  ['rln', 'Kickers Emden', 'Ostfriesland-Stadion', 'Emden', 'de', '', []],
+  ['rln', 'SV Atlas Delmenhorst', 'Stadion an der Düsternortstraße', 'Delmenhorst', 'de', '', ['Atlas Delmenhorst']],
+  ['rln', 'SV Werder Bremen II', 'Weserstadion Platz 11', 'Bremen', 'de', 'Weserstadion Platz 11', ['Werder Bremen II']],
+  ['rln', 'FC Eintracht Norderstedt', 'Edmund-Plambeck-Stadion', 'Norderstedt', 'de', '', ['Eintracht Norderstedt']],
+  ['rln', 'FC St. Pauli II', 'Edmund-Plambeck-Stadion', 'Norderstedt', 'de', '', []],
+  ['rln', 'Bremer SV', 'Stadion am Panzenberg', 'Bremen', 'de', '', []],
+  ['rln', 'FSV Schöningen', 'Elm-Stadion', 'Schöningen', 'de', '', []],
+  ['rln', 'Hamburger SV II', 'Stadion Hoheluft', 'Hamburg', 'de', '', []],
+  ['rln', 'Eimsbütteler TV', 'Sportpark Hinschenfelde', 'Hamburg', 'de', '', ['ETV']],
+  ['rln', 'SV Drochtersen/Assel', 'Kehdinger Stadion', 'Drochtersen', 'de', '', ['SpVgg Drochtersen/Assel']],
+  ['rln', 'HSC Hannover', 'HSC-Stadion Constantinstraße', 'Hannover', 'de', '', []],
+  ['rln', 'SC Weiche Flensburg 08', 'Manfred-Werner-Stadion', 'Flensburg', 'de', '', ['Weiche Flensburg']],
+  ['rln', 'Hannover 96 II', 'Eilenriedestadion', 'Hannover', 'de', '', []],
+  ['rln', 'SV Todesfelde', 'Joda Sportpark', 'Todesfelde', 'de', '', []],
+  ['rln', 'SSV Jeddeloh II', 'Haskamp-Arena', 'Edewecht', 'de', 'Jeddeloh', []],
+
+  // ---------- Regionalliga Nordost (OpenLigaDB) ----------
+  ['rlno', '1. FC Magdeburg II', 'Avnet Arena', 'Magdeburg', 'de', 'MDCC-Arena', []],
+  ['rlno', 'FC Rot-Weiß Erfurt', 'Steigerwaldstadion', 'Erfurt', 'de', '', ['Rot-Weiß Erfurt']],
+  ['rlno', 'FC Erzgebirge Aue', 'Erzgebirgsstadion', 'Aue-Bad Schlema', 'de', '', ['Erzgebirge Aue']],
+  ['rlno', 'Hallescher FC', 'Leuna-Chemie-Stadion', 'Halle (Saale)', 'de', '', ['Halle']],
+  ['rlno', 'Chemnitzer FC', 'Stadion an der Gellertstraße', 'Chemnitz', 'de', '', ['Chemnitz']],
+  ['rlno', 'FC Carl Zeiss Jena', 'Ernst-Abbe-Sportfeld', 'Jena', 'de', '', ['Carl Zeiss Jena']],
+  ['rlno', '1. FC Lokomotive Leipzig', 'Bruno-Plache-Stadion', 'Leipzig', 'de', '', ['1. FC Lok Leipzig', 'Lok Leipzig']],
+  ['rlno', 'SV Babelsberg 03', 'Karl-Liebknecht-Stadion', 'Potsdam', 'de', '', ['Babelsberg']],
+  ['rlno', 'FSV Zwickau', 'GGZ-Arena', 'Zwickau', 'de', '', ['Zwickau']],
+  ['rlno', 'VSG Altglienicke', 'Spree-Arena', 'Fürstenwalde/Spree', 'de', '', ['VSG Altglienicke Berlin']],
+  ['rlno', 'Hertha BSC II', 'Stadion auf dem Wurfplatz', 'Berlin', 'de', '', []],
+  ['rlno', 'BSG Chemie Leipzig', 'Alfred-Kunze-Sportpark', 'Leipzig', 'de', '', ['Chemie Leipzig']],
+  ['rlno', 'Greifswalder FC', 'Volksstadion', 'Greifswald', 'de', '', []],
+  ['rlno', 'BFC Dynamo', 'Sportforum Hohenschönhausen', 'Berlin', 'de', '', []],
+  ['rlno', 'SV Tasmania Berlin', 'Werner-Seelenbinder-Sportpark', 'Berlin', 'de', '', ['Tasmania Berlin']],
+  ['rlno', 'BFC Preussen', 'Preussenstadion', 'Berlin', 'de', '', []],
+  ['rlno', 'FSV 63 Luckenwalde', 'Werner-Seelenbinder-Stadion', 'Luckenwalde', 'de', '', ['Luckenwalde']],
+  ['rlno', 'RSV Eintracht 1949', 'Werner-Seelenbinder-Stadion', 'Luckenwalde', 'de', '', ['RSV Eintracht Stahnsdorf']],
 ]

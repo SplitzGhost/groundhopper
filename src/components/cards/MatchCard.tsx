@@ -183,7 +183,7 @@ export function MatchCardBack({ card, onMore, loading }: { card: MatchCard; onMo
         </div>
 
         <div className="mcb-facts">
-          {d?.attendance || !card.stadium
+          {d?.attendance || !card.stadium || !stadiumSpec(card.stadium.id).capacity
             ? <span><Users strokeWidth={2.4} /><b className="tnum">{d?.attendance ? d.attendance.toLocaleString('de-DE') : '–'}</b><small>Zuschauer</small></span>
             : <span><Users strokeWidth={2.4} /><b className="tnum">{stadiumSpec(card.stadium.id).capacity.toLocaleString('de-DE')}</b><small>Plätze im Stadion</small></span>}
           <span><WhistleIcon /><b className="truncate">{d?.referee ?? '–'}</b><small>Schiedsrichter</small></span>

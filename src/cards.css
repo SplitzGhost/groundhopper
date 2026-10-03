@@ -1528,7 +1528,7 @@
 .day-title b { display: block; font: 800 26px/1.1 var(--font-display); letter-spacing: -0.7px; }
 .day-title span { font-size: 14px; color: var(--text-2); }
 .day-count { flex: none; font: 700 13px/1 var(--font-rounded); color: var(--accent); background: var(--accent-soft); padding: 7px 10px; border-radius: 99px; margin-bottom: 3px; }
-.lg-sec { margin-top: 16px; }
+.lg-sec { margin-top: 16px; content-visibility: auto; contain-intrinsic-size: auto 320px; }
 .lg-head { display: flex; align-items: center; gap: 8px; padding: 0 20px 8px; }
 .lg-logo { flex: none; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: #fff; box-shadow: inset 0 0 0 1px var(--sep); }
 .lg-logo img { width: 78%; height: 78%; object-fit: contain; }
@@ -1785,3 +1785,11 @@
 .title-flag { display: inline-flex; align-items: center; gap: 8px; }
 .derby-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 106, 61, 0.14); color: #e2531f; }
 .mini-stars { display: inline-flex; gap: 1px; color: var(--gold); }
+
+/* ---------- Abschnitte je Liga in den Länderlisten ---------- */
+.lsec-head { display: flex; align-items: center; gap: 9px; padding: 18px 20px 6px; }
+.lsec-head img { width: 24px; height: 24px; padding: 2px; border-radius: 7px; background: #fff; object-fit: contain; box-shadow: inset 0 0 0 1px var(--sep); }
+.lsec-head b { flex: 1; font: 700 16px/1.2 var(--font-display); letter-spacing: -0.2px; }
+.lsec-head span { font-size: 13px; font-weight: 600; color: var(--text-2); }
+.listpage-body section:first-child .lsec-head { padding-top: 6px; }
+.ll-cup { margin-top: 6px; font-size: 13px; color: var(--text-2); font-weight: 500; }

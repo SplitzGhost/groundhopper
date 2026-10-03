@@ -1,6 +1,7 @@
 # Baut die App und veröffentlicht sie auf GitHub Pages.
 # Läuft bei jedem Push auf main, alle 6 Stunden (frischer Spielplan) und auf Knopfdruck.
-# Optional: Repo-Secret FOOTBALL_DATA_API_KEY für football-data.org, sonst freie Demo-Quellen.
+# Optional: Repo-Secret FOOTBALL_DATA_API_KEY für football-data.org (Top 5), sonst freie Demo-Quellen.
+# Alle weiteren Ligen und Pokale kommen ohne Schlüssel von ESPN und OpenLigaDB.
 
 name: Website
 
