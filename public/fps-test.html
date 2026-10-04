@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <title>FPS-Test</title>
+  <!-- Testseite: Wird im Stromsparmodus nur die App-eigene Animation gedrosselt oder auch die, die iOS selbst abspielt? -->
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f2f4f8;
+      --card: #ffffff;
+      --text: #0b1424;
+      --text-2: rgba(28, 38, 58, 0.6);
+      --track: rgba(118, 128, 150, 0.14);
+      --a: #0a7cff;
+      --b: #2fbf68;
+      --c: #ff9f0a;
+      --d: #af52de;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #000000;
+        --card: #1c1c1e;
+        --text: #f5f7fb;
+        --text-2: rgba(235, 240, 250, 0.6);
+        --track: rgba(140, 150, 170, 0.2);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 24px);
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: -0.6px; }
+    .lead { margin: 0 0 18px; color: var(--text-2); font-size: 15px; }
+    .card { background: var(--card); border-radius: 20px; padding: 14px 16px 16px; margin-bottom: 12px; }
+    .head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .head b { font-size: 17px; }
+    .tag { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; color: #fff; white-space: nowrap; }
+    .note { margin: 8px 0 0; font-size: 13px; color: var(--text-2); }
+    .track { position: relative; height: 44px; border-radius: 22px; background: var(--track); overflow: hidden; }
+    .ball { position: absolute; left: 4px; top: 4px; width: 36px; height: 36px; border-radius: 50%; will-change: transform; }
+    #fps { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .fps-card { display: flex; align-items: center; justify-content: space-between; }
+    .fps-card span { color: var(--text-2); font-size: 14px; }
+    .fps-card #fps { font-size: 28px; }
+    .drag-area { position: relative; height: 140px; border-radius: 16px; background: var(--track); overflow: hidden; touch-action: none; }
+    .drag-area .ball { width: 52px; height: 52px; left: 0; top: 0; }
+    ol { margin: 0; padding-left: 20px; }
+    ol li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h1>FPS-Test</h1>
+  <p class="lead">Mach diesen Test einmal mit und einmal ohne Stromsparmodus und vergleich, welche Kugeln ruckeln.</p>
+
+  <div class="card fps-card">
+    <span>Bilder pro Sekunde, die die Seite selbst berechnet</span>
+    <b id="fps">–</b>
+  </div>
+
+  <div class="card">
+    <div class="head"><b>1 · Von der App animiert</b><span class="tag" style="background: var(--a)">wie jetzt</span></div>
+    <div class="track"><div class="ball" id="js" style="background: var(--a)"></div></div>
+    <p class="note">Die Seite berechnet jedes Bild selbst, so laufen die Animationen in Groundhopper heute.</p>
+  </div>
+
+  <div class="card">
+    <div class="head"><b>2 · Von iOS animiert (CSS)</b><span class="tag" style="background: var(--b)">Umbau-Idee</span></div>
+    <div class="track"><div class="ball" id="css" style="background: var(--b)"></div></div>
+    <p class="note">iOS spielt die Bewegung selbst ab, die Seite rechnet nicht mit.</p>
+  </div>
+
+  <div class="card">
+    <div class="head"><b>3 · Von iOS animiert (Web Animations)</b><span class="tag" style="background: var(--c)">Umbau-Idee</span></div>
+    <div class="track"><div class="ball" id="waapi" style="background: var(--c)"></div></div>
+    <p class="note">Gleiche Idee wie 2, aber per Skript gestartet, so wie es die Animations-Bibliothek der App könnte.</p>
+  </div>
+
+  <div class="card">
+    <div class="head"><b>4 · Mit dem Finger ziehen</b><span class="tag" style="background: var(--d)">Wischgesten</span></div>
+    <div class="drag-area" id="area"><div class="ball" id="drag" style="background: var(--d)"></div></div>
+    <p class="note">Folgt dem Finger wie die Wochenleiste oder die Sheets.</p>
+  </div>
+
+  <div class="card">
+    <div class="head"><b>So geht's</b></div>
+    <ol>
+      <li>Ohne Stromsparmodus anschauen: Alle Kugeln sollten flüssig laufen, oben 60 oder 120.</li>
+      <li>Stromsparmodus im Kontrollzentrum einschalten und wieder hierher wechseln.</li>
+      <li>Oben sollte jetzt etwa 30 stehen. Welche Kugeln laufen noch flüssig, welche ruckeln?</li>
+    </ol>
+  </div>
+
+  <script>
+    var DURATION = 1600 // ms für eine Strecke hin
+    var dist = function (el) { return el.parentElement.clientWidth - el.offsetWidth - 8 }
+    var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 }
+
+    // 1 · Bild für Bild per requestAnimationFrame
+    var js = document.getElementById('js')
+    var fpsEl = document.getElementById('fps')
+    var frames = 0
+    var last = performance.now()
+    var tick = function (now) {
+      var p = (now % (DURATION * 2)) / DURATION
+      var t = p < 1 ? ease(p) : ease(2 - p)
+      js.style.transform = 'translateX(' + (t * dist(js)).toFixed(2) + 'px)'
+      frames++
+      if (now - last >= 1000) {
+        fpsEl.textContent = Math.round(frames * 1000 / (now - last))
+        frames = 0
+        last = now
+      }
+      requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+
+    // 2 · CSS-Keyframes (Strecke per Variable, damit es auf jeder Breite passt)
+    var css = document.getElementById('css')
+    var style = document.createElement('style')
+    document.head.appendChild(style)
+    var setCss = function () {
+      style.textContent = '@keyframes slide { from { transform: translateX(0) } to { transform: translateX(' + dist(css) + 'px) } }' +
+        '#css { animation: slide ' + DURATION + 'ms cubic-bezier(0.65, 0, 0.35, 1) infinite alternate; }'
+    }
+    setCss()
+
+    // 3 · Web Animations API
+    var waapi = document.getElementById('waapi')
+    var anim = null
+    var setWaapi = function () {
+      if (anim) anim.cancel()
+      anim = waapi.animate(
+        [{ transform: 'translateX(0)' }, { transform: 'translateX(' + dist(waapi) + 'px)' }],
+        { duration: DURATION, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', iterations: Infinity, direction: 'alternate' }
+      )
+    }
+    setWaapi()
+
+    addEventListener('resize', function () { setCss(); setWaapi() })
+
+    // 4 · Ziehen mit dem Finger
+    var area = document.getElementById('area')
+    var drag = document.getElementById('drag')
+    var place = function (x, y) {
+      var r = area.getBoundingClientRect()
+      var s = drag.offsetWidth
+      var nx = Math.max(0, Math.min(r.width - s, x - r.left - s / 2))
+      var ny = Math.max(0, Math.min(r.height - s, y - r.top - s / 2))
+      drag.style.transform = 'translate(' + nx + 'px, ' + ny + 'px)'
+    }
+    var down = false
+    area.addEventListener('pointerdown', function (e) { down = true; area.setPointerCapture(e.pointerId); place(e.clientX, e.clientY) })
+    area.addEventListener('pointermove', function (e) { if (down) place(e.clientX, e.clientY) })
+    area.addEventListener('pointerup', function () { down = false })
+    area.addEventListener('pointercancel', function () { down = false })
+    var r0 = area.getBoundingClientRect()
+    place(r0.left + r0.width / 2, r0.top + r0.height / 2)
+  </script>
+</body>
+</html>
