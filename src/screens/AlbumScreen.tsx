@@ -100,7 +100,7 @@ export function CollectorPass({ c, hopper, onHopper, placeholder }: {
 }) {
   const level = levelOf(c.points)
   const clubsSeen = [...c.clubs.keys()].filter((n) => TEAM_NAMES.has(n)).length
-  const figure = hopper ? <HopperArt look={hopper.look} kit={hopper.kit} size="md" turn={-0.3} /> : null
+  const figure = hopper ? <HopperArt look={hopper.look} kit={hopper.kit} /> : null
   return (
     <motion.div className={`pass ${hopper || placeholder ? 'with-hopper' : ''}`} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 28 }}>

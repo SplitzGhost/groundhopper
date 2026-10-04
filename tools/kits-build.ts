@@ -275,9 +275,26 @@ for (const [id, k] of Object.entries(raw).sort(([a], [b]) => a.localeCompare(b))
   if (!spec.c) delete spec.c
   spec.cs = collar.v ? 'v' : 'crew'
   if (sleeve.cu) spec.cu = sleeve.cu
+  // Hose und Stutzen: Farben aus der Infobox (Muster dort ignorieren); ohne Angabe wie das Trikot
+  const shorts = p.shorts1 ? hex(parseHex(p.shorts1, d.base)) : null
+  const socks = p.socks1 ? hex(parseHex(p.socks1, d.base)) : null
+  // Ähnliche Farben angleichen (Wikipedia nutzt oft grelle Standardwerte wie #FF0000)
+  const near = (c: string | null, to: string) => (c && dist(parseHex(c, d.base), parseHex(to, d.base)) < 90 ? to : c)
+  const palette = [hex(d.base), spec.s, spec.c, d.second ? hex(d.second) : null].filter((c): c is string => !!c)
+  const snap = (c: string | null) => palette.reduce<string | null>((acc, to) => (acc === c ? near(c, to) : acc), c)
+  spec.sh = snap(shorts) ?? hex(d.base)
+  spec.so = snap(socks) ?? spec.sh
 
   const fixed = id in fixes
-  const final = fixed ? fixes[id] : spec
+  // Korrekturen betreffen nur das Trikot – Hose und Stutzen kommen weiter aus den Rohdaten
+  const final = fixed ? (fixes[id] ? { sh: spec.sh, so: spec.so, ...fixes[id] } : null) : spec
+  if (fixed && final) {
+    // an die Farben der Korrektur angleichen
+    const pal = [final.b, final.s, final.c, final.p?.c].filter((c): c is string => !!c)
+    const to = (c: string | undefined) => (c ? pal.find((q) => dist(parseHex(q, d.base), parseHex(c, d.base)) < 90) ?? c : c)
+    final.sh = to(final.sh)
+    final.so = to(final.so)
+  }
   stats[final?.p?.k ?? 'plain'] = (stats[final?.p?.k ?? 'plain'] ?? 0) + 1
   if (final) (out[k.club] ??= {})[k.season] = final
   review.push({

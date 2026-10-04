@@ -111,7 +111,7 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
           <CardCrest club={card.away} size={size} className="away" league={card.league} saved={v.awayCrest} />
           <span className="mc-shine" />
           {card.derby && <span className="mc-embers">{EMBERS}</span>}
-          {crew.length > 0 && <CardCrew crew={crew} large={size === 'lg'} />}
+          {crew.length > 0 && <CardCrew crew={crew} />}
           <div className="mc-board">
             <div className="mc-score tnum">
               <b>{hasScore ? v.homeScore : '–'}</b><i>:</i><b>{hasScore ? v.awayScore : '–'}</b>

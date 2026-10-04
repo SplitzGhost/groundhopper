@@ -1,6 +1,5 @@
 // Die Hopper auf der Sammelkarte: wie ein Erinnerungsfoto vor der Anzeigetafel.
-// Der Besitzer der Karte steht vorn in der Mitte und winkt, die Freunde links und rechts daneben,
-// leicht zur Mitte gedreht und etwas weiter hinten.
+// Der Besitzer der Karte steht vorn in der Mitte, die Freunde links und rechts daneben, etwas weiter hinten.
 
 import { memo } from 'react'
 import type { CrewMember } from '../../state/crew.ts'
@@ -18,21 +17,18 @@ function arrange(crew: CrewMember[]): CrewMember[] {
   return [...left, lead, ...right]
 }
 
-export const CardCrew = memo(function CardCrew({ crew, large }: { crew: CrewMember[]; large: boolean }) {
+export const CardCrew = memo(function CardCrew({ crew }: { crew: CrewMember[] }) {
   const shown = arrange(crew.slice(0, MAX))
   const extra = crew.length - shown.length
   const center = shown.findIndex((m) => m.owner)
   return (
     <div className={`mc-crew n${shown.length}`}>
       {shown.map((m, i) => {
-        const d = i - center
-        // zur Mitte gedreht; weiter außen etwas kleiner und weiter hinten
-        const turn = Math.max(-0.5, Math.min(0.5, -d * 0.22))
+        const d = Math.abs(i - center)
         return (
-          <span key={m.key} className={`mc-hopper ${m.owner ? 'lead' : ''}`}
-            style={{ '--d': Math.abs(d), zIndex: 10 - Math.abs(d) } as React.CSSProperties}>
+          <span key={m.key} className={`mc-hopper ${m.owner ? 'lead' : ''}`} style={{ '--d': d, zIndex: 10 - d } as React.CSSProperties}>
             <i className="mc-hopper-shadow" />
-            <HopperArt look={m.look} kit={m.kit} size={large ? 'lg' : 'md'} turn={turn} wave={m.owner && shown.length > 0 ? 1 : 0} />
+            <HopperArt look={m.look} kit={m.kit} />
           </span>
         )
       })}

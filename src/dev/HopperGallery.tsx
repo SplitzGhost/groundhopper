@@ -6,7 +6,7 @@
 //   #hopper/review/<Filter>  Wikipedia-Vorlage neben dem nachgebauten Trikot (nach npm run kits)
 import { useEffect, useState } from 'react'
 import { HopperArt } from '../components/HopperArt.tsx'
-import { HAIR_STYLES, type HopperLook } from '../lib/hopper/look.ts'
+import { EYE_SHAPES, HAIR_COLORS, SKINS, type HopperLook } from '../lib/hopper/look.ts'
 import { kitId, loadKits, seasonLabel } from '../lib/hopper/kit.ts'
 import { MatchCardFront } from '../components/cards/MatchCard.tsx'
 import { buildCards } from '../lib/matchCards.ts'
@@ -55,11 +55,7 @@ const VISITS: Visit[] = [
   homeScore: hs as number, awayScore: as as number, stadiumId: null, customStadium: null, rating: null, notes: '', createdAt: '2020-01-01',
 }))
 
-const LOOKS: HopperLook[] = HAIR_STYLES.map((h, i) => ({
-  skin: i % 6, hair: h.id, hairColor: i % 7, eyes: i % 5,
-  beard: i === 3 ? 'full' : i === 7 ? 'moustache' : i === 5 ? 'stubble' : 'none',
-  glasses: i === 2 ? 'round' : i === 6 ? 'sun' : i === 8 ? 'square' : 'none',
-}))
+const LOOKS: HopperLook[] = EYE_SHAPES.map((e, i) => ({ skin: i % SKINS.length, hairColor: (i * 2) % HAIR_COLORS.length, eyes: e.id }))
 
 export function HopperGallery() {
   const [hash, setHash] = useState(location.hash)
@@ -95,16 +91,16 @@ export function HopperGallery() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
           {LOOKS.map((l, i) => (
             <a key={i} href={`#hopper/big/${i}`} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600 }}>
-              <HopperArt look={l} kit={null} size="lg" turn={-0.25} />
-              {l.hair}
+              <HopperArt look={l} kit={null} />
+              {l.eyes}
             </a>
           ))}
         </div>
       )}
       {mode === 'big' && (
         <div style={{ display: 'flex', gap: 0, height: '100%' }}>
-          {[Number(parts[3] ?? -0.3), 0, 1.2, 3.14].map((t) => (
-            <HopperArt key={t} look={LOOKS[Number(parts[2] ?? 0)]} kit={parts[4] ? decodeURIComponent(parts[4]) : null} size="lg" turn={t} className="big" />
+          {[0].map((t) => (
+            <HopperArt key={t} look={LOOKS[Number(parts[2] ?? 0)]} kit={parts[4] ? decodeURIComponent(parts[4]) : null} className="big" />
           ))}
         </div>
       )}
@@ -118,13 +114,13 @@ export function HopperGallery() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 6 }}>
           {kits.map(([id, label]) => (
             <div key={id} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600 }}>
-              <HopperArt look={base} kit={id} size="md" turn={-0.2} />
+              <HopperArt look={base} kit={id} />
               {label}
             </div>
           ))}
         </div>
       )}
-      <style>{'.hopper-art{width:100%;display:block}.hopper-art.full{aspect-ratio:3/4}.hopper-art.bust{aspect-ratio:1}.hopper-art.big{height:100%;width:auto;min-width:0;flex:1;object-fit:contain}'}</style>
+      <style>{'.hopper-art{width:100%;display:block}.hopper-art.full{aspect-ratio:488/1084}.hopper-art.bust{aspect-ratio:1}.hopper-art.big{height:100%;width:auto;min-width:0;flex:1;object-fit:contain}'}</style>
     </div>
   )
 }

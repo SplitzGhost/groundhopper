@@ -77,7 +77,7 @@ export function useWardrobe(): WardrobeKit[] {
   return w
 }
 
-/** Getragenes Trikot nur, wenn es (noch) im Schrank liegt – sonst Basis-Shirt */
+/** Getragenes Trikot nur, wenn es (noch) im Schrank liegt – sonst Basis-Trikot */
 export function wornKit(h: Hopper | null, wardrobe: WardrobeKit[]): KitId {
   return h?.kit && wardrobe.some((k) => k.id === h.kit) ? h.kit : null
 }

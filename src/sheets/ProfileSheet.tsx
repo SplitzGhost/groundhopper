@@ -119,7 +119,7 @@ function HopperSection() {
       <div className="card inset list">
         <button type="button" className="list-row row-press" onClick={() => openSheet({ kind: 'hopper' })}>
           <span className="profile-hopper">
-            {hopper && <HopperArt look={hopper.look} kit={wornKit(hopper, wardrobe)} framing="bust" size="sm" turn={-0.25} />}
+            {hopper && <HopperArt look={hopper.look} kit={wornKit(hopper, wardrobe)} framing="bust" fit="cover" />}
           </span>
           <div className="row-main">
             <div className="row-title">{hopper ? 'Aussehen bearbeiten' : 'Hopper erstellen'}</div>

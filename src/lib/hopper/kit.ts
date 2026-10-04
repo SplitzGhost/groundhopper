@@ -8,8 +8,8 @@ import type { KitSpec } from '../../shared/kits.ts'
 
 export type { KitPattern, KitSpec } from '../../shared/kits.ts'
 
-/** Basis-Shirt für alle, die noch kein Trikot gesammelt oder keins angezogen haben */
-export const BASIC_KIT: KitSpec = { b: '#cfdcec', c: '#9fb3cc', cs: 'crew' }
+/** Basis-Trikot für alle, die noch kein Trikot gesammelt oder keins angezogen haben */
+export const BASIC_KIT: KitSpec = { b: '#ffffff', c: '#ffffff', cs: 'v' }
 
 /** Saisonstart (Jahr) eines Spieltags YYYY-MM-DD: Juli bis Juni */
 export function seasonOf(date: string): number {
@@ -38,7 +38,7 @@ export function fallbackKit(club: string): KitSpec {
   const { primary, secondary } = clubInfo(club)
   const same = primary.toLowerCase() === secondary.toLowerCase()
   const trim = same ? (isLight(primary) ? '#1b2a4a' : '#ffffff') : secondary
-  return { b: primary, c: trim, cs: 'crew' }
+  return { b: primary, c: trim, cs: 'v', sh: same || isLight(secondary) ? primary : secondary, so: primary }
 }
 
 type KitTable = Record<string, Record<string, KitSpec>>

@@ -41,4 +41,8 @@ export interface KitSpec {
   cs?: 'crew' | 'v' | 'polo'
   /** Ärmelbündchen (Standard: Kragenfarbe) */
   cu?: string
+  /** Hose (Standard: weiß) */
+  sh?: string
+  /** Stutzen (Standard: weiß) */
+  so?: string
 }
