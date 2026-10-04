@@ -20,6 +20,27 @@
         }
         fit()
         addEventListener('orientationchange', fit)
+      })();
+
+      // Vom Home-Bildschirm (Vollbild): iOS meldet mit durchsichtiger Statusleiste eine um die Statusleiste
+      // zu kleine Höhe – unten bliebe ein leerer Streifen. Deshalb die echte Bildschirmhöhe selbst ausrechnen.
+      (function () {
+        var standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches
+        if (!standalone) return
+        var root = document.documentElement
+        var size = function () {
+          var landscape = matchMedia('(orientation: landscape)').matches
+          var sw = landscape ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height)
+          var sh = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height)
+          // Bildschirmhöhe in CSS-Pixeln des (ggf. skalierten) Layouts
+          var h = Math.max(innerHeight, Math.round(sh * innerWidth / sw))
+          root.style.setProperty('--app-h', h + 'px')
+          root.classList.add('standalone')
+        }
+        size()
+        addEventListener('resize', size)
+        addEventListener('orientationchange', function () { setTimeout(size, 300) })
+        addEventListener('load', size)
       })()
     </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />

@@ -121,6 +121,11 @@ img { display: block; }
   background: var(--bg);
 }
 
+/* Home-Bildschirm-App: echte Bildschirmhöhe (siehe index.html), sonst bleibt unten ein leerer Streifen */
+html.standalone, html.standalone body, html.standalone #root { height: var(--app-h, 100%); }
+html.standalone { background: var(--bg); }
+html.standalone .device { bottom: auto; height: var(--app-h, 100%); }
+
 .device-frame {
   position: absolute;
   inset: 0;
