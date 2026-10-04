@@ -28,5 +28,5 @@ export const ARMS: ArmBox[] = META.arms.map((a) => {
 /** Mitte zwischen den Augen – Bezugspunkt, wenn der Hopper hinter der Karte hervorschaut */
 export const EYE_POINT = { x: (META.eyes[0].x + META.eyes[1].x) / 2, y: (META.eyes[0].y + META.eyes[1].y) / 2 }
 
-/** Unterkante des Trikots – bis hierhin lehnt sich der Hopper vor die Karte */
-export const WAIST = META.shirt.y1 + 4
+/** Halsansatz (Oberkante des Trikots) – auf Karten schaut nur der Kopf darüber hervor */
+export const NECK = META.shirt.y0

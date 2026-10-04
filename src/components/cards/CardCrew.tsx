@@ -1,16 +1,11 @@
-// Die Hopper auf der Sammelkarte. Seitlich kommen sie mit dem Oberkörper vor die Karte – Kopf und Schulter
-// schauen ein Stück über den Rand, ab der Trikotkante abwärts steckt alles hinter der Karte. Ab drei Hoppern
-// kann einer auch oben hinter der Karte hervorschauen. Ort und Pose sind je Karte zufällig, bleiben aber für
-// dieselbe Karte immer gleich. Die Arme sind eigene Bilder und werden gedreht (winken, jubeln, aufstützen).
-//
-// Zwei Ebenen: „back“ liegt hinter der Karte (oben hervorschauende Hopper), „front“ davor (seitliche Hopper).
+// Die Hopper auf der Sammelkarte: Sie stehen komplett hinter der Karte, nur der Kopf schaut über die Kante –
+// bei ein oder zwei Hoppern seitlich (schräg geneigt), ab dem dritten auch oben. Ort, Neigung und
+// Blickrichtung sind je Karte zufällig, bleiben aber für dieselbe Karte immer gleich.
 
 import { memo, useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { CrewMember } from '../../state/crew.ts'
 import type { HopperLook } from '../../lib/hopper/look.ts'
-import type { HopperParts } from '../../lib/hopper/paint.ts'
-import { ARMS, EYE_POINT, FIG_H, FIG_W, WAIST } from '../../lib/hopper/figure.ts'
-import META from '../../data/hopperBase.json'
+import { EYE_POINT, FIG_H, FIG_W, NECK } from '../../lib/hopper/figure.ts'
 
 const engine = () => import('../../lib/hopper/paint.ts')
 
@@ -19,30 +14,25 @@ const MAX = 4
 /** Breite der Figur in cqw (Prozent der Kartenbreite) */
 const FW = 22
 const FH = (FW * FIG_H) / FIG_W
-/** Abstand vom Augenpunkt bis zum Scheitel in cqw */
-const CROWN = (EYE_POINT.y / FIG_W) * FW
 const PX = FW / FIG_W
-/** Ab der Trikotkante abwärts ist alles hinter der Karte (auch herabhängende Hände) */
-const WAIST_CLIP = `polygon(-100% -100%, 200% -100%, 200% ${(WAIST / FIG_H) * 100}%, -100% ${(WAIST / FIG_H) * 100}%)`
-/** Trikotkante relativ zum Augenpunkt (cqw): halbe Breite (etwas Luft) und Abstand nach unten */
-const WAIST_HALF = (Math.max(EYE_POINT.x - META.torso.x0, META.torso.x1 - EYE_POINT.x) + 12) * PX
-const WAIST_DOWN = (WAIST - EYE_POINT.y) * PX
+/** Abstand vom Augenpunkt bis zum Scheitel in cqw */
+const CROWN = EYE_POINT.y * PX
+/** Unterhalb des Halses ist nichts zu sehen – Schultern und Trikot bleiben immer hinter der Karte */
+const NECK_CLIP = `polygon(-100% -100%, 200% -100%, 200% ${(NECK / FIG_H) * 100}%, -100% ${(NECK / FIG_H) * 100}%)`
+/** Halsansatz relativ zum Augenpunkt (cqw): halbe Breite und Abstand nach unten */
+const NECK_HALF = 82 * PX
+const NECK_DOWN = (NECK - EYE_POINT.y) * PX
 
 type Edge = 'top' | 'left' | 'right'
-export type CrewLayer = 'back' | 'front'
 
 interface Pose {
   edge: Edge
   /** Lage entlang der Kante (0–1) */
   t: number
-  /** Wie weit die Augen über die Kante hinausragen (cqw, negativ = über der Karte) */
+  /** Wie weit die Augen über die Kante hinausragen (cqw, negativ = noch hinter der Karte) */
   out: number
   /** Neigung der Figur in Grad (positiv = im Uhrzeigersinn) */
   tilt: number
-  /** Armwinkel links und rechts in Grad (0 = hängend, angehoben: links positiv, rechts negativ) */
-  arms: [number, number]
-  /** Welcher Arm winkt */
-  wave: 0 | 1 | null
   flip: boolean
 }
 
@@ -61,71 +51,29 @@ function rng(seed: string) {
 }
 
 const between = (r: () => number, a: number, b: number) => a + (b - a) * r()
-const raise = (arm: 0 | 1, deg: number) => (arm === 0 ? deg : -deg)
 
 function pose(edge: Edge, t: number, r: () => number): Pose {
   const flip = r() < 0.5
-  if (edge === 'top') {
-    const kind = r()
-    const tilt = between(r, -11, 11)
-    // nur spähen
-    if (kind < 0.4) return { edge, t, out: between(r, 2.2, 4), tilt, arms: [between(r, 0, 8), -between(r, 0, 8)], wave: null, flip }
-    // winken
-    if (kind < 0.75) {
-      const w = r() < 0.5 ? 0 : 1
-      const up = between(r, 128, 142)
-      return { edge, t, out: between(r, 6, 7.5), tilt, arms: w === 0 ? [up, -4] : [4, -up], wave: w, flip }
-    }
-    // jubeln: beide Arme hoch
-    return { edge, t, out: between(r, 7, 8.5), tilt: tilt * 0.5, arms: [between(r, 122, 136), -between(r, 122, 136)], wave: null, flip }
-  }
-  // Seitlich: leicht nach außen geneigt, so weit auf der Karte, dass die Trikotkante ganz auf der Karte liegt –
-  // darunter ist nichts zu sehen, auch nicht neben der Karte
-  const lean = between(r, 4, 11)
+  // Oben: Haare und Augen über der Kante, Kinn noch dahinter
+  if (edge === 'top') return { edge, t, out: between(r, 3, 5), tilt: between(r, -12, 12), flip }
+  // Seitlich: Kopf schräg um die Kante geneigt, der Halsansatz bleibt knapp hinter der Karte
+  const lean = between(r, 40, 52)
   const rad = (lean * Math.PI) / 180
-  const inside = WAIST_HALF * Math.cos(rad) - WAIST_DOWN * Math.sin(rad) + 1.2
-  // Arm zur Kartenmitte hin (rechte Kante: im ungespiegelten Bild der linke Arm)
-  const inner: 0 | 1 = (edge === 'right') !== flip ? 0 : 1
-  const outer: 0 | 1 = inner === 0 ? 1 : 0
-  // Der äußere Arm bleibt immer über der Trikotkante, sonst endete er neben der Karte in der Luft
-  const arms: [number, number] = [0, 0]
-  let wave: 0 | 1 | null = null
-  const kind = r()
-  if (kind < 0.35) {
-    // winkt nach außen, der innere Arm hängt hinter die Karte
-    arms[outer] = raise(outer, between(r, 115, 135))
-    arms[inner] = raise(inner, between(r, 0, 8))
-    wave = outer
-  } else if (kind < 0.6) {
-    // Arm zur Seite ausgestreckt, mit dem anderen auf die Karte gestützt
-    arms[outer] = raise(outer, between(r, 62, 78))
-    arms[inner] = raise(inner, between(r, 55, 75))
-  } else if (kind < 0.8) {
-    // jubelt mit beiden Armen
-    arms[outer] = raise(outer, between(r, 120, 138))
-    arms[inner] = raise(inner, between(r, 120, 138))
-  } else {
-    // winkt über der Karte, der äußere Arm ist ausgestreckt
-    arms[outer] = raise(outer, between(r, 62, 78))
-    arms[inner] = raise(inner, between(r, 120, 140))
-    wave = inner
-  }
-  return { edge, t, out: -inside, tilt: (edge === 'right' ? 1 : -1) * lean, arms, wave, flip }
+  const neck = NECK_HALF * Math.cos(rad) - NECK_DOWN * Math.sin(rad)
+  return { edge, t, out: -neck - 0.6, tilt: (edge === 'right' ? 1 : -1) * lean, flip }
 }
 
 /** 1–2 Hopper nur an den Seiten, ab dem dritten auch oben */
 function poses(seed: string, n: number): Pose[] {
   const r = rng(seed)
   const first: Edge = r() < 0.5 ? 'left' : 'right'
-  const edges: Edge[] = [first, first === 'left' ? 'right' : 'left', 'top', 'top'].slice(0, n) as Edge[]
+  const edges = ([first, first === 'left' ? 'right' : 'left', 'top', 'top'] as Edge[]).slice(0, n)
   const topT = r() < 0.5 ? [between(r, 0.22, 0.38), between(r, 0.62, 0.78)] : [between(r, 0.62, 0.78), between(r, 0.22, 0.38)]
   let tops = 0
   return edges.map((edge) => {
     let t: number
-    // Links unten und rechts oben – dort liegen die Wappen nicht
-    if (edge === 'left') t = between(r, 0.46, 0.66)
-    else if (edge === 'right') t = between(r, 0.27, 0.45)
-    else t = n === 3 ? between(r, 0.32, 0.68) : topT[tops++]
+    if (edge === 'left' || edge === 'right') t = between(r, 0.2, 0.75)
+    else t = n === 3 ? between(r, 0.3, 0.7) : topT[tops++]
     return pose(edge, t, r)
   })
 }
@@ -141,33 +89,22 @@ function anchor(p: Pose): CSSProperties {
   }
 }
 
-/** Woher der Hopper beim Erscheinen kommt: oben hinter der Karte hoch, seitlich von außen herein */
-function entrance(p: Pose): CSSProperties {
-  if (p.edge === 'top') return { '--hy': `${p.out + CROWN + 3}cqw` } as CSSProperties
-  return { '--hx': `${p.edge === 'right' ? 6 : -6}cqw`, '--ho': 0 } as CSSProperties
-}
-
 const pct = (v: number, of: number) => `${(v / of) * 100}%`
 
-const Peeker = memo(function Peeker({ look, kit, pose: p, index }: {
-  look: HopperLook; kit: string | null; pose: Pose; index: number
-}) {
-  const figRef = useRef<HTMLSpanElement>(null)
-  const bodyRef = useRef<HTMLCanvasElement>(null)
-  const armRefs = useRef<(HTMLCanvasElement | null)[]>([])
+const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: HopperLook; kit: string | null; pose: Pose; index: number }) {
+  const ref = useRef<HTMLCanvasElement>(null)
   const [loaded, setLoaded] = useState(false)
   const lookJson = JSON.stringify(look)
-  const cut = p.edge !== 'top'
 
   useEffect(() => {
-    const fig = figRef.current
-    if (!fig) return
+    const el = ref.current
+    if (!el) return
     let cancelled = false
-    let parts: HopperParts | null = null
+    let body: HTMLCanvasElement | null = null
 
-    // Jede Leinwand in ihrer Layoutgröße × Pixeldichte – nie größer gestreckt, daher scharf
-    const paintInto = (el: HTMLCanvasElement | null | undefined, src: HTMLCanvasElement) => {
-      if (!el) return
+    // In Layoutgröße × Pixeldichte zeichnen – nie größer gestreckt, daher scharf
+    const draw = () => {
+      if (!body) return
       const dpr = Math.min(window.devicePixelRatio || 1, 3)
       const w = Math.round(el.clientWidth * dpr)
       const h = Math.round(el.clientHeight * dpr)
@@ -180,28 +117,24 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: {
       g.clearRect(0, 0, w, h)
       g.imageSmoothingEnabled = true
       g.imageSmoothingQuality = 'high'
-      g.drawImage(src, 0, 0, w, h)
-    }
-    const draw = () => {
-      if (!parts) return
-      paintInto(bodyRef.current, parts.body)
-      parts.arms.forEach((a, k) => paintInto(armRefs.current[k], a))
+      g.drawImage(body, 0, 0, w, h)
     }
 
     const ro = new ResizeObserver(draw)
-    ro.observe(fig)
+    ro.observe(el)
     const io = new IntersectionObserver((entries) => {
       if (!entries.some((e) => e.isIntersecting)) return
       io.disconnect()
       engine().then(async (m) => {
-        const res = await m.hopperParts(JSON.parse(lookJson) as HopperLook, kit)
+        // Arme braucht es nicht – die sind unterhalb des Halses und damit immer hinter der Karte
+        const parts = await m.hopperParts(JSON.parse(lookJson) as HopperLook, kit)
         if (cancelled) return
-        parts = res
+        body = parts.body
         draw()
         setLoaded(true)
       }).catch(() => undefined)
     }, { rootMargin: '240px' })
-    io.observe(fig)
+    io.observe(el)
     return () => {
       cancelled = true
       io.disconnect()
@@ -209,45 +142,36 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: {
     }
   }, [lookJson, kit])
 
-  const style = { ...anchor(p), ...entrance(p), rotate: `${p.tilt}deg`, '--i': index } as CSSProperties
+  const style = {
+    ...anchor(p),
+    rotate: `${p.tilt}deg`,
+    // Zum Erscheinen schiebt sich der Kopf entlang der Figur hinter der Karte hervor
+    '--hy': `${CROWN + Math.max(p.out, 0) + 4}cqw`,
+    '--i': index,
+  } as CSSProperties
   return (
     <span className={`mc-peek ${loaded ? 'loaded' : ''}`} style={style}>
       <span className="mc-peek-slide">
-        <span ref={figRef} className="mc-peek-fig" style={{
+        <canvas ref={ref} className="mc-peek-fig" style={{
           width: `${FW}cqw`,
           height: `${FH}cqw`,
-          left: `${(-EYE_POINT.x / FIG_W) * FW}cqw`,
-          top: `${(-EYE_POINT.y / FIG_W) * FW}cqw`,
+          left: `${-EYE_POINT.x * PX}cqw`,
+          top: `${-EYE_POINT.y * PX}cqw`,
           transformOrigin: `${pct(EYE_POINT.x, FIG_W)} ${pct(EYE_POINT.y, FIG_H)}`,
           scale: p.flip ? '-1 1' : undefined,
-          clipPath: cut ? WAIST_CLIP : undefined,
-        }}>
-          {ARMS.map((b, k) => (
-            <canvas key={k} ref={(el) => { armRefs.current[k] = el }} className={`mc-peek-arm ${p.wave === k ? 'wave' : ''}`} style={{
-              left: pct(b.x, FIG_W),
-              top: pct(b.y, FIG_H),
-              width: pct(b.w, FIG_W),
-              height: pct(b.h, FIG_H),
-              transformOrigin: `${pct(b.px - b.x, b.w)} ${pct(b.py - b.y, b.h)}`,
-              '--a': `${p.arms[k]}deg`,
-              '--sw': k === 0 ? 1 : -1,
-            } as CSSProperties} />
-          ))}
-          <canvas ref={bodyRef} className="mc-peek-body" />
-        </span>
+          clipPath: NECK_CLIP,
+        }} />
       </span>
     </span>
   )
 })
 
-export const CardCrew = memo(function CardCrew({ crew, seed, layer }: { crew: CrewMember[]; seed: string; layer: CrewLayer }) {
+export const CardCrew = memo(function CardCrew({ crew, seed }: { crew: CrewMember[]; seed: string }) {
   const shown = crew.slice(0, MAX)
   const spots = poses(seed + '|' + shown.map((m) => m.key).join(','), shown.length)
   return (
-    <span className={`mc-crew ${layer}`} aria-hidden>
-      {shown.map((m, i) => spots[i] && (layer === 'back') === (spots[i].edge === 'top') && (
-        <Peeker key={m.key} look={m.look} kit={m.kit} pose={spots[i]} index={i} />
-      ))}
+    <span className="mc-crew" aria-hidden>
+      {shown.map((m, i) => spots[i] && <Peeker key={m.key} look={m.look} kit={m.kit} pose={spots[i]} index={i} />)}
     </span>
   )
 })
