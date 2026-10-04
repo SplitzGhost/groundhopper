@@ -139,7 +139,7 @@ export function GamesScreen() {
             <>
               <DayBar ref={barRef} day={day} today={today} count={(d) => dayMatches(d).length} />
               <DayPager day={day} onChange={(d) => gamesDayStore.set(d)}
-                render={(d, side) => <DayContent day={d} today={today} list={dayMatches(d)} row={row} limit={side ? 8 : undefined}
+                render={(d, side) => <DayContent list={dayMatches(d)} row={row} limit={side ? 8 : undefined}
                   filtered={filtered} findNext={() => nextMatchDay(matches.byDay, d, matchesFilter)} />} />
             </>
           )}
@@ -158,16 +158,6 @@ function nextMatchDay(byDay: Map<string, Match[]>, from: string, filter: (m: Mat
 
 const DayBar = forwardRef<HTMLDivElement, { day: string; today: string; count: (d: string) => number }>(
   function DayBar({ day, today, count }, ref) {
-    const start = weekStart(day)
-    const days = Array.from({ length: 7 }, (_, i) => addDays(start, i))
-    // Richtung des Wochenwechsels für die Schiebe-Animation
-    const [shownStart, setShownStart] = useState(start)
-    const [dir, setDir] = useState(0)
-    if (shownStart !== start) {
-      setDir(start > shownStart ? 1 : -1)
-      setShownStart(start)
-    }
-
     return (
       <div className="daybar" ref={ref}>
         <div className="daybar-top">
@@ -189,33 +179,78 @@ const DayBar = forwardRef<HTMLDivElement, { day: string; today: string; count: (
             <GlassButton small label="Datum wählen" icon={<CalendarDays size={18} strokeWidth={2.4} />} onClick={() => openSheet({ kind: 'calendar' })} />
           </div>
         </div>
-        <div className="week-viewport">
-          <AnimatePresence mode="popLayout" initial={false} custom={dir}>
-            <motion.div key={start} className="week" custom={dir}
-              initial={{ opacity: 0, x: dir * 70 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: dir * -70 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 36 }}>
-              {days.map((d) => {
-                const n = count(d)
-                const on = d === day
-                return (
-                  <button key={d} type="button" className={`week-day ${on ? 'on' : ''} ${d === today ? 'today' : ''} ${n ? 'has' : ''}`}
-                    onClick={() => gamesDayStore.set(d)} aria-label={`${formatDayLong(d)}, ${n} Spiele`}>
-                    <span className="week-wd">{weekdayFmt.format(keyToDate(d)).replace('.', '')}</span>
-                    <span className="week-num tnum">
-                      {on && <motion.span layoutId="week-sel" className="week-sel" transition={{ type: 'spring', stiffness: 480, damping: 36 }} />}
-                      <span>{Number(d.slice(8))}</span>
-                    </span>
-                    <i className="week-dot" />
-                  </button>
-                )
-              })}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        <WeekStrip day={day} today={today} count={count} />
       </div>
     )
   },
 )
+
+/** Wochenleiste: seitlich wischen blättert eine Woche weiter bzw. zurück, der Wochentag bleibt gewählt */
+function WeekStrip({ day, today, count }: { day: string; today: string; count: (d: string) => number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const x = useMotionValue(0)
+  const start = weekStart(day)
+  // Per Wischen erreichte Woche steht schon an Ort und Stelle; Sprünge (Tage wischen, Kalender) gleiten herein
+  const [swipedTo, setSwipedTo] = useState<string | null>(null)
+  const [shownStart, setShownStart] = useState(start)
+  const [dir, setDir] = useState(0)
+  if (shownStart !== start) {
+    setDir(start > shownStart ? 1 : -1)
+    setShownStart(start)
+  }
+  // Loslassen nach dem Wischen soll keinen Tag antippen
+  const dragged = useRef(false)
+
+  const go = (d: 1 | -1, velocity = 0) => {
+    const w = ref.current?.clientWidth ?? 360
+    void animate(x, -d * w, { type: 'spring', stiffness: 320, damping: 36, velocity }).then(() => {
+      flushSync(() => {
+        setSwipedTo(addDays(start, d * 7))
+        gamesDayStore.set(addDays(day, d * 7))
+      })
+      x.jump(0)
+    })
+  }
+
+  const onDragEnd = (_: unknown, info: PanInfo) => {
+    setTimeout(() => { dragged.current = false }, 0)
+    const w = ref.current?.clientWidth ?? 360
+    if (info.offset.x < -w * 0.2 || info.velocity.x < -400) go(1, info.velocity.x)
+    else if (info.offset.x > w * 0.2 || info.velocity.x > 400) go(-1, info.velocity.x)
+    else void animate(x, 0, { type: 'spring', stiffness: 420, damping: 36 })
+  }
+
+  const week = (ws: string) => Array.from({ length: 7 }, (_, i) => addDays(ws, i)).map((d) => {
+    const n = count(d)
+    const on = d === day
+    return (
+      <button key={d} type="button" className={`week-day ${on ? 'on' : ''} ${d === today ? 'today' : ''} ${n ? 'has' : ''}`}
+        onClick={() => { if (!dragged.current) gamesDayStore.set(d) }} aria-label={`${formatDayLong(d)}, ${n} Spiele`}>
+        <span className="week-wd">{weekdayFmt.format(keyToDate(d)).replace('.', '')}</span>
+        <span className="week-num tnum">
+          {on && <motion.span layoutId={`week-sel-${ws}`} className="week-sel" transition={{ type: 'spring', stiffness: 480, damping: 36 }} />}
+          <span>{Number(d.slice(8))}</span>
+        </span>
+        <i className="week-dot" />
+      </button>
+    )
+  })
+
+  return (
+    <div className="week-viewport" ref={ref}>
+      <motion.div className="week-track" style={{ x }} drag="x" dragDirectionLock dragMomentum={false}
+        onDragStart={() => { dragged.current = true }} onDragEnd={onDragEnd}>
+        <div className="week side prev" aria-hidden>{week(addDays(start, -7))}</div>
+        <motion.div key={start} className="week"
+          initial={swipedTo === start || !dir ? false : { opacity: 0, x: dir * 70 }}
+          animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 36 }}>
+          {week(start)}
+        </motion.div>
+        <div className="week side next" aria-hidden>{week(addDays(start, 7))}</div>
+      </motion.div>
+    </div>
+  )
+}
 
 // ---------- Tagesseiten zum Wischen ----------
 
@@ -266,9 +301,7 @@ function DayPager({ day, onChange, render }: { day: string; onChange: (d: string
   )
 }
 
-function DayContent({ day, today, list, row, findNext, limit, filtered }: {
-  day: string
-  today: string
+function DayContent({ list, row, findNext, limit, filtered }: {
   list: Match[]
   row: (m: Match) => ReactNode
   findNext: () => string | null
@@ -289,18 +322,8 @@ function DayContent({ day, today, list, row, findNext, limit, filtered }: {
     left -= matches.length
     groups.push({ league: l, matches })
   }
-  const rel = relativeDay(day, today)
-
   return (
     <div className="day-page">
-      <div className="day-title">
-        <div>
-          <b>{rel ?? formatDayLong(day).split(',')[0]}</b>
-          <span>{rel ? formatDayLong(day) : formatDayLong(day).split(', ')[1]}</span>
-        </div>
-        <span className="day-count tnum">{list.length ? `${list.length} ${list.length === 1 ? 'Spiel' : 'Spiele'}` : 'spielfrei'}</span>
-      </div>
-
       {groups.length === 0 ? (
         <NoGames findNext={findNext} filtered={filtered} />
       ) : groups.map((g) => {

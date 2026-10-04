@@ -135,7 +135,7 @@ img { display: block; }
 }
 
 /* Am Computer: App im iPhone-Rahmen anzeigen (die App ist fürs iPhone gebaut). */
-@media (min-width: 640px) and (min-height: 720px) {
+@media (min-width: 640px) and (min-height: 720px) and (hover: hover) and (pointer: fine) {
   .device {
     display: grid;
     place-items: center;
@@ -166,7 +166,7 @@ img { display: block; }
   .fake-statusbar { display: flex !important; }
   .fake-island { display: block !important; }
 }
-@media (min-width: 640px) and (min-height: 720px) and (prefers-color-scheme: dark) {
+@media (min-width: 640px) and (min-height: 720px) and (hover: hover) and (pointer: fine) and (prefers-color-scheme: dark) {
   .device {
     background:
       radial-gradient(1200px 700px at 20% 10%, rgba(10, 124, 255, 0.22), transparent 60%),

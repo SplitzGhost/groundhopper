@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <!-- viewport-fit=cover + kein Zoom: Inhalt reicht bis unter Notch und Home-Indikator wie eine native App -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <script>
+      // Auf dem Handy: Die App ist für 393 pt Breite (iPhone 15/16 Pro) gestaltet und wird auf jedes
+      // Display skaliert – kleine iPhones zeigen alles etwas kleiner, Max-Modelle etwas größer, aber immer gleich aufgeteilt.
+      (function () {
+        var BASE = 393
+        var meta = document.querySelector('meta[name=viewport]')
+        var portrait = Math.min(screen.width, screen.height)
+        if (!meta || !matchMedia('(pointer: coarse)').matches || portrait < 300 || portrait > 520) return
+        var fit = function () {
+          var landscape = matchMedia('(orientation: landscape)').matches
+          var w = landscape ? Math.max(screen.width, screen.height) : portrait
+          var width = Math.round(w * BASE / portrait)
+          meta.setAttribute('content', 'width=' + width + ', user-scalable=no, viewport-fit=cover')
+        }
+        fit()
+        addEventListener('orientationchange', fit)
+      })()
+    </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
