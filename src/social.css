@@ -3,8 +3,10 @@
    ========================================================================== */
 
 /* Vier Tabs passen nebeneinander auch auf schmale iPhones */
-.tab { width: 82px; }
+.tabbar { --tab-w: 82px; }
+@keyframes badge-pop { from { transform: scale(0); } to { transform: scale(1); } }
 .tab-badge {
+  animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   position: absolute;
   top: 4px;
   left: calc(50% + 6px);
