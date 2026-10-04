@@ -3,14 +3,17 @@
 
 import { useEffect, useMemo, type ReactNode } from 'react'
 import { motion, useSpring, useTransform } from 'motion/react'
-import { ChevronRight, Swords, Trophy } from 'lucide-react'
+import { ChevronRight, Plus, Swords, Trophy } from 'lucide-react'
 import { collect, levelOf, TEAM_NAMES, type Collection } from '../lib/album.ts'
 import { CLUB_LISTS, STADIUM_LISTS, countryOfList, leaguesOfCountry, listInfo, type ListId } from '../lib/lists.ts'
 import { leagueLogo } from '../lib/crests.ts'
 import { useUserData } from '../state/userData.ts'
 import { useCards } from '../state/cards.ts'
 import { useRevealed } from '../state/revealed.ts'
-import { openBinder, openList, tabStore } from '../state/ui.ts'
+import { openBinder, openList, openSheet, tabStore } from '../state/ui.ts'
+import { useHopper, useWardrobe, wornKit } from '../state/hopper.ts'
+import type { Hopper } from '../lib/hopper/look.ts'
+import { HopperArt } from '../components/HopperArt.tsx'
 import { ScreenScaffold } from '../components/ScreenScaffold.tsx'
 import { ProfileButton } from '../components/ProfileButton.tsx'
 import { Flag } from '../components/Flag.tsx'
@@ -31,7 +34,7 @@ export function AlbumScreen() {
 
   return (
     <ScreenScaffold title="Sammelalbum" actions={<ProfileButton />}>
-      <CollectorPass c={c} />
+      <OwnPass c={c} />
 
       <SectionHead title="Sammelordner" />
       <BinderCover />
@@ -73,12 +76,37 @@ export function AlbumScreen() {
 }
 
 /** Sammler-Pass: Level, Punkte und die wichtigsten Zahlen – auch für Profile von Freunden */
-export function CollectorPass({ c }: { c: Collection }) {
+/** Eigener Pass: Hopper antippen öffnet den Editor, ohne Hopper lädt ein Platzhalter zum Erstellen ein */
+function OwnPass({ c }: { c: Collection }) {
+  const hopper = useHopper()
+  const wardrobe = useWardrobe()
+  const open = () => openSheet({ kind: 'hopper' })
+  return (
+    <CollectorPass c={c} hopper={hopper ? { ...hopper, kit: wornKit(hopper, wardrobe) } : null} onHopper={open}
+      placeholder={(
+        <button type="button" className="pass-hopper" onClick={open} aria-label="Hopper erstellen">
+          <span className="pass-hopper-new"><span><Plus size={22} strokeWidth={2.6} />Dein<br />Hopper</span></span>
+        </button>
+      )} />
+  )
+}
+
+/** `hopper`: Figur rechts im Pass (eigene oder die eines Freundes) */
+export function CollectorPass({ c, hopper, onHopper, placeholder }: {
+  c: Collection
+  hopper?: Pick<Hopper, 'look' | 'kit'> | null
+  onHopper?: () => void
+  placeholder?: ReactNode
+}) {
   const level = levelOf(c.points)
   const clubsSeen = [...c.clubs.keys()].filter((n) => TEAM_NAMES.has(n)).length
+  const figure = hopper ? <HopperArt look={hopper.look} kit={hopper.kit} size="md" turn={-0.3} /> : null
   return (
-    <motion.div className="pass" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+    <motion.div className={`pass ${hopper || placeholder ? 'with-hopper' : ''}`} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 28 }}>
+      {figure && onHopper && <button type="button" className="pass-hopper" onClick={onHopper} aria-label="Hopper bearbeiten">{figure}</button>}
+      {figure && !onHopper && <span className="pass-hopper">{figure}</span>}
+      {!hopper && placeholder}
       <div className="pass-top">
         <div className="pass-level">
           <svg viewBox="0 0 64 64" aria-hidden>

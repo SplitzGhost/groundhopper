@@ -3,6 +3,7 @@
 // Projekt-URL und öffentlicher Schlüssel stehen bewusst im Code: Sie sind nicht geheim und landen ohnehin in der App.
 
 import type { Visit } from '../shared/types.ts'
+import { parseHopper, type Hopper } from './hopper/look.ts'
 
 // Supabase-Projekt (Einstellungen → API). Zum Testen per VITE_SUPABASE_URL / VITE_SUPABASE_KEY überschreibbar.
 const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? 'https://mdrtltdminlbfvtgmhto.supabase.co'
@@ -20,6 +21,8 @@ export interface CloudData {
   revealed: string[]
   /** IDs gelöschter Besuche – damit ein anderes Gerät sie beim Zusammenführen nicht zurückholt */
   removed: string[]
+  /** Eigener Hopper (Aussehen, angezogenes Trikot); null = noch keiner angelegt */
+  hopper: Hopper | null
 }
 
 export type CloudError =
@@ -120,6 +123,8 @@ export const cloud = {
 export interface SocialUser {
   username: string
   avatar: number | null
+  /** Hopper roh vom Server (erst nach dem Datenbank-Update vorhanden) – mit parseHopper lesen */
+  hopper?: unknown
 }
 
 export interface FriendInfo extends SocialUser {
@@ -215,6 +220,7 @@ export function parseCloudData(raw: unknown): CloudData {
     watchlist: strings(d.watchlist),
     revealed: strings(d.revealed),
     removed: strings(d.removed),
+    hopper: parseHopper(d.hopper),
   }
 }
 
@@ -253,5 +259,8 @@ export function mergeCloudData(mine: CloudData, theirs: CloudData): CloudData {
     watchlist: [...new Set([...theirs.watchlist, ...mine.watchlist])].filter((id) => !byMatch.has(id)),
     revealed: [...new Set([...theirs.revealed, ...mine.revealed])],
     removed: [...removed, ...dropped],
+    // Hopper: der zuletzt geänderte gewinnt
+    hopper: !mine.hopper ? theirs.hopper : !theirs.hopper ? mine.hopper
+      : mine.hopper.updatedAt >= theirs.hopper.updatedAt ? mine.hopper : theirs.hopper,
   }
 }

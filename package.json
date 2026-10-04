@@ -17,7 +17,8 @@
     "crests": "node tools/crests.ts",
     "data": "node --env-file-if-exists=.env tools/build-data.ts",
     "world": "node tools/world.ts",
-    "dev:static": "vite --mode static --port 5174 --strictPort"
+    "dev:static": "vite --mode static --port 5174 --strictPort",
+    "kits": "node tools/kits.ts && node tools/kits-build.ts"
   },
   "dependencies": {
     "lucide-react": "^1.51.0",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@types/three": "^0.186.0",
@@ -36,6 +38,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "concurrently": "^10.0.5",
     "oxlint": "^1.81.0",
+    "pngjs": "^7.0.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   },

@@ -13,6 +13,8 @@ import { keyToDate } from '../../lib/dates.ts'
 import { stadiumSpec } from '../../data/stadiumInfo.ts'
 import { StadiumArt } from '../StadiumArt.tsx'
 import { StadiumIcon, WhistleIcon } from '../icons.tsx'
+import { useCrew, type CrewMember } from '../../state/crew.ts'
+import { CardCrew } from './CardCrew.tsx'
 
 const dateFmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 export const cardDate = (c: MatchCard) => dateFmt.format(keyToDate(c.visit.date))
@@ -77,15 +79,21 @@ interface FrontProps {
   size?: CrestSize
   className?: string
   style?: CSSProperties
+  /** Benutzername, wenn es die Karte eines Freundes ist (für die Hopper auf der Karte) */
+  owner?: string
+  /** Feste Hopper statt der echten (Vorschau im Editor) */
+  crew?: CrewMember[]
 }
 
-export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', className = '', style }: FrontProps) {
+export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', className = '', style, owner, crew: fixedCrew }: FrontProps) {
   const v = card.visit
+  const realCrew = useCrew(card.id, owner)
+  const crew = fixedCrew ?? realCrew
   const hasScore = v.homeScore !== null && v.awayScore !== null
   const extras = card.extras.filter((x) => x.id !== 'derby')
   const special = !!card.derby || card.extras.some((x) => x.id === 'hattrick' || x.id === 'late' || x.id === 'comeback')
   return (
-    <div className={`mc ${card.derby ? 'is-derby' : ''} ${special ? 'is-special' : ''} ${className}`} style={cardVars(card, style)}>
+    <div className={`mc ${card.derby ? 'is-derby' : ''} ${special ? 'is-special' : ''} ${crew.length ? 'has-crew' : ''} ${className}`} style={cardVars(card, style)}>
       <div className="mc-face">
         <div className="mc-top">
           {card.league
@@ -103,6 +111,7 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
           <CardCrest club={card.away} size={size} className="away" league={card.league} saved={v.awayCrest} />
           <span className="mc-shine" />
           {card.derby && <span className="mc-embers">{EMBERS}</span>}
+          {crew.length > 0 && <CardCrew crew={crew} large={size === 'lg'} />}
           <div className="mc-board">
             <div className="mc-score tnum">
               <b>{hasScore ? v.homeScore : '–'}</b><i>:</i><b>{hasScore ? v.awayScore : '–'}</b>

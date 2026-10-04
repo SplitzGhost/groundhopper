@@ -336,12 +336,13 @@ begin
   end if;
   return jsonb_build_object(
     'ok', true,
-    'me', (select jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id))
+    'me', (select jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id), 'hopper', a.data->'hopper')
            from groundhopper.accounts a where a.id = v_id),
     'friends', coalesce((
       select jsonb_agg(jsonb_build_object(
         'username', a.username,
         'avatar', groundhopper.avatar_v(a.id),
+        'hopper', a.data->'hopper',
         'since', f.accepted_at,
         'games', case when jsonb_typeof(a.data->'visits') = 'array' then jsonb_array_length(a.data->'visits') else 0 end,
         'stadiums', (select count(distinct x->>'stadiumId') from jsonb_array_elements(
@@ -351,12 +352,12 @@ begin
       join groundhopper.accounts a on a.id = case when f.requester = v_id then f.addressee else f.requester end
       where f.status = 'accepted' and v_id in (f.requester, f.addressee)), '[]'::jsonb),
     'incoming', coalesce((
-      select jsonb_agg(jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id), 'at', f.created_at)
+      select jsonb_agg(jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id), 'hopper', a.data->'hopper', 'at', f.created_at)
         order by f.created_at desc)
       from groundhopper.friendships f join groundhopper.accounts a on a.id = f.requester
       where f.addressee = v_id and f.status = 'pending'), '[]'::jsonb),
     'outgoing', coalesce((
-      select jsonb_agg(jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id), 'at', f.created_at)
+      select jsonb_agg(jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id), 'hopper', a.data->'hopper', 'at', f.created_at)
         order by f.created_at desc)
       from groundhopper.friendships f join groundhopper.accounts a on a.id = f.addressee
       where f.requester = v_id and f.status = 'pending'), '[]'::jsonb),
@@ -368,7 +369,7 @@ begin
     'groups', coalesce((
       select jsonb_agg(jsonb_build_object('group', g.group_id, 'visit', g.visit_id, 'members', (
         select coalesce(jsonb_agg(jsonb_build_object('username', a.username, 'avatar', groundhopper.avatar_v(a.id),
-            'status', m.status) order by m.created_at), '[]'::jsonb)
+            'hopper', a.data->'hopper', 'status', m.status) order by m.created_at), '[]'::jsonb)
         from groundhopper.match_members m join groundhopper.accounts a on a.id = m.account_id
         where m.group_id = g.group_id and m.account_id <> v_id)))
       from groundhopper.match_members g
@@ -499,13 +500,14 @@ begin
     'ok', true,
     'username', a.username,
     'avatar', groundhopper.avatar_v(a.id),
+    'hopper', a.data->'hopper',
     'visits', coalesce((
       select jsonb_agg(x - 'notes')
       from jsonb_array_elements(case when jsonb_typeof(a.data->'visits') = 'array' then a.data->'visits' else '[]'::jsonb end) x), '[]'::jsonb),
     'groups', coalesce((
       select jsonb_agg(jsonb_build_object('visit', o.visit_id, 'members', (
         select coalesce(jsonb_agg(jsonb_build_object('username', u.username, 'avatar', groundhopper.avatar_v(u.id),
-            'status', m.status) order by m.created_at), '[]'::jsonb)
+            'hopper', u.data->'hopper', 'status', m.status) order by m.created_at), '[]'::jsonb)
         from groundhopper.match_members m join groundhopper.accounts u on u.id = m.account_id
         where m.group_id = o.group_id and m.account_id <> a.id and m.status = 'accepted')))
       from groundhopper.match_members o

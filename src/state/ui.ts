@@ -45,6 +45,7 @@ export type SheetSpec =
   | { kind: 'derby'; id: string }
   | { kind: 'calendar' }
   | { kind: 'watchlist' }
+  | { kind: 'hopper'; tab?: 'look' | 'kits' }
 
 export interface OpenSheet {
   key: number

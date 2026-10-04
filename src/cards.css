@@ -1793,3 +1793,82 @@
 .lsec-head span { font-size: 13px; font-weight: 600; color: var(--text-2); }
 .listpage-body section:first-child .lsec-head { padding-top: 6px; }
 .ll-cup { margin-top: 6px; font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+/* ---------- Hopper auf der Karte: Erinnerungsfoto vor der Anzeigetafel ---------- */
+/* Mit Hoppern rücken Wappen und Endstand nach oben, unten stehen die Figuren auf dem Rasen */
+.mc.has-crew .mc-crest { width: 25cqw; }
+.mc.has-crew .mc-crest.home { left: 4%; top: 5%; }
+.mc.has-crew .mc-crest.away { right: 4%; top: 5%; bottom: auto; }
+.mc.has-crew .mc-board { top: 21%; padding: 1.4cqw 3cqw 1.2cqw; }
+.mc.has-crew .mc-score { font-size: 11.5cqw; }
+.mc.has-crew .mc-ht { font-size: 3.2cqw; }
+.mc.has-crew .mc-ribbon { top: auto; bottom: 3.4cqw; right: 3.4cqw; z-index: 12; max-width: 44%; }
+.mc.has-crew .mc-extras { z-index: 12; }
+
+.mc-crew {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 1.5cqw;
+  height: 66%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none;
+  --w: 46cqw;
+}
+.mc-crew.n2 { --w: 41cqw; }
+.mc-crew.n3 { --w: 35cqw; }
+.mc-crew.n4 { --w: 29cqw; }
+.mc-crew.n5 { --w: 24.5cqw; }
+.mc-hopper {
+  position: relative;
+  flex: none;
+  width: var(--w);
+  margin: 0 calc(var(--w) * -0.17);
+  /* weiter außen = weiter hinten: etwas höher und kleiner */
+  translate: 0 calc(var(--d) * -2.6cqw);
+  scale: calc(1 - var(--d) * 0.07);
+  transform-origin: 50% 100%;
+}
+.mc-hopper .hopper-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  opacity: 0;
+  transform: translateY(4%) scale(0.92);
+  transform-origin: 50% 100%;
+  transition: opacity 0.45s var(--ease-out), transform 0.6s var(--ease-spring);
+  /* Ruhiges Wippen, jede Figur im eigenen Takt */
+  animation: hopperIdle 3.6s ease-in-out calc(var(--delay) - var(--d) * 0.9s) infinite;
+  filter: drop-shadow(0 0.6cqw 0.8cqw rgba(0, 10, 30, 0.18));
+}
+.mc-hopper .hopper-art.loaded { opacity: 1; transform: none; }
+.mc-hopper-shadow {
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  bottom: 0.4%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 12, 32, 0.42), transparent);
+}
+@keyframes hopperIdle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -0.9cqw; }
+}
+.mc-crew-more {
+  position: absolute;
+  right: 6%;
+  bottom: 14%;
+  z-index: 11;
+  padding: 1.2cqw 2.2cqw;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--accent);
+  font: 800 4cqw/1 var(--font-rounded);
+  box-shadow: 0 1cqw 2.6cqw -0.6cqw rgba(10, 30, 70, 0.35);
+}
+@media (prefers-reduced-motion: reduce) { .mc-hopper .hopper-art { animation: none; } }

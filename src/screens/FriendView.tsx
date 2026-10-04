@@ -14,6 +14,7 @@ import { GlassButton, PillButton } from '../components/ui.tsx'
 import { MatchCardFront } from '../components/cards/MatchCard.tsx'
 import { Avatar } from '../components/social.tsx'
 import { CollectorPass } from './AlbumScreen.tsx'
+import { parseHopper } from '../lib/hopper/look.ts'
 import { AchievementGrid } from './ListView.tsx'
 
 export function FriendView() {
@@ -106,7 +107,7 @@ function FriendPage({ username }: { username: string }) {
 
         {profile && c && (
           <>
-            <CollectorPass c={c} />
+            <CollectorPass c={c} hopper={parseHopper(profile.hopper)} />
 
             <div className="stat-grid" style={{ marginTop: 12 }}>
               {tiles.map(([value, label], i) => (
@@ -167,7 +168,7 @@ function FriendCard({ card, owner, index }: { card: MatchCard; owner: string; in
       transition={{ type: 'spring', stiffness: 380, damping: 28, delay: 0.05 + Math.min(index, 11) * 0.035 }}
       whileTap={{ scale: 0.94 }} onClick={() => openCard(card.id, false, owner)}
       aria-label={`${card.home} gegen ${card.away}`}>
-      <MatchCardFront card={card} />
+      <MatchCardFront card={card} owner={owner} />
     </motion.button>
   )
 }

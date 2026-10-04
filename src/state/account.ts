@@ -7,6 +7,7 @@ import { cloud, cloudEnabled, errorText, mergeCloudData, parseCloudData, type Cl
 import { loadPref, savePref } from '../lib/storage.ts'
 import { getUserData, replaceUserData, subscribeUserData } from './userData.ts'
 import { getRevealed, replaceRevealed, subscribeRevealed } from './revealed.ts'
+import { getHopper, replaceHopper, subscribeHopper } from './hopper.ts'
 import { closeAllSheets, closeBinder, closeCard, closeList, createStore, tabStore } from './ui.ts'
 import { notify } from './toast.ts'
 
@@ -64,6 +65,7 @@ function localData(): CloudData {
     watchlist: d.watchlist,
     revealed: [...getRevealed()],
     removed: a.mode === 'user' ? a.removed : [],
+    hopper: getHopper(),
   }
 }
 
@@ -80,6 +82,7 @@ function applyLocal(data: CloudData) {
   try {
     replaceUserData({ version: 2, visits: data.visits, watchlist: data.watchlist }, { silent: true })
     replaceRevealed(data.revealed)
+    replaceHopper(data.hopper)
   } finally {
     applying = false
   }
@@ -107,6 +110,7 @@ function onLocalChange() {
 
 subscribeUserData(onLocalChange)
 subscribeRevealed(onLocalChange)
+subscribeHopper(onLocalChange)
 
 // ---------- Abgleich ----------
 
@@ -212,7 +216,7 @@ export async function signIn(kind: 'login' | 'register', username: string, passw
   // Was schon auf dem Gerät liegt (z. B. als Gast gesammelt), wandert ins Konto
   const local = localData()
   const server = parseCloudData(r.data)
-  const hasLocal = local.visits.length > 0 || local.watchlist.length > 0 || local.revealed.length > 0
+  const hasLocal = local.visits.length > 0 || local.watchlist.length > 0 || local.revealed.length > 0 || !!local.hopper
   const merged = hasLocal ? mergeCloudData(local, server) : server
 
   setAccount({ mode: 'user', username: r.username, token: r.token, rev: r.rev, dirty: false, removed: merged.removed })
@@ -247,7 +251,7 @@ function clearLocal() {
   closeList()
   closeCard()
   tabStore.set('map')
-  applyLocal({ version: 1, visits: [], watchlist: [], revealed: [], removed: [] })
+  applyLocal({ version: 1, visits: [], watchlist: [], revealed: [], removed: [], hopper: null })
 }
 
 /**

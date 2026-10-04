@@ -10,7 +10,8 @@ import { shortClub } from '../../lib/matchCards.ts'
 import { useCards } from '../../state/cards.ts'
 import { ensureReport, updateVisit } from '../../state/userData.ts'
 import { useAccount } from '../../state/account.ts'
-import { friendCards, useCompanions, useFriend, type Companion } from '../../state/social.ts'
+import { friendCards, useFriend } from '../../state/social.ts'
+import { useCardCompanions } from '../../state/crew.ts'
 import { reveal, useRevealed } from '../../state/revealed.ts'
 import { cardViewStore, closeCard, flyingCardStore, openSheet, pendingCardStore, sheetStore, tabStore } from '../../state/ui.ts'
 import { leagueByCode } from '../../shared/leagues.ts'
@@ -223,7 +224,7 @@ function Viewer({ visitId, memoryAtOpen, owner }: { visitId: string; memoryAtOpe
   const render = (side: Side): ReactNode => {
     if (side === 'reverse') return <CardReverse isNew />
     if (side === 'back') return <MatchCardBack card={card} loading={loading} onMore={() => setMemory(true)} />
-    return <MatchCardFront card={card} size="lg" />
+    return <MatchCardFront card={card} size="lg" owner={owner} />
   }
 
   return (
@@ -297,21 +298,6 @@ function Viewer({ visitId, memoryAtOpen, owner }: { visitId: string; memoryAtOpe
 }
 
 // ---------- Mit dabei ----------
-
-/** Wer bei dem Spiel dabei war: eigene Karte aus dem Freundes-Stand, Karte eines Freundes aus seinem Profil */
-function useCardCompanions(visitId: string, owner?: string): Companion[] {
-  const own = useCompanions(visitId)
-  const friend = useFriend(owner)
-  return useMemo(() => {
-    if (!owner) return own
-    const seen = new Map<string, Companion>()
-    for (const g of friend?.profile?.groups ?? []) {
-      if (g.visit !== visitId) continue
-      for (const m of g.members) seen.set(m.username.toLowerCase(), m)
-    }
-    return [...seen.values()]
-  }, [own, friend, owner, visitId])
-}
 
 /** „bernd“, „bernd & carla“, „bernd, carla & 2 weiteren“ */
 function nameList(names: string[]) {

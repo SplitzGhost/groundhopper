@@ -28,6 +28,19 @@
         "dev:static"
       ],
       "port": 5174
+    },
+    {
+      "name": "groundhopper-hopper",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--mode",
+        "static",
+        "--port",
+        "5181",
+        "--strictPort"
+      ],
+      "port": 5181
     }
   ]
 }

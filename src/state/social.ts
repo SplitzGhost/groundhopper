@@ -16,6 +16,7 @@ import { getAccount, subscribeAccount } from './account.ts'
 import { addVisit, getUserData } from './userData.ts'
 import { createStore } from './ui.ts'
 import { notify } from './toast.ts'
+import { parseHopper, type Hopper } from '../lib/hopper/look.ts'
 
 const tokenOf = () => {
   const a = getAccount()
@@ -224,7 +225,7 @@ export async function loadFriend(username: string) {
   const before = friends.get(k)
   if (!before?.profile) setFriend(k, { status: 'loading', profile: null })
   const r = await cloud.friend(token, username)
-  if (r.ok) setFriend(k, { status: 'ready', profile: { username: r.username, avatar: r.avatar, visits: r.visits, groups: r.groups } })
+  if (r.ok) setFriend(k, { status: 'ready', profile: { username: r.username, avatar: r.avatar, hopper: r.hopper, visits: r.visits, groups: r.groups } })
   else setFriend(k, { status: before?.profile ? 'ready' : 'error', profile: before?.profile ?? null, error: errorText(r.error) })
 }
 
@@ -471,6 +472,19 @@ export function avatarVersion(data: SocialData | null, username: string): number
     ?? data.incoming.find(same)?.avatar
     ?? data.outgoing.find(same)?.avatar
     ?? null
+}
+
+/** Hopper eines Nutzers aus dem bekannten Stand; null = keiner angelegt oder Server noch ohne Hopper */
+export function hopperOf(data: SocialData | null, username: string): Hopper | null {
+  if (!data) return null
+  const k = username.toLowerCase()
+  const same = (u: { username: string }) => u.username.toLowerCase() === k
+  const raw = same(data.me) ? data.me.hopper
+    : data.friends.find(same)?.hopper
+      ?? data.groups.flatMap((g) => g.members).find(same)?.hopper
+      ?? data.incoming.find(same)?.hopper
+      ?? data.outgoing.find(same)?.hopper
+  return parseHopper(raw)
 }
 
 interface AvatarEntry {

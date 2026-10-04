@@ -1,0 +1,168 @@
+/* ---------- Hopper: Editor, Kleiderschrank, Pass ---------- */
+
+.hopper-art { display: block; }
+
+/* Bühne mit der drehbaren Figur */
+.hopper-stage {
+  position: relative;
+  height: 300px;
+  margin: 0 16px 14px;
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 55% at 50% 35%, rgba(255, 255, 255, 0.9), transparent 70%),
+    linear-gradient(180deg, #dcebff, #eef5ff 62%, #cfe3c8 62.2%, #bcd9b2);
+  box-shadow: inset 0 0 0 0.5px var(--sep), var(--card-shadow);
+}
+@media (prefers-color-scheme: dark) {
+  .hopper-stage {
+    background:
+      radial-gradient(70% 55% at 50% 35%, rgba(90, 140, 220, 0.35), transparent 70%),
+      linear-gradient(180deg, #1b2840, #22324e 62%, #1f3a2a 62.2%, #183022);
+  }
+}
+/* Rasen als Ellipse unter der Figur */
+.hopper-stage-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  width: 150px;
+  height: 26px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(10, 40, 20, 0.28), transparent);
+}
+.hopper-3d { position: absolute; inset: 0; }
+.hopper-stage-figure { inset: 0 0 -6px; }
+.hopper-3d-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+.hopper-3d.ready .hopper-3d-canvas { opacity: 1; }
+.hopper-3d-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.hopper-shuffle {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  transition: transform 0.2s var(--ease-spring);
+}
+.hopper-shuffle:active { transform: scale(0.88) rotate(-20deg); }
+
+/* Auswahl */
+.hopper-editor { padding: 4px 20px 8px; display: grid; gap: 16px; }
+.hopper-editor h4 {
+  margin: 0 0 8px;
+  font: 700 13px/1 var(--font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.chips.wrap { flex-wrap: wrap; overflow: visible; padding: 0; margin: 0; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c) 60%);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15), 0 2px 6px -2px rgba(16, 42, 94, 0.3);
+  transition: transform 0.25s var(--ease-spring);
+}
+.swatch:active { transform: scale(0.88); }
+.swatch-ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2.5px solid var(--accent);
+}
+
+.hopper-create {
+  position: sticky;
+  bottom: 0;
+  padding: 14px 20px calc(16px + var(--safe-bottom));
+  background: linear-gradient(180deg, transparent, var(--bg-sheet) 30%);
+  text-align: center;
+}
+.hopper-create p { margin: 10px 8px 0; font-size: 13px; line-height: 1.4; }
+
+/* Kleiderschrank */
+.wardrobe { padding: 0 16px 24px; }
+.wardrobe-hint { margin: 6px 4px 12px; font-size: 13px; line-height: 1.45; }
+.wardrobe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kit-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 10px 6px 9px;
+  border-radius: 18px;
+  background: var(--bg-elev);
+  box-shadow: var(--card-shadow);
+  min-width: 0;
+}
+.kit-tile-art { width: 72px; height: 72px; display: grid; place-items: center; }
+.kit-tile b { max-width: 100%; font: 700 13px/1.25 var(--font); margin-top: 4px; }
+.kit-tile small { max-width: 100%; font-size: 11.5px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.kit-tile-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2.5px var(--accent), 0 6px 18px -8px var(--accent-glow);
+  pointer-events: none;
+}
+.kit-icon { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 4px rgba(16, 42, 94, 0.18)); }
+.kit-tile.on .kit-icon { animation: kitPop 0.5s var(--ease-spring); }
+@keyframes kitPop { 40% { transform: scale(1.12) rotate(-4deg); } }
+
+/* Hopper im Sammler-Pass */
+.pass.with-hopper .pass-top { padding-right: 78px; }
+.pass-hopper {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  width: 96px;
+  height: 128px;
+  z-index: 1;
+}
+.pass-hopper .hopper-art { width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.4s var(--ease-out); }
+.pass-hopper .hopper-art.loaded { opacity: 1; }
+button.pass-hopper { transition: transform 0.25s var(--ease-spring); }
+button.pass-hopper:active { transform: scale(0.93); }
+/* Noch kein Hopper: Platzhalter mit Plus */
+.pass-hopper-new {
+  position: absolute;
+  inset: 18px 14px 24px;
+  border-radius: 22px;
+  border: 2px dashed var(--accent-soft);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  font: 700 11px/1.2 var(--font);
+  text-align: center;
+  background: var(--fill-2);
+}
+.pass-hopper-new svg { display: block; margin: 0 auto 4px; }
+
+/* Hopper im Profil */
+.profile-hopper {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #dcebff, #eef5ff);
+  box-shadow: inset 0 0 0 0.5px var(--sep);
+}
+.profile-hopper .hopper-art { width: 100%; height: 100%; object-fit: cover; }

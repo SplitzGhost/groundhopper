@@ -1,13 +1,15 @@
 import { useMemo, useRef } from 'react'
 import { motion } from 'motion/react'
-import { CloudOff, Download, LogIn, LogOut, RefreshCw, RotateCcw, Trash2, Upload } from 'lucide-react'
+import { ChevronRight, CloudOff, Download, LogIn, LogOut, RefreshCw, RotateCcw, Shirt, Trash2, Upload } from 'lucide-react'
 import { collect, levelOf } from '../lib/album.ts'
 import { computeStats } from '../lib/collection.ts'
 import { exportUserData, importUserData } from '../lib/storage.ts'
 import { useMatches } from '../state/matches.ts'
 import { replaceUserData, useUserData } from '../state/userData.ts'
 import { notify } from '../state/toast.ts'
-import { showAlert } from '../state/ui.ts'
+import { openSheet, showAlert } from '../state/ui.ts'
+import { useHopper, useWardrobe, wornKit } from '../state/hopper.ts'
+import { HopperArt } from '../components/HopperArt.tsx'
 import { authOpenStore, deleteAccount, resetCollection, signOut, sync, syncStatusStore, useAccount, type SyncStatus } from '../state/account.ts'
 import { cloudEnabled } from '../lib/cloud.ts'
 import { Sheet } from '../components/Sheet.tsx'
@@ -74,6 +76,8 @@ export function ProfileSheet() {
         ))}
       </div>
 
+      <HopperSection />
+
       <AccountSection />
 
       <div className="section-head"><h3 className="section-title">Daten</h3></div>
@@ -102,6 +106,39 @@ export function ProfileSheet() {
         {account.mode === 'user' ? ' Deine Sammlung wird mit deinem Konto synchronisiert.' : ' Deine Daten bleiben auf diesem Gerät.'}
       </p>
     </Sheet>
+  )
+}
+
+/** Eigener Hopper: Bild, Aussehen bearbeiten, Trikot wechseln */
+function HopperSection() {
+  const hopper = useHopper()
+  const wardrobe = useWardrobe()
+  return (
+    <>
+      <div className="section-head"><h3 className="section-title">Mein Hopper</h3></div>
+      <div className="card inset list">
+        <button type="button" className="list-row row-press" onClick={() => openSheet({ kind: 'hopper' })}>
+          <span className="profile-hopper">
+            {hopper && <HopperArt look={hopper.look} kit={wornKit(hopper, wardrobe)} framing="bust" size="sm" turn={-0.25} />}
+          </span>
+          <div className="row-main">
+            <div className="row-title">{hopper ? 'Aussehen bearbeiten' : 'Hopper erstellen'}</div>
+            <div className="row-sub">{hopper ? 'Haut, Frisur, Augen, Bart, Brille' : 'Deine Figur für Sammelkarten und Freunde'}</div>
+          </div>
+          <ChevronRight size={18} className="dim" />
+        </button>
+        {hopper && (
+          <button type="button" className="list-row row-press" onClick={() => openSheet({ kind: 'hopper', tab: 'kits' })}>
+            <Shirt size={20} style={{ color: 'var(--accent)' }} />
+            <div className="row-main">
+              <div className="row-title">Trikot wechseln</div>
+              <div className="row-sub">{wardrobe.length ? `${wardrobe.length} ${wardrobe.length === 1 ? 'Trikot' : 'Trikots'} im Schrank` : 'Noch keine Trikots gesammelt'}</div>
+            </div>
+            <ChevronRight size={18} className="dim" />
+          </button>
+        )}
+      </div>
+    </>
   )
 }
 

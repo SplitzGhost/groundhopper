@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { BatteryFull, Share, SignalHigh, Wifi, X } from 'lucide-react'
-import { tabStore, type Tab } from './state/ui.ts'
+import { openSheet, tabStore, type Tab } from './state/ui.ts'
 import { MapScreen } from './screens/MapScreen.tsx'
 import { GamesScreen } from './screens/GamesScreen.tsx'
 import { AlbumScreen } from './screens/AlbumScreen.tsx'
@@ -22,6 +22,8 @@ import { loadPref, savePref } from './lib/storage.ts'
 import { refreshReports } from './state/userData.ts'
 import { AuthScreen } from './screens/AuthScreen.tsx'
 import { AlertHost } from './components/Alert.tsx'
+import { authOpenStore, useAccount } from './state/account.ts'
+import { getHopper } from './state/hopper.ts'
 
 export default function App() {
   const appRef = useRef<HTMLDivElement>(null)
@@ -56,6 +58,7 @@ export default function App() {
           <CardViewer />
           <PhotoViewer />
           <InstallHint />
+          <HopperPrompt />
           <AuthScreen />
           <AlertHost />
           <FakeStatusBar />
@@ -88,6 +91,23 @@ function Overlay({ tab, children }: { tab: Tab; children: ReactNode }) {
       {mounted && children}
     </motion.div>
   )
+}
+
+/** Einmalig nach der Anmeldung (oder als Gast): Editor öffnen, wenn es noch keinen Hopper gibt */
+function HopperPrompt() {
+  const account = useAccount()
+  const authOpen = authOpenStore.use()
+  useEffect(() => {
+    if (account.mode === 'none' || authOpen || getHopper() || loadPref('hopper-prompted', false)) return
+    // Kurz warten: Auf einem neuen Gerät kommt der Hopper evtl. gleich mit der Synchronisierung
+    const t = setTimeout(() => {
+      if (getHopper()) return
+      savePref('hopper-prompted', true)
+      openSheet({ kind: 'hopper' })
+    }, 3500)
+    return () => clearTimeout(t)
+  }, [account.mode, authOpen])
+  return null
 }
 
 function FakeStatusBar() {

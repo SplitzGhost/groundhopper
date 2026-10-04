@@ -10,6 +10,7 @@ import { AddVisitSheet } from './AddVisitSheet.tsx'
 import { ClubSheet, DerbySheet, LeagueSheet } from './CollectionSheets.tsx'
 import { CalendarSheet } from './CalendarSheet.tsx'
 import { WatchlistSheet } from './WatchlistSheet.tsx'
+import { HopperSheet } from './HopperSheet.tsx'
 
 function Content({ spec }: { spec: SheetSpec }) {
   switch (spec.kind) {
@@ -25,6 +26,7 @@ function Content({ spec }: { spec: SheetSpec }) {
     case 'derby': return <DerbySheet id={spec.id} />
     case 'calendar': return <CalendarSheet />
     case 'watchlist': return <WatchlistSheet />
+    case 'hopper': return <HopperSheet tab={spec.tab} />
   }
 }
 
