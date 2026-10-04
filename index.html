@@ -65,43 +65,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- VORÜBERGEHEND: Diagnose für den Streifen unten in der Home-Bildschirm-App. Antippen blendet sie aus. -->
-    <script>
-      (function () {
-        var standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches
-        if (!standalone) return
-        document.documentElement.style.background = '#ff00ff'
-        var probe = document.createElement('div')
-        probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;' +
-          'padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'
-        document.body.appendChild(probe)
-        var box = document.createElement('div')
-        box.style.cssText = 'position:fixed;left:12px;right:12px;top:40%;z-index:99999;padding:10px 12px;border-radius:14px;' +
-          'background:rgba(0,0,0,.82);color:#fff;font:600 13px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap'
-        box.onclick = function () { box.remove(); document.documentElement.style.background = '' }
-        document.body.appendChild(box)
-        var show = function () {
-          var cs = getComputedStyle(probe)
-          var dev = document.querySelector('.device')
-          var vv = window.visualViewport
-          box.textContent = [
-            'DIAGNOSE (antippen = weg)',
-            'screen ' + screen.width + 'x' + screen.height + '  dpr ' + devicePixelRatio,
-            'inner ' + innerWidth + 'x' + innerHeight + '  outerH ' + outerHeight,
-            'docEl ' + document.documentElement.clientWidth + 'x' + document.documentElement.clientHeight,
-            'vv ' + (vv ? Math.round(vv.width) + 'x' + Math.round(vv.height) + ' s' + vv.scale.toFixed(3) + ' top' + Math.round(vv.offsetTop) : '-'),
-            'safe top ' + cs.paddingTop + ' bottom ' + cs.paddingBottom,
-            '--app-h ' + (document.documentElement.style.getPropertyValue('--app-h') || '-') + '  class ' + document.documentElement.className,
-            'device ' + (dev ? Math.round(dev.getBoundingClientRect().top) + '..' + Math.round(dev.getBoundingClientRect().bottom) : '-'),
-            'standalone ' + navigator.standalone + ' / ' + matchMedia('(display-mode: standalone)').matches,
-            'vp ' + document.querySelector('meta[name=viewport]').content,
-            (navigator.userAgent.match(/OS [\d_]+/) || [''])[0],
-          ].join('\n')
-        }
-        show()
-        setTimeout(show, 1500)
-        addEventListener('resize', show)
-      })()
-    </script>
   </body>
 </html>
