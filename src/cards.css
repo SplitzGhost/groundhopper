@@ -826,8 +826,8 @@
   gap: 12px;
   overflow-x: auto;
   /* Platz nach oben für die Hopper, die über die Karten schauen (sonst schneidet der Scrollbereich sie ab) */
-  padding: 22px 16px 10px;
-  margin-top: -20px;
+  padding: 28px 16px 10px;
+  margin-top: -26px;
   scroll-snap-type: x proximity;
   scroll-padding: 0 16px;
   scrollbar-width: none;
@@ -1819,16 +1819,18 @@
 }
 
 .mc-crew { position: absolute; inset: 0; z-index: -2; pointer-events: none; }
+.mc-crew.front { z-index: 5; }
 /* Punkt zwischen den Augen am Kartenrand; die Drehung kippt die ganze Figur */
 .mc-peek { position: absolute; width: 0; height: 0; }
-/* Erst hinter der Karte versteckt, dann schiebt sich der Hopper heraus und wippt ganz leicht */
+/* Erst versteckt (oben hinter der Karte, seitlich draußen), dann schiebt sich der Hopper herein und wippt leicht */
 .mc-peek-slide {
   position: absolute;
   inset: 0;
-  translate: 0 var(--hide);
-  transition: translate 0.9s var(--ease-spring) calc(0.15s + var(--i) * 0.18s);
+  translate: var(--hx, 0) var(--hy, 0);
+  opacity: var(--ho, 1);
+  transition: translate 0.9s var(--ease-spring) calc(0.15s + var(--i) * 0.18s), opacity 0.4s var(--ease-out) calc(0.15s + var(--i) * 0.18s);
 }
-.mc-peek.loaded .mc-peek-slide { translate: 0 0; }
+.mc-peek.loaded .mc-peek-slide { translate: 0 0; opacity: 1; }
 .mc-peek-fig {
   position: absolute;
   display: block;

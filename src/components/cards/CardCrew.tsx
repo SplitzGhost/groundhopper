@@ -1,30 +1,37 @@
-// Die Hopper auf der Sammelkarte: Sie stehen hinter der Karte und schauen am Rand hervor – oben über die
-// Kante, seitlich oder an einer Ecke, mal nur spähend, mal winkend oder jubelnd. Ort und Pose sind je Karte
-// zufällig, bleiben aber für dieselbe Karte immer gleich. Die Arme sind eigene Bilder und werden gedreht.
+// Die Hopper auf der Sammelkarte. Seitlich stehen sie halb hinter der Kartenkante und lehnen sich mit dem
+// Oberkörper vor die Karte (Kopf, Trikot und Arme vorn, Hüfte und Beine dahinter). Ab drei Hoppern kann einer
+// auch oben hinter der Karte hervorschauen. Ort und Pose sind je Karte zufällig, bleiben aber für dieselbe
+// Karte immer gleich. Die Arme sind eigene Bilder und werden gedreht (winken, jubeln, aufstützen).
+//
+// Jede Karte zeigt die Hopper in zwei Ebenen: „back“ liegt hinter der Karte (ganze Figur, nur außerhalb der
+// Karte sichtbar), „front“ davor (nur der Oberkörper bis zur Trikotkante).
 
 import { memo, useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { CrewMember } from '../../state/crew.ts'
 import type { HopperLook } from '../../lib/hopper/look.ts'
 import type { HopperParts } from '../../lib/hopper/paint.ts'
-import { ARMS, EYE_POINT, FIG_H, FIG_W } from '../../lib/hopper/figure.ts'
+import { ARMS, EYE_POINT, FIG_H, FIG_W, WAIST } from '../../lib/hopper/figure.ts'
 
 const engine = () => import('../../lib/hopper/paint.ts')
 
-/** Mehr Plätze gibt der Kartenrand nicht her */
+/** Links, rechts und zweimal oben */
 const MAX = 4
 /** Breite der Figur in cqw (Prozent der Kartenbreite) */
-const FW = 17
+const FW = 22
 const FH = (FW * FIG_H) / FIG_W
 /** Abstand vom Augenpunkt bis zum Scheitel in cqw */
 const CROWN = (EYE_POINT.y / FIG_W) * FW
+/** Vorn wird der Körper an der Trikotkante abgeschnitten (Anteil unten in %) */
+const WAIST_CUT = ((FIG_H - WAIST) / FIG_H) * 100
 
-type Edge = 'top' | 'left' | 'right' | 'tl' | 'tr'
+type Edge = 'top' | 'left' | 'right'
+export type CrewLayer = 'back' | 'front'
 
 interface Pose {
   edge: Edge
   /** Lage entlang der Kante (0–1) */
   t: number
-  /** Wie weit die Augen über die Kante hinausragen (cqw) */
+  /** Wie weit die Augen über die Kante hinausragen (cqw, negativ = über der Karte) */
   out: number
   /** Neigung der Figur in Grad (positiv = im Uhrzeigersinn) */
   tilt: number
@@ -50,6 +57,7 @@ function rng(seed: string) {
 }
 
 const between = (r: () => number, a: number, b: number) => a + (b - a) * r()
+const raise = (arm: 0 | 1, deg: number) => (arm === 0 ? deg : -deg)
 
 function pose(edge: Edge, t: number, r: () => number): Pose {
   const flip = r() < 0.5
@@ -57,77 +65,86 @@ function pose(edge: Edge, t: number, r: () => number): Pose {
     const kind = r()
     const tilt = between(r, -11, 11)
     // nur spähen
-    if (kind < 0.4) return { edge, t, out: between(r, 1.6, 3), tilt, arms: [between(r, 0, 8), -between(r, 0, 8)], wave: null, flip }
+    if (kind < 0.4) return { edge, t, out: between(r, 2.2, 4), tilt, arms: [between(r, 0, 8), -between(r, 0, 8)], wave: null, flip }
     // winken
     if (kind < 0.75) {
       const w = r() < 0.5 ? 0 : 1
       const up = between(r, 128, 142)
-      return { edge, t, out: between(r, 4.5, 5.5), tilt, arms: w === 0 ? [up, -4] : [4, -up], wave: w, flip }
+      return { edge, t, out: between(r, 6, 7.5), tilt, arms: w === 0 ? [up, -4] : [4, -up], wave: w, flip }
     }
     // jubeln: beide Arme hoch
-    return { edge, t, out: between(r, 5.5, 6.5), tilt: tilt * 0.5, arms: [between(r, 122, 136), -between(r, 122, 136)], wave: null, flip }
+    return { edge, t, out: between(r, 7, 8.5), tilt: tilt * 0.5, arms: [between(r, 122, 136), -between(r, 122, 136)], wave: null, flip }
   }
-  if (edge === 'left' || edge === 'right') {
-    const s = edge === 'right' ? 1 : -1
-    // Der Arm zur Kante hin winkt manchmal (rechte Kante: rechter Arm, im Bild ungespiegelt)
-    const waving = r() < 0.5
-    const outer = (edge === 'right') !== flip ? 1 : 0
-    const arms: [number, number] = [between(r, 0, 10), -between(r, 0, 10)]
-    if (waving) arms[outer] = outer === 0 ? between(r, 110, 130) : -between(r, 110, 130)
-    return { edge, t, out: between(r, 0.5, 2), tilt: s * between(r, 22, 32), arms, wave: waving ? outer : null, flip }
+  // Seitlich: oben zur Kartenmitte geneigt, Augen schon über der Karte
+  const s = edge === 'right' ? -1 : 1
+  // Arm zur Kartenmitte hin (rechte Kante: im ungespiegelten Bild der linke Arm)
+  const inner: 0 | 1 = (edge === 'right') !== flip ? 0 : 1
+  const outer: 0 | 1 = inner === 0 ? 1 : 0
+  const arms: [number, number] = [between(r, 0, 10), -between(r, 0, 10)]
+  let wave: 0 | 1 | null = null
+  const kind = r()
+  if (kind < 0.35) {
+    // winkt nach außen
+    arms[outer] = raise(outer, between(r, 115, 135))
+    wave = outer
+  } else if (kind < 0.65) {
+    // stützt sich mit dem inneren Arm auf die Karte
+    arms[inner] = raise(inner, between(r, 55, 80))
+  } else if (kind < 0.8) {
+    // winkt über der Karte
+    arms[inner] = raise(inner, between(r, 120, 140))
+    wave = inner
   }
-  const s = edge === 'tr' ? 1 : -1
-  return { edge, t, out: between(r, 1.5, 3), tilt: s * between(r, 38, 48), arms: [between(r, 0, 10), -between(r, 0, 10)], wave: null, flip }
+  return { edge, t, out: -between(r, 4, 6.5), tilt: s * between(r, 8, 17), arms, wave, flip }
 }
 
-/** Plätze am Rand: jede Kante höchstens einmal, oben auch zweimal (mit Abstand) */
+/** 1–2 Hopper nur an den Seiten, ab dem dritten auch oben */
 function poses(seed: string, n: number): Pose[] {
   const r = rng(seed)
-  const edges: Edge[] = ['top', 'top', 'left', 'right', 'tl', 'tr']
-  // Oben ist der schönste Platz – der Besitzer landet dort öfter
-  const order = edges.map((e, i) => ({ e, k: r() + (e === 'top' && i === 0 ? -0.35 : 0) })).sort((a, b) => a.k - b.k).map((x) => x.e)
-  const out: Pose[] = []
-  for (const edge of order) {
-    if (out.length >= n) break
-    // Ecken nicht zusammen mit der angrenzenden Seite (die Figuren würden sich überlappen)
-    if (edge === 'tl' && out.some((p) => p.edge === 'left' || (p.edge === 'top' && p.t < 0.4))) continue
-    if (edge === 'tr' && out.some((p) => p.edge === 'right' || (p.edge === 'top' && p.t > 0.6))) continue
-    if ((edge === 'left' && out.some((p) => p.edge === 'tl')) || (edge === 'right' && out.some((p) => p.edge === 'tr'))) continue
+  const first: Edge = r() < 0.5 ? 'left' : 'right'
+  const edges: Edge[] = [first, first === 'left' ? 'right' : 'left', 'top', 'top'].slice(0, n) as Edge[]
+  const topT = r() < 0.5 ? [between(r, 0.22, 0.38), between(r, 0.62, 0.78)] : [between(r, 0.62, 0.78), between(r, 0.22, 0.38)]
+  let tops = 0
+  return edges.map((edge) => {
     let t: number
-    if (edge === 'top') {
-      const other = out.find((p) => p.edge === 'top')
-      t = other ? (other.t < 0.5 ? between(r, 0.62, 0.8) : between(r, 0.2, 0.38)) : between(r, 0.22, 0.78)
-      if (out.some((p) => (p.edge === 'tl' && t < 0.4) || (p.edge === 'tr' && t > 0.6))) t = 1 - t
-    } else if (edge === 'left' || edge === 'right') t = between(r, 0.28, 0.72)
-    else t = 0
-    out.push(pose(edge, t, r))
-  }
-  return out
+    // Links unten und rechts oben – dort liegen die Wappen nicht
+    if (edge === 'left') t = between(r, 0.46, 0.66)
+    else if (edge === 'right') t = between(r, 0.27, 0.45)
+    else t = n === 3 ? between(r, 0.32, 0.68) : topT[tops++]
+    return pose(edge, t, r)
+  })
 }
 
 // ---------- Darstellung ----------
 
-/** Lage des Augenpunkts am Kartenrand und Drehung */
+/** Lage des Augenpunkts am Kartenrand */
 function anchor(p: Pose): CSSProperties {
-  const c = 1.9 // Mitte der abgerundeten Ecke
-  const d = p.out * Math.SQRT1_2
   switch (p.edge) {
     case 'top': return { left: `${p.t * 100}%`, top: `${-p.out}cqw` }
     case 'left': return { left: `${-p.out}cqw`, top: `${p.t * 100}%` }
     case 'right': return { left: `calc(100% + ${p.out}cqw)`, top: `${p.t * 100}%` }
-    case 'tl': return { left: `${c - d}cqw`, top: `${c - d}cqw` }
-    case 'tr': return { left: `calc(100% - ${c - d}cqw)`, top: `${c - d}cqw` }
   }
+}
+
+/** Woher der Hopper beim Erscheinen kommt: oben hinter der Karte hoch, seitlich von außen herein */
+function entrance(p: Pose): CSSProperties {
+  if (p.edge === 'top') return { '--hy': `${p.out + CROWN + 3}cqw` } as CSSProperties
+  return { '--hx': `${p.edge === 'right' ? 12 : -12}cqw`, '--ho': 0 } as CSSProperties
 }
 
 const pct = (v: number, of: number) => `${(v / of) * 100}%`
 
-const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: HopperLook; kit: string | null; pose: Pose; index: number }) {
+const Peeker = memo(function Peeker({ look, kit, pose: p, index, layer }: {
+  look: HopperLook; kit: string | null; pose: Pose; index: number; layer: CrewLayer
+}) {
   const figRef = useRef<HTMLSpanElement>(null)
   const bodyRef = useRef<HTMLCanvasElement>(null)
   const armRefs = useRef<(HTMLCanvasElement | null)[]>([])
   const [loaded, setLoaded] = useState(false)
   const lookJson = JSON.stringify(look)
+  // Hinten bei seitlichen Hoppern nur der Körper (Beine neben der Karte), Arme sind vorn
+  const arms = p.edge === 'top' || layer === 'front'
+  const cut = p.edge !== 'top' && layer === 'front'
 
   useEffect(() => {
     const fig = figRef.current
@@ -136,7 +153,7 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: Hoppe
     let parts: HopperParts | null = null
 
     // Jede Leinwand in ihrer Layoutgröße × Pixeldichte – nie größer gestreckt, daher scharf
-    const paintInto = (el: HTMLCanvasElement | null, src: HTMLCanvasElement) => {
+    const paintInto = (el: HTMLCanvasElement | null | undefined, src: HTMLCanvasElement) => {
       if (!el) return
       const dpr = Math.min(window.devicePixelRatio || 1, 3)
       const w = Math.round(el.clientWidth * dpr)
@@ -164,9 +181,9 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: Hoppe
       if (!entries.some((e) => e.isIntersecting)) return
       io.disconnect()
       engine().then(async (m) => {
-        const p = await m.hopperParts(JSON.parse(lookJson) as HopperLook, kit)
+        const res = await m.hopperParts(JSON.parse(lookJson) as HopperLook, kit)
         if (cancelled) return
-        parts = p
+        parts = res
         draw()
         setLoaded(true)
       }).catch(() => undefined)
@@ -179,13 +196,7 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: Hoppe
     }
   }, [lookJson, kit])
 
-  const style = {
-    ...anchor(p),
-    rotate: `${p.tilt}deg`,
-    // so weit nach hinten, dass auch der Scheitel hinter der Karte verschwindet
-    '--hide': `${p.out + CROWN + 3}cqw`,
-    '--i': index,
-  } as CSSProperties
+  const style = { ...anchor(p), ...entrance(p), rotate: `${p.tilt}deg`, '--i': index } as CSSProperties
   return (
     <span className={`mc-peek ${loaded ? 'loaded' : ''}`} style={style}>
       <span className="mc-peek-slide">
@@ -197,7 +208,7 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: Hoppe
           transformOrigin: `${pct(EYE_POINT.x, FIG_W)} ${pct(EYE_POINT.y, FIG_H)}`,
           scale: p.flip ? '-1 1' : undefined,
         }}>
-          {ARMS.map((b, k) => (
+          {arms && ARMS.map((b, k) => (
             <canvas key={k} ref={(el) => { armRefs.current[k] = el }} className={`mc-peek-arm ${p.wave === k ? 'wave' : ''}`} style={{
               left: pct(b.x, FIG_W),
               top: pct(b.y, FIG_H),
@@ -208,19 +219,21 @@ const Peeker = memo(function Peeker({ look, kit, pose: p, index }: { look: Hoppe
               '--sw': k === 0 ? 1 : -1,
             } as CSSProperties} />
           ))}
-          <canvas ref={bodyRef} className="mc-peek-body" />
+          <canvas ref={bodyRef} className="mc-peek-body" style={cut ? { clipPath: `inset(0 0 ${WAIST_CUT}% 0)` } : undefined} />
         </span>
       </span>
     </span>
   )
 })
 
-export const CardCrew = memo(function CardCrew({ crew, seed }: { crew: CrewMember[]; seed: string }) {
+export const CardCrew = memo(function CardCrew({ crew, seed, layer }: { crew: CrewMember[]; seed: string; layer: CrewLayer }) {
   const shown = crew.slice(0, MAX)
   const spots = poses(seed + '|' + shown.map((m) => m.key).join(','), shown.length)
   return (
-    <span className="mc-crew" aria-hidden>
-      {shown.map((m, i) => spots[i] && <Peeker key={m.key} look={m.look} kit={m.kit} pose={spots[i]} index={i} />)}
+    <span className={`mc-crew ${layer}`} aria-hidden>
+      {shown.map((m, i) => spots[i] && (layer === 'back' || spots[i].edge !== 'top') && (
+        <Peeker key={m.key} look={m.look} kit={m.kit} pose={spots[i]} index={i} layer={layer} />
+      ))}
     </span>
   )
 })

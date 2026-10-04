@@ -1,6 +1,6 @@
 // Spielkarte: vorne beide Wappen auf einer diagonal geteilten Fläche in Vereinsfarben, der
-// Endstand als Anzeigetafel genau auf der Naht, Extras als Plaketten. Die Hopper der Besucher schauen
-// von hinten am Kartenrand hervor. Hinten der Spielbericht
+// Endstand als Anzeigetafel genau auf der Naht, Extras als Plaketten. Die Hopper der Besucher lehnen sich
+// seitlich hinter der Karte hervor (ab drei auch oben). Hinten der Spielbericht
 // mit 3D-Stadion, Zuschauern und Torticker. Alle Maße skalieren mit der Kartenbreite (cqw).
 
 import { memo, useState, type CSSProperties, type ReactNode } from 'react'
@@ -95,8 +95,8 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
   const special = !!card.derby || card.extras.some((x) => x.id === 'hattrick' || x.id === 'late' || x.id === 'comeback')
   return (
     <div className={`mc ${card.derby ? 'is-derby' : ''} ${special ? 'is-special' : ''} ${crew.length ? 'has-crew' : ''} ${className}`} style={cardVars(card, style)}>
-      {/* Hopper hinter der Karte – schauen am Rand hervor */}
-      {crew.length > 0 && <CardCrew crew={crew} seed={card.id} />}
+      {/* Hopper: hinten die ganze Figur, vorn der Oberkörper, der sich über die Karte lehnt */}
+      {crew.length > 0 && <CardCrew crew={crew} seed={card.id} layer="back" />}
       <div className="mc-face">
         <div className="mc-top">
           {card.league
@@ -139,6 +139,7 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
       </div>
       {special && <span className="mc-foil" />}
       <span className="mc-glare" />
+      {crew.length > 0 && <CardCrew crew={crew} seed={card.id} layer="front" />}
     </div>
   )
 })
