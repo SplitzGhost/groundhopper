@@ -825,7 +825,9 @@
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 2px 16px 10px;
+  /* Platz nach oben für die Hopper, die über die Karten schauen (sonst schneidet der Scrollbereich sie ab) */
+  padding: 22px 16px 10px;
+  margin-top: -20px;
   scroll-snap-type: x proximity;
   scroll-padding: 0 16px;
   scrollbar-width: none;
@@ -1123,6 +1125,11 @@
 .bp-title { font: 700 15px/1.2 var(--font-display); letter-spacing: -0.2px; min-width: 0; }
 .bp-no { margin-left: auto; font: 700 12px/1 var(--font-rounded); color: var(--text-3); }
 .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Frühere Karten liegen oben: Hopper, die über eine untere Karte schauen, verschwinden hinter der oberen */
+.bp-sleeve:nth-child(1) { z-index: 4; }
+.bp-sleeve:nth-child(2) { z-index: 3; }
+.bp-sleeve:nth-child(3) { z-index: 2; }
+.bp-sleeve:nth-child(4) { z-index: 1; }
 .bp-sleeve {
   position: relative;
   aspect-ratio: 5 / 7;
@@ -1794,81 +1801,56 @@
 .listpage-body section:first-child .lsec-head { padding-top: 6px; }
 .ll-cup { margin-top: 6px; font-size: 13px; color: var(--text-2); font-weight: 500; }
 
-/* ---------- Hopper auf der Karte: Erinnerungsfoto vor der Anzeigetafel ---------- */
-/* Mit Hoppern rücken Wappen und Endstand nach oben, unten stehen die Figuren auf dem Rasen */
-.mc.has-crew .mc-crest { width: 25cqw; }
-.mc.has-crew .mc-crest.home { left: 4%; top: 5%; }
-.mc.has-crew .mc-crest.away { right: 4%; top: 5%; bottom: auto; }
-.mc.has-crew .mc-board { top: 21%; padding: 1.4cqw 3cqw 1.2cqw; }
-.mc.has-crew .mc-score { font-size: 11.5cqw; }
-.mc.has-crew .mc-ht { font-size: 3.2cqw; }
-.mc.has-crew .mc-ribbon { top: auto; bottom: 3.4cqw; right: 3.4cqw; z-index: 12; max-width: 44%; }
-.mc.has-crew .mc-extras { z-index: 12; }
 
-.mc-crew {
+/* ---------- Hopper hinter der Karte ---------- */
+/* Der Rahmen wandert in ::before, damit die Hopper zwischen Kartenrückseite und Hintergrund Platz haben.
+   --frame wird auf .mc berechnet (inklusive der animierten --foil) und an ::before vererbt. */
+.mc.has-crew { --frame: linear-gradient(150deg, color-mix(in srgb, var(--home) 80%, #fff), var(--home) 44%, var(--away) 56%, color-mix(in srgb, var(--away) 82%, #000)); background: none; overflow: visible; }
+.mc.has-crew.is-special { --frame: conic-gradient(from var(--foil), var(--home), #ffd34d, var(--away), #ffffff, var(--home)); }
+.mc.has-crew.is-derby { --frame: conic-gradient(from var(--foil), var(--home), #ff3b30, #ffb800, var(--away), #ff6a00, var(--home)); }
+.mc.has-crew::before {
+  content: '';
   position: absolute;
-  z-index: 3;
-  left: 0;
-  right: 0;
-  bottom: 1.5cqw;
-  height: 66%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  pointer-events: none;
-  --w: 30cqw;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--frame);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
 }
-.mc-crew.n2 { --w: 25.5cqw; }
-.mc-crew.n3 { --w: 23.5cqw; }
-.mc-crew.n4 { --w: 21cqw; }
-.mc-crew.n5 { --w: 19cqw; }
-.mc-hopper {
-  position: relative;
-  flex: none;
-  width: var(--w);
-  margin: 0 calc(var(--w) * -0.06);
-  /* weiter außen = weiter hinten: etwas höher und kleiner */
-  translate: 0 calc(var(--d) * -2.6cqw);
-  scale: calc(1 - var(--d) * 0.07);
-  transform-origin: 50% 100%;
+
+.mc-crew { position: absolute; inset: 0; z-index: -2; pointer-events: none; }
+/* Punkt zwischen den Augen am Kartenrand; die Drehung kippt die ganze Figur */
+.mc-peek { position: absolute; width: 0; height: 0; }
+/* Erst hinter der Karte versteckt, dann schiebt sich der Hopper heraus und wippt ganz leicht */
+.mc-peek-slide {
+  position: absolute;
+  inset: 0;
+  translate: 0 var(--hide);
+  transition: translate 0.9s var(--ease-spring) calc(0.15s + var(--i) * 0.18s);
 }
-.mc-hopper .hopper-art {
-  position: relative;
+.mc-peek.loaded .mc-peek-slide { translate: 0 0; }
+.mc-peek-fig {
+  position: absolute;
   display: block;
-  width: 100%;
-  aspect-ratio: 488 / 1084;
-  opacity: 0;
-  transform: translateY(4%) scale(0.92);
-  transform-origin: 50% 100%;
-  transition: opacity 0.45s var(--ease-out), transform 0.6s var(--ease-spring);
-  /* Ruhiges Wippen, jede Figur im eigenen Takt */
-  animation: hopperIdle 3.6s ease-in-out calc(var(--delay) - var(--d) * 0.9s) infinite;
-  filter: drop-shadow(0 0.6cqw 0.8cqw rgba(0, 10, 30, 0.18));
+  animation: peekBob 5.2s ease-in-out calc(var(--delay) - var(--i) * 1.7s) infinite;
 }
-.mc-hopper .hopper-art.loaded { opacity: 1; transform: none; }
-.mc-hopper-shadow {
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  bottom: -1%;
-  height: 5%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(0, 12, 32, 0.42), transparent);
-}
-@keyframes hopperIdle {
+.mc-peek-fig canvas { position: absolute; display: block; }
+.mc-peek-body { inset: 0; width: 100%; height: 100%; z-index: 1; }
+.mc-peek-arm { z-index: 0; rotate: var(--a); }
+.mc-peek-arm.wave { animation: peekWave 4.4s ease-in-out calc(var(--delay) - var(--i) * 1.3s) infinite; }
+@keyframes peekBob {
   0%, 100% { translate: 0 0; }
-  50% { translate: 0 -0.9cqw; }
+  50% { translate: 0 0.7cqw; }
 }
-.mc-crew-more {
-  position: absolute;
-  right: 6%;
-  bottom: 14%;
-  z-index: 11;
-  padding: 1.2cqw 2.2cqw;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--accent);
-  font: 800 4cqw/1 var(--font-rounded);
-  box-shadow: 0 1cqw 2.6cqw -0.6cqw rgba(10, 30, 70, 0.35);
+/* Ein paar Mal winken, dann Pause */
+@keyframes peekWave {
+  0%, 46%, 100% { rotate: var(--a); }
+  8% { rotate: calc(var(--a) + var(--sw) * 16deg); }
+  16% { rotate: calc(var(--a) - var(--sw) * 4deg); }
+  24% { rotate: calc(var(--a) + var(--sw) * 16deg); }
+  32% { rotate: calc(var(--a) - var(--sw) * 4deg); }
+  40% { rotate: calc(var(--a) + var(--sw) * 8deg); }
 }
-@media (prefers-reduced-motion: reduce) { .mc-hopper .hopper-art { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .mc-peek-slide { transition: none; }
+}

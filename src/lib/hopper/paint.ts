@@ -2,6 +2,7 @@
 // Jeder Pixel gehört zu einem Bereich (labels.png). Haut, Haare und Kleidung werden umgefärbt, wobei die
 // Helligkeit des Originals als Schattierung erhalten bleibt – so bleibt der weiche 3D-Look. Das Trikot ist
 // ein flaches Muster, das auf das weiße Shirt gelegt wird; die Augen zeichnet die App je nach Augenform neu.
+// Die Arme landen auf eigenen Bildern, damit Karten sie für Posen drehen können (winken, jubeln).
 
 import baseUrl from '../../assets/hopper/base.png'
 import labelsUrl from '../../assets/hopper/labels.png'
@@ -9,8 +10,9 @@ import META from '../../data/hopperBase.json'
 import { EYE_SHAPES, HAIR_COLORS, SKINS, lookKey, type EyeShape, type HopperLook } from './look.ts'
 import { kitSpec, loadKits, parseKitId, type KitSpec } from './kit.ts'
 import { crestFor } from '../crests.ts'
+import { ARMS } from './figure.ts'
 
-const R = { none: 0, skin: 1, hair: 2, shirt: 3, collar: 4, cuff: 5, shorts: 6, socks: 7, shoes: 8, mouth: 9, eye: 10, sleeve: 11 } as const
+const R = { none: 0, skin: 1, hair: 2, shirt: 3, collar: 4, cuff: 5, shorts: 6, socks: 7, shoes: 8, mouth: 9, eye: 10, sleeve: 11, armL: 12, armR: 13 } as const
 
 export const HOPPER_W = META.width
 export const HOPPER_H = META.height
@@ -336,8 +338,15 @@ function crestOf(kit: string | null): Promise<HTMLImageElement | null> {
 
 const WHITE: [number, number, number] = [255, 255, 255]
 
-/** Malt den Hopper in voller Auflösung auf eine Canvas */
-export async function paintHopper(look: HopperLook, kitId: string | null): Promise<HTMLCanvasElement> {
+export interface HopperParts {
+  /** Figur ohne Arme, so groß wie das Grundbild */
+  body: HTMLCanvasElement
+  /** Linker und rechter Arm, je an der Stelle ARMS[i] im Grundbild */
+  arms: HTMLCanvasElement[]
+}
+
+/** Malt den Hopper in voller Auflösung: Körper und beide Arme getrennt */
+export async function paintHopper(look: HopperLook, kitId: string | null): Promise<HopperParts> {
   const [base, crest] = await Promise.all([loadBase(), crestOf(kitId), loadKits()])
   const kit = kitSpec(kitId)
   const pattern = drawKit(kit, crest)
@@ -355,20 +364,31 @@ export async function paintHopper(look: HopperLook, kitId: string | null): Promi
   cv.height = META.height
   const g = cv.getContext('2d')!
   const out = g.createImageData(META.width, META.height)
-  const o = out.data
+  const armData = ARMS.map((b) => new ImageData(b.w, b.h))
+  // Mittlere Hautfarbe am Drehpunkt (für die Kappe)
+  const capSum = ARMS.map(() => [0, 0, 0, 0])
   const src = base.pixels
   const n = META.width * META.height
   for (let i = 0; i < n; i++) {
-    const j = i * 4
-    const a = src[j + 3]
-    o[j + 3] = a
+    const a = src[i * 4 + 3]
     if (!a) continue
     const L = base.labels[i]
+    let o = out.data
+    let j = i * 4
+    const arm = L === R.armL ? 0 : L === R.armR ? 1 : -1
+    if (arm >= 0) {
+      const b = ARMS[arm]
+      const x = i % META.width
+      const y = (i / META.width) | 0
+      o = armData[arm].data
+      j = ((y - b.y) * b.w + (x - b.x)) * 4
+    }
+    o[j + 3] = a
     let c: readonly number[] | null = null
     let f = 1
     let shine = 1
     switch (L) {
-      case R.skin: c = skin; f = base.lum[i] / ref.skin; break
+      case R.skin: case R.armL: case R.armR: c = skin; f = base.lum[i] / ref.skin; break
       case R.hair: c = hair; f = base.lum[i] / ref.hair; shine = 0.6; break
       case R.shirt: c = [pattern[j], pattern[j + 1], pattern[j + 2]]; f = base.lum[i] / ref.shirt; break
       // Ärmel: eigene Farbe, sonst läuft das Muster weiter (Streifen, Ringel, Schulterpartie …)
@@ -379,7 +399,7 @@ export async function paintHopper(look: HopperLook, kitId: string | null): Promi
       case R.socks: c = socks; f = base.lum[i] / ref.socks; break
     }
     if (!c) {
-      o[j] = src[j]; o[j + 1] = src[j + 1]; o[j + 2] = src[j + 2]
+      o[j] = src[i * 4]; o[j + 1] = src[i * 4 + 1]; o[j + 2] = src[i * 4 + 2]
       continue
     }
     // Auf dunklen Farben wirken Glanzlichter schnell wie Flecken
@@ -388,10 +408,51 @@ export async function paintHopper(look: HopperLook, kitId: string | null): Promi
     o[j] = shade(c[0], f, s)
     o[j + 1] = shade(c[1], f, s)
     o[j + 2] = shade(c[2], f, s)
+    if (arm >= 0 && a > 200) {
+      const b = ARMS[arm]
+      if (Math.hypot((i % META.width) - b.px, ((i / META.width) | 0) - b.py) < b.r * 1.3) {
+        const cs = capSum[arm]
+        cs[0] += o[j]; cs[1] += o[j + 1]; cs[2] += o[j + 2]; cs[3]++
+      }
+    }
   }
   g.putImageData(out, 0, 0)
   drawEyes(g, look.eyes, 1)
-  return cv
+  const arms = ARMS.map((b, k) => {
+    const c = document.createElement('canvas')
+    c.width = b.w
+    c.height = b.h
+    const ag = c.getContext('2d')!
+    ag.putImageData(armData[k], 0, 0)
+    // Kappe hinter dem Arm: angehoben schaut sonst eine Lücke zwischen Ärmel und Arm heraus
+    const [r, gg, bb, cnt] = capSum[k]
+    if (cnt) {
+      const col = (f: number) => `rgb(${Math.round((r / cnt) * f)},${Math.round((gg / cnt) * f)},${Math.round((bb / cnt) * f)})`
+      const cx = b.px - b.x
+      const cy = b.py - b.y
+      const grad = ag.createRadialGradient(cx, cy, 0, cx, cy, b.r)
+      grad.addColorStop(0, col(1))
+      grad.addColorStop(1, col(0.86))
+      ag.globalCompositeOperation = 'destination-over'
+      ag.fillStyle = grad
+      ag.beginPath()
+      ag.arc(cx, cy, b.r * 0.92, 0, Math.PI * 2)
+      ag.fill()
+    }
+    return c
+  })
+  return { body: cv, arms }
+}
+
+/** Ganze Figur in Ruhehaltung zeichnen: Arme hinter dem Körper. scale/dx/dy bilden das Grundbild auf g ab. */
+export function drawFigure(g: CanvasRenderingContext2D, parts: HopperParts, scale: number, dx: number, dy: number) {
+  g.save()
+  g.setTransform(scale, 0, 0, scale, dx, dy)
+  g.imageSmoothingEnabled = true
+  g.imageSmoothingQuality = 'high'
+  parts.arms.forEach((c, k) => g.drawImage(c, ARMS[k].x, ARMS[k].y))
+  g.drawImage(parts.body, 0, 0)
+  g.restore()
 }
 
 // ---------- Fertige Figuren ----------
@@ -408,15 +469,15 @@ export function frameRect(framing: Framing): [number, number, number, number] {
   return [0, 0, META.width, META.height]
 }
 
-// Gemalte Figuren in voller Auflösung, die zuletzt benutzten bleiben im Speicher (je ~2 MB)
-const painted = new Map<string, Promise<HTMLCanvasElement>>()
-const KEEP = 24
+// Gemalte Figuren in voller Auflösung, die zuletzt benutzten bleiben im Speicher (je ~5 MB)
+const painted = new Map<string, Promise<HopperParts>>()
+const KEEP = 12
 // Nacheinander malen, mit kurzer Pause dazwischen – viele Karten auf einmal blockieren so die Oberfläche nicht
 let queue: Promise<unknown> = Promise.resolve()
 const pause = () => new Promise<void>((res) => setTimeout(res, 8))
 
 /** Gemalte Figur (gemeinsam genutzt von allen Bildern mit demselben Aussehen und Trikot) */
-export function hopperCanvas(look: HopperLook, kit: string | null): Promise<HTMLCanvasElement> {
+export function hopperParts(look: HopperLook, kit: string | null): Promise<HopperParts> {
   const key = lookKey(look) + '|' + (kit ?? 'basic')
   const hit = painted.get(key)
   if (hit) {

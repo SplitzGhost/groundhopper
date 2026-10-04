@@ -1,10 +1,10 @@
-// Bild eines Hoppers als Canvas: Die Figur wird einmal gemalt (lib/hopper/paint.ts) und hier nur noch
-// in passender Größe hineinkopiert – schneller als ein Bild zu erzeugen. Der Maler wird erst geladen,
+// Bild eines Hoppers als Canvas: Die Figur wird einmal in voller Auflösung gemalt (lib/hopper/paint.ts)
+// und hier nur noch in passender Größe hineinkopiert – schneller als ein Bild zu erzeugen. Der Maler wird erst geladen,
 // wenn das Bild ins Blickfeld kommt.
 
 import { memo, useEffect, useRef, useState } from 'react'
 import type { HopperLook } from '../lib/hopper/look.ts'
-import type { Framing } from '../lib/hopper/paint.ts'
+import type { Framing, HopperParts } from '../lib/hopper/paint.ts'
 
 const engine = () => import('../lib/hopper/paint.ts')
 
@@ -28,16 +28,20 @@ export const HopperArt = memo(function HopperArt({ look, kit, framing = 'full', 
     const el = ref.current
     if (!el) return
     let cancelled = false
-    let source: HTMLCanvasElement | null = null
+    let parts: HopperParts | null = null
     let rect: [number, number, number, number] | null = null
+    let paint: typeof import('../lib/hopper/paint.ts') | null = null
 
     const draw = () => {
-      if (!source || !rect) return
-      const box = el.getBoundingClientRect()
-      if (!box.width || !box.height) return
+      if (!parts || !rect || !paint) return
+      // Layoutgröße statt getBoundingClientRect: Die ist während Einblend-Animationen (scale) zu klein,
+      // und das Bild bliebe danach unscharf
+      const bw = el.clientWidth
+      const bh = el.clientHeight
+      if (!bw || !bh) return
       const dpr = Math.min(window.devicePixelRatio || 1, 3)
-      const w = Math.round(box.width * dpr)
-      const h = Math.round(box.height * dpr)
+      const w = Math.round(bw * dpr)
+      const h = Math.round(bh * dpr)
       if (el.width !== w || el.height !== h) {
         el.width = w
         el.height = h
@@ -48,16 +52,16 @@ export const HopperArt = memo(function HopperArt({ look, kit, framing = 'full', 
       const scale = fit === 'cover' ? Math.max(w / sw, h / sh) : Math.min(w / sw, h / sh)
       const dw = sw * scale
       const dh = sh * scale
-      g.imageSmoothingQuality = 'high'
       // Figur unten bündig (steht auf dem Boden), waagerecht mittig
-      g.drawImage(source, sx, sy, sw, sh, (w - dw) / 2, fit === 'cover' ? (h - dh) / 2 : h - dh, dw, dh)
+      paint.drawFigure(g, parts, scale, (w - dw) / 2 - sx * scale, (fit === 'cover' ? (h - dh) / 2 : h - dh) - sy * scale)
     }
 
     const load = () => {
       engine().then(async (m) => {
-        const c = await m.hopperCanvas(JSON.parse(lookJson) as HopperLook, kit)
+        const p = await m.hopperParts(JSON.parse(lookJson) as HopperLook, kit)
         if (cancelled) return
-        source = c
+        paint = m
+        parts = p
         rect = m.frameRect(framing)
         draw()
         setLoaded(true)

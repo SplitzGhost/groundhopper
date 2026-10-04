@@ -13,7 +13,8 @@ export function CardStrip({ cards, className = '' }: { cards: MatchCard[]; class
     <div className={`card-row ${className}`}>
       {cards.map((card, i) => (
         <motion.button key={card.id} type="button" className="card-row-item" data-card={card.id}
-          style={{ visibility: flying === card.id ? 'hidden' : 'visible' }}
+          // Frühere Karten liegen oben, damit die Hopper der Nachbarkarte dahinter verschwinden
+          style={{ visibility: flying === card.id ? 'hidden' : 'visible', zIndex: cards.length - i }}
           initial={{ opacity: 0, x: 24, rotate: 3 }} animate={{ opacity: 1, x: 0, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 360, damping: 28, delay: 0.08 + Math.min(i, 6) * 0.05 }}
           whileTap={{ scale: 0.94 }}

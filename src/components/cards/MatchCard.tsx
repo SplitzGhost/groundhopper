@@ -1,5 +1,6 @@
 // Spielkarte: vorne beide Wappen auf einer diagonal geteilten Fläche in Vereinsfarben, der
-// Endstand als Anzeigetafel genau auf der Naht, Extras als Plaketten. Hinten der Spielbericht
+// Endstand als Anzeigetafel genau auf der Naht, Extras als Plaketten. Die Hopper der Besucher schauen
+// von hinten am Kartenrand hervor. Hinten der Spielbericht
 // mit 3D-Stadion, Zuschauern und Torticker. Alle Maße skalieren mit der Kartenbreite (cqw).
 
 import { memo, useState, type CSSProperties, type ReactNode } from 'react'
@@ -94,6 +95,8 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
   const special = !!card.derby || card.extras.some((x) => x.id === 'hattrick' || x.id === 'late' || x.id === 'comeback')
   return (
     <div className={`mc ${card.derby ? 'is-derby' : ''} ${special ? 'is-special' : ''} ${crew.length ? 'has-crew' : ''} ${className}`} style={cardVars(card, style)}>
+      {/* Hopper hinter der Karte – schauen am Rand hervor */}
+      {crew.length > 0 && <CardCrew crew={crew} seed={card.id} />}
       <div className="mc-face">
         <div className="mc-top">
           {card.league
@@ -111,7 +114,6 @@ export const MatchCardFront = memo(function MatchCardFront({ card, size = 'sm', 
           <CardCrest club={card.away} size={size} className="away" league={card.league} saved={v.awayCrest} />
           <span className="mc-shine" />
           {card.derby && <span className="mc-embers">{EMBERS}</span>}
-          {crew.length > 0 && <CardCrew crew={crew} />}
           <div className="mc-board">
             <div className="mc-score tnum">
               <b>{hasScore ? v.homeScore : '–'}</b><i>:</i><b>{hasScore ? v.awayScore : '–'}</b>

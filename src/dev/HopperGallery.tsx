@@ -3,6 +3,7 @@
 //   #hopper/big/3      eine Figur groß (Index in LOOKS), optional /<Drehung>
 //   #hopper/kits/<Verein>  Trikots aus kits.json, gefiltert
 //   #hopper/card       Sammelkarten mit 1–5 Hoppern
+//   #hopper/peek/<Breite>/<Anzahl>  viele Karten mit Abstand, um Orte und Posen der Hopper zu prüfen
 //   #hopper/review/<Filter>  Wikipedia-Vorlage neben dem nachgebauten Trikot (nach npm run kits)
 import { useEffect, useState } from 'react'
 import { HopperArt } from '../components/HopperArt.tsx'
@@ -109,6 +110,18 @@ export function HopperGallery() {
           {cards.map((c, i) => <MatchCardFront key={c.id} card={c} crew={crewFor(i + 1, i)} size={parts[2] ? 'lg' : 'sm'} />)}
         </div>
       )}
+      {mode === 'peek' && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 70, padding: 60 }}>
+          {Array.from({ length: 12 }, (_, k) => {
+            const c = { ...cards[k % cards.length], id: 'peek' + k }
+            return (
+              <div key={k} style={{ width: Number(parts[2] ?? 240) }}>
+                <MatchCardFront card={c} crew={crewFor(Number(parts[3] ?? (k % 3) + 1), k)} size="lg" />
+              </div>
+            )
+          })}
+        </div>
+      )}
       {mode === 'review' && <Review filter={decodeURIComponent(parts[2] ?? '')} page={Number(parts[3] ?? 0)} />}
       {mode === 'kits' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 6 }}>
@@ -120,7 +133,7 @@ export function HopperGallery() {
           ))}
         </div>
       )}
-      <style>{'.hopper-art{width:100%;display:block}.hopper-art.full{aspect-ratio:488/1084}.hopper-art.bust{aspect-ratio:1}.hopper-art.big{height:100%;width:auto;min-width:0;flex:1;object-fit:contain}'}</style>
+      <style>{'.hopper-art{width:100%;display:block}.hopper-art.full{aspect-ratio:718/1594}.hopper-art.bust{aspect-ratio:1}.hopper-art.big{height:100%;width:auto;min-width:0;flex:1;object-fit:contain}'}</style>
     </div>
   )
 }

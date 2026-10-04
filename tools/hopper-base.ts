@@ -16,7 +16,7 @@ const srcName = process.argv.find((a) => a.endsWith('.png')) ?? readdirSync(SRC_
 const DEBUG = process.argv.includes('--debug')
 
 /** Bereichsnummern – identisch in src/lib/hopper/paint.ts */
-const REGION = { none: 0, skin: 1, hair: 2, shirt: 3, collar: 4, cuff: 5, shorts: 6, socks: 7, shoes: 8, mouth: 9, eye: 10, sleeve: 11 } as const
+const REGION = { none: 0, skin: 1, hair: 2, shirt: 3, collar: 4, cuff: 5, shorts: 6, socks: 7, shoes: 8, mouth: 9, eye: 10, sleeve: 11, armL: 12, armR: 13 } as const
 type Region = (typeof REGION)[keyof typeof REGION]
 
 const src = PNG.sync.read(readFileSync(new URL(srcName, SRC_DIR)))
@@ -40,7 +40,12 @@ maxX = Math.min(W0 - 1, maxX + PAD); maxY = Math.min(H0 - 1, maxY + PAD)
 
 // ---------- Verkleinern (Flächenmittel, vormultipliziertes Alpha) ----------
 
-const SCALE = 0.68
+// Volle Auflösung der Vorlage: Die Figur muss auch in der großen Kartenansicht gestochen scharf sein
+const SCALE = 1
+/** Pixelmaße unten sind für die frühere Verkleinerung (0.68) abgelesen und wachsen mit */
+const K = SCALE / 0.68
+const px1 = (n: number) => Math.round(n * K)
+const px2 = (n: number) => Math.round(n * K * K)
 const W = Math.round((maxX - minX + 1) * SCALE)
 const H = Math.round((maxY - minY + 1) * SCALE)
 const img = new Float32Array(W * H * 4)
@@ -61,6 +66,9 @@ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
 }
 
 const idx = (x: number, y: number) => y * W + x
+// Ohne Spread: Bei voller Auflösung sind die Listen zu lang für Math.min(...)
+const minOf = (a: number[]) => a.reduce((m, v) => (v < m ? v : m), Infinity)
+const maxOf = (a: number[]) => a.reduce((m, v) => (v > m ? v : m), -Infinity)
 const px = (x: number, y: number) => {
   const o = idx(x, y) * 4
   return [img[o], img[o + 1], img[o + 2], img[o + 3]] as const
@@ -122,24 +130,25 @@ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
 // kleine Hautinseln zwischen den Strähnen (Glanzlichter) → Haar, dann glätten
 function cleanHair() {
   const head = (i: number) => (i / W | 0) < H * HAIR_MAX
-  for (const c of components((i) => labels[i] === REGION.hair)) if (c.length < 260) for (const i of c) labels[i] = REGION.skin
+  for (const c of components((i) => labels[i] === REGION.hair)) if (c.length < px2(260)) for (const i of c) labels[i] = REGION.skin
   // Haut im Kopfbereich, die nicht zum Gesicht (samt Ohren) gehört, ist ein Glanzlicht im Haar
   const skinParts = components((i) => labels[i] === REGION.skin)
   const face = skinParts.find((c) => c.some((i) => head(i)))
   const faceSet = new Set(face)
   for (const c of skinParts) if (c !== face) for (const i of c) if (head(i)) labels[i] = REGION.hair
-  for (const c of components((i) => labels[i] === REGION.skin && head(i))) if (c.length < 1400) for (const i of c) labels[i] = REGION.hair
+  for (const c of components((i) => labels[i] === REGION.skin && head(i))) if (c.length < px2(1400)) for (const i of c) labels[i] = REGION.hair
   // Gesichtspixel, die nur über einen dünnen Saum am Haar hängen: Hautpixel im Kopf, die überwiegend von Haar umgeben sind
   for (let pass = 0; pass < 3; pass++) for (let y = 2; y < H * HAIR_MAX; y++) for (let x = 2; x < W - 2; x++) {
     const i = idx(x, y)
     if (labels[i] !== REGION.skin || !faceSet.has(i)) continue
     let hair = 0, bg = 0
-    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+    const r = px1(4)
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
       const j = idx(Math.min(W - 1, Math.max(0, x + dx)), Math.min(H - 1, Math.max(0, y + dy)))
       if (labels[j] === REGION.hair) hair++
       else if (img[j * 4 + 3] < 0.08) bg++
     }
-    if (hair + bg > 50) labels[i] = REGION.hair
+    if (hair + bg > 50 / 81 * (2 * r + 1) ** 2) labels[i] = REGION.hair
   }
   for (let pass = 0; pass < 2; pass++) {
     const next = labels.slice()
@@ -147,7 +156,8 @@ function cleanHair() {
       const i = idx(x, y)
       if (labels[i] !== REGION.hair && labels[i] !== REGION.skin) continue
       let hair = 0, n = 0
-      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      const r = px1(2)
+      for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
         const l = labels[idx(x + dx, y + dy)]
         if (l === REGION.hair) hair++
         if (l === REGION.hair || l === REGION.skin) n++
@@ -159,7 +169,7 @@ function cleanHair() {
   // Heller Saum um die Frisur (Kantenglättung der Freistellung) gehört zum Haar
   for (let y = 1; y < H * 0.27; y++) for (let x = 1; x < W - 1; x++) {
     const i = idx(x, y)
-    if (labels[i] === REGION.skin && neighbors(i, 5, (j) => img[j * 4 + 3] < 0.08)) labels[i] = REGION.hair
+    if (labels[i] === REGION.skin && neighbors(i, px1(5), (j) => img[j * 4 + 3] < 0.08)) labels[i] = REGION.hair
   }
 }
 
@@ -191,7 +201,7 @@ cleanHair()
 const dark = components((i) => labels[i] === REGION.eye)
 const eyes = dark.slice(0, 2).map((c) => {
   const xs = c.map((i) => i % W), ys = c.map((i) => (i / W) | 0)
-  return { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2, w: Math.max(...xs) - Math.min(...xs) + 1, h: Math.max(...ys) - Math.min(...ys) + 1, px: c }
+  return { x: (minOf(xs) + maxOf(xs)) / 2, y: (minOf(ys) + maxOf(ys)) / 2, w: maxOf(xs) - minOf(xs) + 1, h: maxOf(ys) - minOf(ys) + 1, px: c }
 }).sort((a, b) => a.x - b.x)
 for (const c of dark.slice(2)) for (const i of c) labels[i] = REGION.mouth
 
@@ -206,7 +216,7 @@ for (const c of dark.slice(2)) for (const i of c) labels[i] = REGION.mouth
 }
 
 // Mund: dunkle Linie + graue Zähne zwischen den Augen unterhalb
-const mouthTop = Math.max(...eyes.map((e) => e.y + e.h / 2))
+const mouthTop = maxOf(eyes.map((e) => e.y + e.h / 2))
 const faceL = eyes[0].x - eyes[0].w, faceR = eyes[1].x + eyes[1].w
 for (let y = Math.round(mouthTop); y < Math.round(mouthTop + eyes[0].h * 1.4); y++) for (let x = Math.round(faceL); x < faceR; x++) {
   const i = idx(x, y)
@@ -216,7 +226,7 @@ for (let y = Math.round(mouthTop); y < Math.round(mouthTop + eyes[0].h * 1.4); y
 // Augen entfernen: Augenpixel (+ 2 px Rand) mit Hautfarbe aus der Umgebung füllen
 for (const e of eyes) {
   // Zeilenweise: Farbe links und rechts neben dem Auge (gemittelt über ein paar Pixel) linear verbinden
-  const rx = e.w / 2 + 8, ry = e.h / 2 + 8
+  const rx = e.w / 2 + px1(8), ry = e.h / 2 + px1(8)
   const sample = (x: number, y: number) => {
     const acc = [0, 0, 0]
     let n = 0
@@ -231,7 +241,7 @@ for (const e of eyes) {
   for (let y = Math.round(e.y - ry); y <= e.y + ry; y++) {
     const half = rx * Math.sqrt(Math.max(0, 1 - ((y - e.y) / ry) ** 2))
     if (half < 1) continue
-    const xl = e.x - half - 3, xr = e.x + half + 3
+    const xl = e.x - half - px1(3), xr = e.x + half + px1(3)
     const cl = sample(xl, y), cr = sample(xr, y)
     if (!cl || !cr) continue
     for (let x = Math.round(e.x - half); x <= e.x + half; x++) {
@@ -251,7 +261,7 @@ for (const e of eyes) {
 const shirtPx: number[] = []
 for (let i = 0; i < W * H; i++) if (labels[i] === REGION.shirt) shirtPx.push(i)
 const sxs = shirtPx.map((i) => i % W), sys = shirtPx.map((i) => (i / W) | 0)
-const shirt = { x0: Math.min(...sxs), x1: Math.max(...sxs), y0: Math.min(...sys), y1: Math.max(...sys) }
+const shirt = { x0: minOf(sxs), x1: maxOf(sxs), y0: minOf(sys), y1: maxOf(sys) }
 function neighbors(i: number, r: number, test: (j: number) => boolean) {
   const x = i % W, y = (i / W) | 0
   for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
@@ -265,15 +275,50 @@ const shirtH = shirt.y1 - shirt.y0
 const midX = (shirt.x0 + shirt.x1) / 2
 // Rumpfbreite unten am Shirt (dort gibt es keine Ärmel) – alles außerhalb davon ist Ärmel
 const lowRows = shirtPx.filter((i) => (i / W | 0) > shirt.y0 + shirtH * 0.8)
-const torso = { x0: Math.min(...lowRows.map((i) => i % W)), x1: Math.max(...lowRows.map((i) => i % W)) }
+const torso = { x0: minOf(lowRows.map((i) => i % W)), x1: maxOf(lowRows.map((i) => i % W)) }
 for (const i of shirtPx) {
   const x = i % W, y = (i / W) | 0
   const t = (y - shirt.y0) / shirtH
   // Kragen: Shirt nahe der Haut am Hals (oberes Viertel, mittig)
-  if (t < 0.3 && Math.abs(x - midX) < shirtH * 0.28 && neighbors(i, 6, (j) => labels[j] === REGION.skin)) labels[i] = REGION.collar
+  if (t < 0.3 && Math.abs(x - midX) < shirtH * 0.28 && neighbors(i, px1(6), (j) => labels[j] === REGION.skin)) labels[i] = REGION.collar
   // Ärmelsaum: Shirt nahe der Haut der Arme (seitlich, mittlere Höhe)
-  else if (t > 0.25 && t < 0.75 && Math.abs(x - midX) > (shirt.x1 - shirt.x0) * 0.3 && neighbors(i, 7, (j) => labels[j] === REGION.skin)) labels[i] = REGION.cuff
+  else if (t > 0.25 && t < 0.75 && Math.abs(x - midX) > (shirt.x1 - shirt.x0) * 0.3 && neighbors(i, px1(7), (j) => labels[j] === REGION.skin)) labels[i] = REGION.cuff
   else if (x < torso.x0 - 1 || x > torso.x1 + 1) labels[i] = REGION.sleeve
+}
+
+// Arme: die Hautflächen unter den Ärmeln. Die App kann sie um den Ärmelsaum drehen (winken, jubeln).
+// Drehpunkt ist die Mitte des Saums, also die obersten Armzeilen.
+const arms = components((i) => labels[i] === REGION.skin)
+  .filter((c) => {
+    const y = c.reduce((s, i) => s + ((i / W) | 0), 0) / c.length
+    return y > shirt.y0 + shirtH * 0.3 && y < shirt.y1 + shirtH * 0.6 && c.length > px2(800)
+  })
+  .map((c) => {
+    const xs = c.map((i) => i % W), ys = c.map((i) => (i / W) | 0)
+    const y0 = minOf(ys), y1 = maxOf(ys)
+    // Saum: Armpixel, über denen das Shirt beginnt (schräg verlaufend)
+    const sleeveish = (j: number) => labels[j] === REGION.cuff || labels[j] === REGION.sleeve || labels[j] === REGION.shirt
+    const hem = c.filter((i) => i >= W * 3 && (sleeveish(i - W) || sleeveish(i - 2 * W) || sleeveish(i - 3 * W)))
+    const hx = hem.map((i) => i % W), hy = hem.map((i) => (i / W) | 0)
+    const px = hx.reduce((s, v) => s + v, 0) / hem.length
+    const py = hy.reduce((s, v) => s + v, 0) / hem.length
+    const r = Math.hypot(maxOf(hx) - minOf(hx), maxOf(hy) - minOf(hy)) / 2
+    return { c, x0: minOf(xs), x1: maxOf(xs), y0, y1, px, py, r }
+  })
+  .filter((a) => a.x1 < midX || a.x0 > midX)
+const armL = arms.filter((a) => a.x1 < midX)[0]
+const armR = arms.filter((a) => a.x0 > midX)[0]
+if (!armL || !armR) throw new Error('Arme nicht gefunden')
+for (const i of armL.c) labels[i] = REGION.armL
+for (const i of armR.c) labels[i] = REGION.armR
+// Halbtransparente Kantenpixel direkt am Arm, die noch als Hintergrund/Haut zählen, gehören zum Arm
+for (let pass = 0; pass < 2; pass++) for (let i = 0; i < W * H; i++) {
+  if (labels[i] !== REGION.none && labels[i] !== REGION.skin) continue
+  if (img[i * 4 + 3] < 0.01) continue
+  const y = (i / W) | 0
+  if (y < shirt.y0) continue
+  if (neighbors(i, 1, (j) => labels[j] === REGION.armL)) labels[i] = REGION.armL
+  else if (neighbors(i, 1, (j) => labels[j] === REGION.armR)) labels[i] = REGION.armR
 }
 
 // ---------- Ausgabe ----------
@@ -307,6 +352,10 @@ const meta = {
   eyes: eyes.map((e) => ({ x: Math.round(e.x * 10) / 10, y: Math.round(e.y * 10) / 10, w: e.w, h: e.h })),
   shirt,
   torso,
+  arms: [armL, armR].map((a) => ({
+    x0: a.x0, y0: a.y0, x1: a.x1, y1: a.y1,
+    px: Math.round(a.px * 10) / 10, py: Math.round(a.py * 10) / 10, r: Math.round(a.r),
+  })),
   ref,
 }
 writeFileSync(new URL('../src/data/hopperBase.json', import.meta.url), JSON.stringify(meta, null, 2) + '\n')
@@ -316,6 +365,7 @@ if (DEBUG) {
   const COLORS: Record<number, [number, number, number]> = {
     0: [240, 240, 240], 1: [230, 170, 130], 2: [120, 70, 30], 3: [60, 120, 255], 4: [255, 200, 0], 5: [0, 200, 120],
     6: [200, 40, 40], 7: [160, 0, 200], 8: [40, 40, 40], 9: [255, 0, 150], 10: [0, 0, 0], 11: [120, 180, 255],
+    12: [255, 120, 60], 13: [255, 60, 120],
   }
   const dbg = new PNG({ width: W * 2, height: H })
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {

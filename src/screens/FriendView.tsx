@@ -163,7 +163,8 @@ function FriendCard({ card, owner, index }: { card: MatchCard; owner: string; in
   const flying = flyingCardStore.use() === card.id
   return (
     <motion.button type="button" className="friend-card" data-card={card.id}
-      style={flying ? { visibility: 'hidden' } : undefined}
+      // Frühere Karten liegen oben, damit die Hopper der Nachbarkarten dahinter verschwinden
+      style={{ zIndex: 1000 - index, ...(flying ? { visibility: 'hidden' } : null) }}
       initial={{ opacity: 0, y: 14, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 380, damping: 28, delay: 0.05 + Math.min(index, 11) * 0.035 }}
       whileTap={{ scale: 0.94 }} onClick={() => openCard(card.id, false, owner)}
