@@ -1,7 +1,7 @@
 // Kalender zum Springen an einen beliebigen Tag im Spielplan. Punkte zeigen Spieltage.
 
 import { useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { localDateKey } from '../lib/dates.ts'
 import { useMatches } from '../state/matches.ts'

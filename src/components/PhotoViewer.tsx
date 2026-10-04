@@ -2,7 +2,7 @@
 // Bis das volle Bild geladen ist, steht das Vorschaubild unscharf an seiner Stelle.
 
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion, type PanInfo } from 'motion/react'
+import { AnimatePresence, motion, type PanInfo } from '../lib/fastMotion.tsx'
 import { Trash2, X } from 'lucide-react'
 import type { PhotoInfo } from '../lib/cloud.ts'
 import { jpegSrc } from '../lib/images.ts'

@@ -2,7 +2,7 @@
 // und Listen zum Vervollständigen – Vereine und Stadien je Land, Ligen, Derbys, Erfolge.
 
 import { useEffect, useMemo, type ReactNode } from 'react'
-import { motion, useSpring, useTransform } from 'motion/react'
+import { motion, useSpring, useTransform } from '../lib/fastMotion.tsx'
 import { ChevronRight, Plus, Swords, Trophy } from 'lucide-react'
 import { collect, levelOf, TEAM_NAMES, type Collection } from '../lib/album.ts'
 import { CLUB_LISTS, STADIUM_LISTS, countryOfList, leaguesOfCountry, listInfo, type ListId } from '../lib/lists.ts'

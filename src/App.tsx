@@ -2,7 +2,7 @@
 // Am Computer wird die App in einem iPhone-Rahmen gezeigt – gebaut ist sie fürs iPhone.
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from './lib/fastMotion.tsx'
 import { BatteryFull, Share, SignalHigh, Wifi, X } from 'lucide-react'
 import { openSheet, tabStore, type Tab } from './state/ui.ts'
 import { MapScreen } from './screens/MapScreen.tsx'

@@ -1,7 +1,7 @@
 // Gerüst für Listen-Bildschirme: großer Titel, der beim Scrollen in eine kompakte Glasleiste übergeht.
 
 import { forwardRef, useState, type ReactNode } from 'react'
-import { motion, useMotionValue, useTransform } from 'motion/react'
+import { motion, useMotionValue, useTransform } from '../lib/fastMotion.tsx'
 
 interface Props {
   title: string

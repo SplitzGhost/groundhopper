@@ -3,7 +3,7 @@
 // zufälligen Vorschlag, gespeichert wird erst mit „Hopper erstellen“. Danach wirkt jede Änderung sofort.
 
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../lib/fastMotion.tsx'
 import { Check, Shirt, Shuffle } from 'lucide-react'
 import { Sheet } from '../components/Sheet.tsx'
 import { useSheet } from '../components/sheetContext.ts'

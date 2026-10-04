@@ -3,7 +3,7 @@
 // Modell, bunt nach dem ersten Besuch. Dazu Ligen, Derbys und Erfolge.
 
 import { useMemo, type CSSProperties } from 'react'
-import { AnimatePresence, motion, type PanInfo } from 'motion/react'
+import { AnimatePresence, motion, type PanInfo } from '../lib/fastMotion.tsx'
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { League, Stadium } from '../shared/types.ts'
 import { LEAGUES } from '../shared/leagues.ts'

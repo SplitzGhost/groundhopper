@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../lib/fastMotion.tsx'
 import { ChevronRight, CloudOff, Download, LogIn, LogOut, RefreshCw, RotateCcw, Shirt, Trash2, Upload } from 'lucide-react'
 import { collect, levelOf } from '../lib/album.ts'
 import { computeStats } from '../lib/collection.ts'

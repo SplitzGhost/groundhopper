@@ -1,7 +1,7 @@
 // Kleine, wiederverwendbare Bedienelemente im iOS-/Liquid-Glass-Stil.
 
 import { useState, type PointerEvent, type ReactNode } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../lib/fastMotion.tsx'
 import { softSpring, spring } from '../lib/motion.ts'
 import { Star } from 'lucide-react'
 import { StadiumIcon } from './icons.tsx'

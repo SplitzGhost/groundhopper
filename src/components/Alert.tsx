@@ -1,7 +1,7 @@
 // Rückfrage-Dialog wie ein iOS-Alert: zoomt weich auf, optional mit Passwortfeld.
 
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { alertStore, closeAlert, type AlertSpec } from '../state/ui.ts'
 
 export function AlertHost() {

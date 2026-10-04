@@ -4,7 +4,7 @@
 // durch Hochziehen oder Scrollen groß.
 
 import { useState, type ReactNode } from 'react'
-import { motion, useDragControls, type PanInfo } from 'motion/react'
+import { motion, useDragControls, useMotionValue, type PanInfo } from '../lib/fastMotion.tsx'
 import { X } from 'lucide-react'
 import { GlassButton } from './ui.tsx'
 import { useSheet } from './sheetContext.ts'
@@ -27,12 +27,17 @@ export function Sheet({ title, actions, children, full, header, medium }: SheetP
   const { close, depth } = useSheet()
   const drag = useDragControls()
   const [expanded, setExpanded] = useState(!medium)
+  const dragY = useMotionValue(0)
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
     const down = info.offset.y > 100 || info.velocity.y > 650
     if (!expanded && (info.offset.y < -40 || info.velocity.y < -500)) setExpanded(true)
     else if (down && medium && expanded) setExpanded(false)
-    else if (down) close()
+    else if (down) {
+      // Beim Wegwischen nicht erst zurückfedern – die Hülle fährt von der gezogenen Position aus nach unten
+      dragY.stop()
+      close()
+    }
   }
 
   return (
@@ -47,35 +52,42 @@ export function Sheet({ title, actions, children, full, header, medium }: SheetP
         // Halbhoch: Karte dahinter bleibt antippbar
         style={{ pointerEvents: expanded ? 'auto' : 'none' }}
       />
+      {/* Hülle: Öffnen, Schließen und Zurückweichen laufen als Browser-Animation (flüssig auch im Stromsparmodus) */}
       <motion.div
-        className={`sheet ${full ? 'full' : ''} ${expanded ? '' : 'medium'}`}
-        role="dialog"
-        aria-modal="true"
+        className={`sheet-shell ${full ? 'full' : ''} ${expanded ? '' : 'medium'}`}
         initial={{ y: '100%' }}
         animate={{ y: depth * -10, scale: 1 - depth * 0.05, opacity: depth > 1 ? 0 : 1 }}
         exit={{ y: '100%', transition: { type: 'spring', stiffness: 420, damping: 42 } }}
         transition={sheetSpring}
-        drag="y"
-        dragControls={drag}
-        dragListener={false}
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={{ top: 0.03, bottom: 0.85 }}
-        onDragEnd={onDragEnd}
         style={{ pointerEvents: depth > 0 ? 'none' : 'auto' }}
       >
-        <div className="sheet-grab" onPointerDown={(e) => drag.start(e)}>
-          <div className="sheet-grabber" />
-          {header ?? (
-            <div className="sheet-header">
-              <h2 className="sheet-title truncate">{title}</h2>
-              {actions}
-              <GlassButton small label="Schließen" icon={<X size={18} strokeWidth={2.6} />} onClick={close} />
-            </div>
-          )}
-        </div>
-        <div className="sheet-body" onScroll={(e) => {
-          if (!expanded && e.currentTarget.scrollTop > 6) setExpanded(true)
-        }}>{children}</div>
+        {/* Innen: folgt beim Ziehen am Griff dem Finger */}
+        <motion.div
+          className="sheet"
+          role="dialog"
+          aria-modal="true"
+          drag="y"
+          dragControls={drag}
+          dragListener={false}
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={{ top: 0.03, bottom: 0.85 }}
+          onDragEnd={onDragEnd}
+          style={{ y: dragY }}
+        >
+          <div className="sheet-grab" onPointerDown={(e) => drag.start(e)}>
+            <div className="sheet-grabber" />
+            {header ?? (
+              <div className="sheet-header">
+                <h2 className="sheet-title truncate">{title}</h2>
+                {actions}
+                <GlassButton small label="Schließen" icon={<X size={18} strokeWidth={2.6} />} onClick={close} />
+              </div>
+            )}
+          </div>
+          <div className="sheet-body" onScroll={(e) => {
+            if (!expanded && e.currentTarget.scrollTop > 6) setExpanded(true)
+          }}>{children}</div>
+        </motion.div>
       </motion.div>
     </>
   )

@@ -1,7 +1,7 @@
 // Bausteine rund um Freunde: Profilbild, „Mit dabei“-Leiste mit Freundesauswahl und Fotoleiste.
 
 import { useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { Camera, Check, Clock, ImagePlus, Plus, Send, UserPlus } from 'lucide-react'
 import type { Visit } from '../shared/types.ts'
 import type { GroupMember } from '../lib/cloud.ts'

@@ -2,9 +2,8 @@
 // nach links den nächsten Tag; Wochenleiste und Kalender springen direkt zu einem Datum.
 // Die Merkliste öffnet sich über den Stern oben rechts. Der Ligen-Filter ist derselbe wie auf der Karte.
 
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { flushSync } from 'react-dom'
-import { AnimatePresence, animate, motion, useMotionValue, type PanInfo } from 'motion/react'
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { ArrowRight, CalendarDays, Plus, Search, SlidersHorizontal, Star, X } from 'lucide-react'
 import type { League, Match } from '../shared/types.ts'
 import { LEAGUES, LEAGUE_CODES } from '../shared/leagues.ts'
@@ -17,6 +16,7 @@ import { toggleMatchVisit, toggleWatch, useUserData } from '../state/userData.ts
 import { gamesDayStore, mapFilterStore, openSheet } from '../state/ui.ts'
 import { ScreenScaffold } from '../components/ScreenScaffold.tsx'
 import { MatchRow } from '../components/MatchRow.tsx'
+import { SnapPager } from '../components/SnapPager.tsx'
 import { hasStarted } from '../lib/matchState.ts'
 import { Empty, GlassButton, PillButton } from '../components/ui.tsx'
 import { ProfileButton } from '../components/ProfileButton.tsx'
@@ -187,67 +187,54 @@ const DayBar = forwardRef<HTMLDivElement, { day: string; today: string; count: (
 
 /** Wochenleiste: seitlich wischen blättert eine Woche weiter bzw. zurück, der Wochentag bleibt gewählt */
 function WeekStrip({ day, today, count }: { day: string; today: string; count: (d: string) => number }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0)
   const start = weekStart(day)
   // Per Wischen erreichte Woche steht schon an Ort und Stelle; Sprünge (Tage wischen, Kalender) gleiten herein
-  const [swipedTo, setSwipedTo] = useState<string | null>(null)
+  const [swiped, setSwiped] = useState<string | null>(null)
   const [shownStart, setShownStart] = useState(start)
   const [dir, setDir] = useState(0)
   if (shownStart !== start) {
     setDir(start > shownStart ? 1 : -1)
     setShownStart(start)
   }
-  // Loslassen nach dem Wischen soll keinen Tag antippen
-  const dragged = useRef(false)
 
-  const go = (d: 1 | -1, velocity = 0) => {
-    const w = ref.current?.clientWidth ?? 360
-    void animate(x, -d * w, { type: 'spring', stiffness: 320, damping: 36, velocity }).then(() => {
-      flushSync(() => {
-        setSwipedTo(addDays(start, d * 7))
-        gamesDayStore.set(addDays(day, d * 7))
-      })
-      x.jump(0)
-    })
-  }
-
-  const onDragEnd = (_: unknown, info: PanInfo) => {
-    setTimeout(() => { dragged.current = false }, 0)
-    const w = ref.current?.clientWidth ?? 360
-    if (info.offset.x < -w * 0.2 || info.velocity.x < -400) go(1, info.velocity.x)
-    else if (info.offset.x > w * 0.2 || info.velocity.x > 400) go(-1, info.velocity.x)
-    else void animate(x, 0, { type: 'spring', stiffness: 420, damping: 36 })
-  }
-
-  const week = (ws: string) => Array.from({ length: 7 }, (_, i) => addDays(ws, i)).map((d) => {
-    const n = count(d)
-    const on = d === day
+  const week = (ws: string) => {
+    const days = Array.from({ length: 7 }, (_, i) => addDays(ws, i))
+    const sel = days.indexOf(day)
     return (
-      <button key={d} type="button" className={`week-day ${on ? 'on' : ''} ${d === today ? 'today' : ''} ${n ? 'has' : ''}`}
-        onClick={() => { if (!dragged.current) gamesDayStore.set(d) }} aria-label={`${formatDayLong(d)}, ${n} Spiele`}>
-        <span className="week-wd">{weekdayFmt.format(keyToDate(d)).replace('.', '')}</span>
-        <span className="week-num tnum">
-          {on && <motion.span layoutId={`week-sel-${ws}`} className="week-sel" transition={{ type: 'spring', stiffness: 480, damping: 36 }} />}
-          <span>{Number(d.slice(8))}</span>
-        </span>
-        <i className="week-dot" />
-      </button>
+      <div className="week">
+        {/* Auswahlkreis gleitet per CSS (läuft auch im Stromsparmodus flüssig) */}
+        {sel >= 0 && <span className="week-sel" style={{ '--i': sel } as CSSProperties} />}
+        {days.map((d) => {
+          const n = count(d)
+          return (
+            <button key={d} type="button" className={`week-day ${d === day ? 'on' : ''} ${d === today ? 'today' : ''} ${n ? 'has' : ''}`}
+              onClick={() => gamesDayStore.set(d)} aria-label={`${formatDayLong(d)}, ${n} Spiele`}>
+              <span className="week-wd">{weekdayFmt.format(keyToDate(d)).replace('.', '')}</span>
+              <span className="week-num tnum"><span>{Number(d.slice(8))}</span></span>
+              <i className="week-dot" />
+            </button>
+          )
+        })}
+      </div>
     )
-  })
+  }
 
   return (
-    <div className="week-viewport" ref={ref}>
-      <motion.div className="week-track" style={{ x }} drag="x" dragDirectionLock dragMomentum={false}
-        onDragStart={() => { dragged.current = true }} onDragEnd={onDragEnd}>
-        <div className="week side prev" aria-hidden>{week(addDays(start, -7))}</div>
-        <motion.div key={start} className="week"
-          initial={swipedTo === start || !dir ? false : { opacity: 0, x: dir * 70 }}
-          animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 36 }}>
-          {week(start)}
-        </motion.div>
-        <div className="week side next" aria-hidden>{week(addDays(start, 7))}</div>
-      </motion.div>
+    <div className="week-viewport">
+      <SnapPager pageKey={start}
+        onStep={(d) => {
+          setSwiped(addDays(start, d * 7))
+          gamesDayStore.set(addDays(day, d * 7))
+        }}
+        prev={week(addDays(start, -7))}
+        current={
+          <motion.div key={start}
+            initial={swiped === start || !dir ? false : { opacity: 0, x: dir * 70 }}
+            animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 36 }}>
+            {week(start)}
+          </motion.div>
+        }
+        next={week(addDays(start, 7))} />
     </div>
   )
 }
@@ -256,10 +243,8 @@ function WeekStrip({ day, today, count }: { day: string; today: string; count: (
 
 /** `render(d, side)`: side = Nachbartag, der nur beim Wischen hervorschaut – dort reichen die ersten Spiele */
 function DayPager({ day, onChange, render }: { day: string; onChange: (d: string) => void; render: (d: string, side?: boolean) => ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0)
   // Per Wischen erreichter Tag (steht schon an Ort und Stelle) bzw. Richtung bei Sprüngen über Wochenleiste/Kalender
-  const [swipedTo, setSwipedTo] = useState<string | null>(null)
+  const [swiped, setSwiped] = useState<string | null>(null)
   const [shown, setShown] = useState(day)
   const [jumpDir, setJumpDir] = useState(0)
   if (shown !== day) {
@@ -267,37 +252,21 @@ function DayPager({ day, onChange, render }: { day: string; onChange: (d: string
     setShown(day)
   }
 
-  const go = (dir: 1 | -1, velocity = 0) => {
-    const w = ref.current?.clientWidth ?? 390
-    void animate(x, -dir * w, { type: 'spring', stiffness: 300, damping: 34, velocity }).then(() => {
-      const target = addDays(day, dir)
-      flushSync(() => {
-        setSwipedTo(target)
-        onChange(target)
-      })
-      x.jump(0)
-    })
-  }
-
-  const onDragEnd = (_: unknown, info: PanInfo) => {
-    const w = ref.current?.clientWidth ?? 390
-    if (info.offset.x < -w * 0.22 || info.velocity.x < -450) go(1, info.velocity.x)
-    else if (info.offset.x > w * 0.22 || info.velocity.x > 450) go(-1, info.velocity.x)
-    else void animate(x, 0, { type: 'spring', stiffness: 420, damping: 36 })
-  }
-
   return (
-    <div className="pager" ref={ref}>
-      <motion.div className="pager-track" style={{ x }} drag="x" dragDirectionLock dragMomentum={false} onDragEnd={onDragEnd}>
-        <div className="pager-side prev" aria-hidden>{render(addDays(day, -1), true)}</div>
-        <motion.div key={day} className="pager-page"
-          initial={swipedTo === day || !jumpDir ? false : { opacity: 0, x: jumpDir * 40 }}
+    <SnapPager className="pager" pageKey={day}
+      onStep={(dir) => {
+        setSwiped(addDays(day, dir))
+        onChange(addDays(day, dir))
+      }}
+      prev={render(addDays(day, -1), true)}
+      current={
+        <motion.div key={day}
+          initial={swiped === day || !jumpDir ? false : { opacity: 0, x: jumpDir * 40 }}
           animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 34 }}>
           {render(day)}
         </motion.div>
-        <div className="pager-side next" aria-hidden>{render(addDays(day, 1), true)}</div>
-      </motion.div>
-    </div>
+      }
+      next={render(addDays(day, 1), true)} />
   )
 }
 

@@ -2,7 +2,7 @@
 // und später aus dem Profil heraus, wenn man als Gast doch ein Konto möchte.
 
 import { useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { CloudUpload, X } from 'lucide-react'
 import { authOpenStore, continueAsGuest, signIn, useAccount } from '../state/account.ts'
 import { GlassButton, PillButton, Segmented } from '../components/ui.tsx'

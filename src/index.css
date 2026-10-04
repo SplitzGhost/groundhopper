@@ -350,13 +350,20 @@ html.standalone .device { bottom: auto; height: var(--app-h, 100%); }
   transition: color 0.3s var(--ease-out);
 }
 .tab.active { color: var(--accent); }
+/* Hintergrund des aktiven Tabs: per transform verschoben, iOS animiert das selbst (auch im Stromsparmodus flüssig) */
 .tab-indicator {
   position: absolute;
-  inset: 0;
+  left: 5px;
+  top: 5px;
+  width: 92px;
+  height: 54px;
   border-radius: 999px;
   background: var(--fill);
   box-shadow: inset 0 1px 1px var(--glass-sheen);
-  z-index: -1;
+  z-index: 1;
+  transform: translateX(calc(var(--i) * 92px));
+  transition: transform 0.45s cubic-bezier(0.34, 1.2, 0.64, 1);
+  pointer-events: none;
 }
 .tab-icon { display: grid; place-items: center; height: 24px; }
 .tab svg { transition: fill-opacity 0.3s var(--ease-out); fill: currentColor; fill-opacity: 0; }
@@ -1002,7 +1009,9 @@ textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: non
   background: rgba(4, 12, 28, 0.32);
   z-index: 60;
 }
-.sheet {
+/* Äußere Hülle: Position und Öffnen/Schließen (läuft als Browser-Animation),
+   innen das eigentliche Sheet, das sich mit dem Finger ziehen lässt */
+.sheet-shell {
   position: absolute;
   left: 0;
   right: 0;
@@ -1010,18 +1019,24 @@ textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: non
   max-height: calc(100% - var(--safe-top) - 10px);
   display: flex;
   flex-direction: column;
-  border-radius: 34px 34px 0 0;
-  background: var(--bg-sheet);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
-  box-shadow: 0 -10px 40px -10px rgba(10, 30, 70, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6);
   z-index: 61;
   will-change: transform;
   transform-origin: 50% 0;
   transition: max-height 0.5s var(--ease-out), height 0.5s var(--ease-out);
 }
-.sheet.medium { max-height: 52%; }
-.sheet.full { height: calc(100% - var(--safe-top) - 10px); }
+.sheet-shell.medium { max-height: 52%; }
+.sheet-shell.full { height: calc(100% - var(--safe-top) - 10px); }
+.sheet {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 34px 34px 0 0;
+  background: var(--bg-sheet);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: 0 -10px 40px -10px rgba(10, 30, 70, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
 @media (prefers-color-scheme: dark) {
   .sheet { box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
 }

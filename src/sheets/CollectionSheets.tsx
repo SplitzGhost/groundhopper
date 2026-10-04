@@ -2,7 +2,7 @@
 // eigenen Spielkarten, die dazugehören.
 
 import { useMemo, type CSSProperties, type ReactNode } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../lib/fastMotion.tsx'
 import { CalendarDays, ChevronRight, Flame, Hash, Lock, Palette, Shield } from 'lucide-react'
 import type { LeagueCode, Match } from '../shared/types.ts'
 import { leagueByCode } from '../shared/leagues.ts'

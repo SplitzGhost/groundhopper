@@ -1,7 +1,7 @@
 // Mitteilung, die aus der Dynamic Island herauswächst.
 
 import type { ReactNode } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { Check, Flag, Info, Shield, Star, Swords, Trophy } from 'lucide-react'
 import { dismissToast, useToast, type ToastIcon } from '../state/toast.ts'
 import { StadiumIcon } from './icons.tsx'

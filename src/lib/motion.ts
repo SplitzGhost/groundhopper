@@ -1,4 +1,4 @@
-import type { Transition } from 'motion/react'
+import type { Transition } from './fastMotion.tsx'
 
 /** Knackige Feder für Antippen und kleine Elemente */
 export const spring: Transition = { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }

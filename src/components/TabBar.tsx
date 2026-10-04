@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { motion } from 'motion/react'
+import type { CSSProperties, ReactNode } from 'react'
+import { motion } from '../lib/fastMotion.tsx'
 import { Map as MapIcon, Users } from 'lucide-react'
 import { tabStore, type Tab } from '../state/ui.ts'
 import { BallIcon, CardsIcon } from './icons.tsx'
@@ -18,6 +18,7 @@ export function TabBar() {
   const pending = usePendingCount()
   return (
     <nav className="glass tabbar" aria-label="Hauptnavigation">
+      <span className="tab-indicator" style={{ '--i': TABS.findIndex((t) => t.id === tab) } as CSSProperties} />
       {TABS.map((t) => (
         <motion.button
           key={t.id}
@@ -29,7 +30,6 @@ export function TabBar() {
           transition={softSpring}
           onClick={() => tabStore.set(t.id)}
         >
-          {tab === t.id && <motion.span layoutId="tab-indicator" className="tab-indicator" transition={softSpring} />}
           {/* Beim Antippen federt das Symbol kurz – neu gestartet über den key */}
           <motion.span key={tab === t.id ? 'on' : 'off'} className="tab-icon"
             initial={tab === t.id ? { scale: 0.7, y: 2 } : false} animate={{ scale: 1, y: 0 }}

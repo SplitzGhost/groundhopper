@@ -1,6 +1,6 @@
 // Waagrechte Reihe kleiner Spielkarten (z. B. „Deine Karten“ bei Verein, Stadion, Derby).
 
-import { motion } from 'motion/react'
+import { motion } from '../../lib/fastMotion.tsx'
 import type { MatchCard } from '../../lib/matchCards.ts'
 import { useRevealed } from '../../state/revealed.ts'
 import { flyingCardStore, openCard } from '../../state/ui.ts'

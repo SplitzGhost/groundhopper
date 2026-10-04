@@ -4,7 +4,7 @@
 // mit 3D-Stadion, Zuschauern und Torticker. Alle Maße skalieren mit der Kartenbreite (cqw).
 
 import { memo, useState, type CSSProperties, type ReactNode } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../../lib/fastMotion.tsx'
 import { Award, Flame, Info, Lightbulb, PartyPopper, Snowflake, Timer, TrendingUp, Users } from 'lucide-react'
 import type { LeagueCode, MatchEvent } from '../../shared/types.ts'
 import { cardNo, shortClub, type Extra, type ExtraId, type MatchCard } from '../../lib/matchCards.ts'

@@ -3,7 +3,7 @@
 // Erinnerung (Bewertung, Notizen). Frisch verdiente Karten kommen verdeckt angeflogen.
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
-import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useMotionValueEvent, useSpring, useTransform } from '../../lib/fastMotion.tsx'
 import { BookOpen, Camera, PenLine, Quote, RotateCcw, Star, Users, X } from 'lucide-react'
 import type { MatchCard } from '../../lib/matchCards.ts'
 import { shortClub } from '../../lib/matchCards.ts'

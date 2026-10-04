@@ -4,7 +4,7 @@
 
 import { memo, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'motion/react'
+import { AnimatePresence, animate, motion, useMotionValue, useTransform } from '../lib/fastMotion.tsx'
 import { ArrowUpDown, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PER_PAGE, SORTS, pagesOf, type BinderPage, type MatchCard } from '../lib/matchCards.ts'
 import { leagueLogo } from '../lib/crests.ts'

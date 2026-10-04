@@ -2,7 +2,7 @@
 // Für manuell eingetragene Besuche ohne Spiel aus der Datenquelle gibt es VisitSheet.
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { Camera, Check, ChevronRight, Flame, Star, Trash2, Users } from 'lucide-react'
 import type { Visit } from '../shared/types.ts'
 import { leagueByCode } from '../shared/leagues.ts'

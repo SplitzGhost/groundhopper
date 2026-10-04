@@ -2,7 +2,7 @@
 // Schnellauswahl (Weltweit, Europa, Deutschland, Top 5) und „nur neue Stadien“.
 
 import { useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { ChevronRight } from 'lucide-react'
 import type { LeagueCode } from '../shared/types.ts'
 import { LEAGUE_CODES, LEAGUE_GROUPS, LEAGUES, type LeagueGroup } from '../shared/leagues.ts'

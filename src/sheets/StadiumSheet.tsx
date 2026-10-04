@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../lib/fastMotion.tsx'
 import type { CSSProperties } from 'react'
 import { Check, ChevronRight, Lock, MapPin, Navigation, Rotate3d } from 'lucide-react'
 import type { Match } from '../shared/types.ts'

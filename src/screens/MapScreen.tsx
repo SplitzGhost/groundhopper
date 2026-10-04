@@ -1,7 +1,7 @@
 // Startseite: Vollbild-Karte mit Standort, Stadien, Ligen-/Tagesfilter und Spiele-Karussell.
 
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { CalendarDays, LocateFixed, Search, SlidersHorizontal, Star } from 'lucide-react'
 import type { Match, Stadium } from '../shared/types.ts'
 import { LEAGUE_CODES, leagueByCode } from '../shared/leagues.ts'

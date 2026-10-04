@@ -1,4 +1,4 @@
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence } from '../lib/fastMotion.tsx'
 import { closeSheet, sheetStore, type SheetSpec } from '../state/ui.ts'
 import { SheetContext } from '../components/sheetContext.ts'
 import { StadiumSheet } from './StadiumSheet.tsx'

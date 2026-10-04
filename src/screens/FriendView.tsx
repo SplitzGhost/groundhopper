@@ -2,7 +2,7 @@
 // Schiebt sich wie eine iOS-Unterseite von rechts herein; Karten öffnen sich wie die eigenen.
 
 import { useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion, type PanInfo } from 'motion/react'
+import { AnimatePresence, motion, type PanInfo } from '../lib/fastMotion.tsx'
 import { ChevronLeft, UserMinus, Users } from 'lucide-react'
 import { collect } from '../lib/album.ts'
 import { computeStats } from '../lib/collection.ts'

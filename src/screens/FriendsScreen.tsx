@@ -2,7 +2,7 @@
 // „Warst du dabei?“), die Freundesliste und gesendete Anfragen.
 
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from '../lib/fastMotion.tsx'
 import { Check, ChevronRight, Clock, Search, UserPlus, Users, X } from 'lucide-react'
 import type { FoundUser, Relation, TagRequest } from '../lib/cloud.ts'
 import { cloudEnabled } from '../lib/cloud.ts'

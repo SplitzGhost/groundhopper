@@ -1,7 +1,7 @@
 // Suche auf der Karte: Stadien und Vereine lokal, Orte über OpenStreetMap.
 
 import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'motion/react'
+import { motion } from '../lib/fastMotion.tsx'
 import { MapPin, Search, X } from 'lucide-react'
 import { STADIUMS } from '../lib/stadiums.ts'
 import { normalizeTeamName } from '../shared/teamMatch.ts'

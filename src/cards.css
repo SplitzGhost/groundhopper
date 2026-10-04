@@ -1504,21 +1504,41 @@
 }
 .today-btn:active { transform: scale(0.94); }
 .week-viewport { position: relative; overflow: hidden; border-radius: 22px; background: var(--bg-elev); box-shadow: var(--card-shadow); }
-.week-track { position: relative; touch-action: pan-y; }
 .week {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
   padding: 7px 6px 5px;
 }
-.week.side { position: absolute; top: 0; width: 100%; }
-.week.side.prev { right: 100%; }
-.week.side.next { left: 100%; }
 .week-day { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 2px 0; border-radius: 14px; }
 .week-wd { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-2); }
 .week-num { position: relative; width: 36px; height: 36px; display: grid; place-items: center; font: 700 17px/1 var(--font-rounded); }
 .week-num > span:last-child { position: relative; z-index: 1; transition: color 0.25s; }
-.week-sel { position: absolute; inset: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 6px 14px -6px var(--accent-glow); }
+/* Auswahlkreis: eine Spalte breit, per transform zur gewählten Spalte geschoben (iOS animiert das selbst) */
+.week-sel {
+  position: absolute;
+  top: 7px;
+  left: 6px;
+  width: calc((100% - 12px - 12px) / 7);
+  height: 0;
+  transform: translateX(calc(var(--i) * (100% + 2px)));
+  transition: transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1);
+  pointer-events: none;
+}
+.week-sel::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(2px + 11px * 1.35 + 3px);
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 6px 14px -6px var(--accent-glow);
+}
+.week-day { position: relative; z-index: 1; }
 .week-day.on .week-num > span:last-child { color: #fff; }
 .week-day.today:not(.on) .week-num { color: var(--accent); }
 .week-day:not(.has):not(.on) .week-num { color: var(--text-3); }
@@ -1526,11 +1546,20 @@
 .week-day.has .week-dot { background: var(--accent); }
 .week-day:active .week-num { transform: scale(0.9); transition: transform 0.1s; }
 
-.pager { position: relative; overflow: hidden; }
-.pager-track { position: relative; touch-action: pan-y; }
-.pager-side { position: absolute; top: 0; width: 100%; }
-.pager-side.prev { right: 100%; }
-.pager-side.next { left: 100%; }
+/* Wischseiten über natives Scrollen mit Einrasten (SnapPager) */
+.snap-pager {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.snap-pager::-webkit-scrollbar { display: none; }
+.snap-page { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+/* Nachbarseiten bestimmen die Höhe nicht mit – sie werden auf die Höhe der aktuellen Seite gestreckt */
+.snap-page.side { align-self: stretch; contain: size; overflow: hidden; }
 .day-page { min-height: 340px; padding-bottom: 8px; }
 .lg-sec { margin-top: 16px; content-visibility: auto; contain-intrinsic-size: auto 320px; }
 .lg-head { display: flex; align-items: center; gap: 8px; padding: 0 20px 8px; }
